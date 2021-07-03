@@ -4,9 +4,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=====================
-Microbial Informatics
-=====================
+=======================
+Methods in Microbiomics
+=======================
 
 Set of guidelines and best practices for robust and reproducible bioinformatics processing and data analysis
 with the focus on Microbiomics research.
@@ -14,35 +14,60 @@ with the focus on Microbiomics research.
 
 .. important::
 
-    These guidelines are only guidelines. They are constantly under development and subject to change without warning
+    This documentation is currently under constructions
 
 
 .. _main-reproducible-research:
 
 ---------------------
-Reproducible Research
+Data Preprocessing
 ---------------------
 
-Guidelines for creating and maintaining reproducible data workflows
+.. warning::
 
+   Before proceeding to any of the bioinformatics workflows, make sure you have good quality data.
+   See :doc:`/data_preprocessing/data_preprocessing` for more.
 
-.. _main-bioinformatic-pipelines:
 
 -----------------------
-Bioinformatic Pipelines
+Assembly
 -----------------------
 
-Collection of bioinformatic pipelines + collection of 'custom scripts' to assist in the analysis
+Best practices for assembly of genomes and metagenomes
 
 
-.. _main-data-analysis:
+----------
+Profiling
+----------
 
------------------------
-Data Analysis
------------------------
-A forever evolving list of suggestions and considerations when analysing microbiome data
+Best practises for profiling of amplicon and metagenomic data
 
-.. _main-support:
+
+----------
+Annotation
+----------
+SNVs? mVIRs? BGCs?
+
+
+---------------
+Transcriptomics
+---------------
+Best practices for transcriptomic and metatranscriptomic data profiling
+
+
+--------------
+Modelling
+--------------
+
+Best practices in metagenomic data analysis
+
+
+--------------
+Workflows
+--------------
+
+Example implementation of best practices
+
 
 -------
 Support
@@ -56,36 +81,67 @@ Resources
 
 
 .. toctree::
-   :caption: Reproducible Research
-   :name: reproducible_research
+   :caption: Data Preprocessing
+   :name: data_preprocessing
    :hidden:
    :maxdepth: 1
 
-   reproducible_research/data_management
-   reproducible_research/git
-   reproducible_research/remote_machines
-   reproducible_research/workflow_managers
+   data_preprocessing/data_preprocessing
 
 .. toctree::
-   :caption: Bioinformatic Pipelines
-   :name: bioinformatic_pipelines
+   :caption: Assembly
+   :name: assembly
    :hidden:
    :maxdepth: 1
 
-   bioinformatic_pipelines/taxonomic_profiling
-   bioinformatic_pipelines/16S
-   bioinformatic_pipelines/transcriptomics
-   bioinformatic_pipelines/genome_assembly
-   bioinformatic_pipelines/functional_profiling
-   bioinformatic_pipelines/comparative_genomics
-   bioinformatic_pipelines/variant_calling
+   assembly/genome_assembly
+   assembly/metagenomic_workflows
 
 .. toctree::
-   :caption: Data Analysis
-   :name: data_analysis
+   :caption: Profiling
+   :name: profiling
    :hidden:
    :maxdepth: 1
 
-   data_analysis/alpha_diversity
-   data_analysis/beta_diversity
-   data_analysis/differential_expression
+   profiling/16S
+   profiling/motus
+   profiling/mtags
+   profiling/variants
+   profiling/function
+
+.. toctree::
+   :caption: Annotation
+   :name: annotation
+   :hidden:
+   :maxdepth: 1
+
+   annotation/bgc.rst
+   annotation/mvirs.rst
+
+
+.. toctree::
+   :caption: Transcriptomics
+   :name: transcriptomics
+   :hidden:
+   :maxdepth: 1
+
+   transcriptomics/transcriptomics.rst
+
+
+.. toctree::
+   :caption: Modelling
+   :name: modelling
+   :hidden:
+   :maxdepth: 1
+
+   modelling/modelling.rst
+
+
+
+.. toctree::
+   :caption: Workflows
+   :name: workflows
+   :hidden:
+   :maxdepth: 1
+
+   workflows/workflows.rst

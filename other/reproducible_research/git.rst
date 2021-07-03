@@ -1,11 +1,10 @@
+====
 Git
 ====
 
-Basics
-^^^^^^
-
+---------------------
 Setting up git config
-*********************
+---------------------
 
 .. code-block:: console
 
@@ -13,9 +12,9 @@ Setting up git config
     git config --global user.email
     ...
 
-
+--------------
 Basic Workflow
-****************
+--------------
 
 
 .. image:: ../images/git_basics.png
@@ -28,9 +27,9 @@ Basic Workflow
     $ git push
     $ git pull
 
-
+---------
 Branching
-*********
+---------
 
 .. code-block:: console
 
@@ -43,6 +42,6 @@ Branching
     git merge
     git branch -d issue_1
 
-
+--------------------------
 Working through an example
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
