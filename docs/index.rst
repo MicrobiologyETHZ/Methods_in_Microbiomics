@@ -46,7 +46,7 @@ Best practises for profiling of amplicon and metagenomic data
 ----------
 Annotation
 ----------
-SNVs? mVIRs? BGCs?
+SNVs, mVIRs, BGCs.
 
 
 ---------------
@@ -96,6 +96,7 @@ Resources
 
    assembly/genome_assembly
    assembly/metagenomic_workflows
+   assembly/long_read
 
 .. toctree::
    :caption: Profiling
@@ -145,3 +146,14 @@ Resources
    :maxdepth: 1
 
    workflows/workflows.rst
+
+
+.. raw:: html
+
+   <script src="https://utteranc.es/client.js"
+           repo="MicrobiologyETHZ/Methods_in_Microbiomics"
+           issue-term="pathname"
+           theme="github-light"
+           crossorigin="anonymous"
+           async>
+   </script>
