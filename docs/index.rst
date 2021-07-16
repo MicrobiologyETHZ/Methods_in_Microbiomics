@@ -26,7 +26,7 @@ Data Preprocessing
 .. warning::
 
    Before proceeding to any of the bioinformatics workflows, make sure you have good quality data.
-   See :doc:`/data_preprocessing/data_preprocessing` for more.
+   See :doc:`/preprocessing/preprocessing` for more.
 
 
 -----------------------
@@ -82,11 +82,11 @@ Resources
 
 .. toctree::
    :caption: Data Preprocessing
-   :name: data_preprocessing
+   :name: preprocessing
    :hidden:
    :maxdepth: 1
 
-   data_preprocessing/data_preprocessing
+   preprocessing/preprocessing
 
 .. toctree::
    :caption: Assembly
@@ -147,13 +147,3 @@ Resources
 
    workflows/workflows.rst
 
-
-.. raw:: html
-
-   <script src="https://utteranc.es/client.js"
-           repo="MicrobiologyETHZ/Methods_in_Microbiomics"
-           issue-term="pathname"
-           theme="github-light"
-           crossorigin="anonymous"
-           async>
-   </script>
