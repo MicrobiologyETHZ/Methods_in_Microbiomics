@@ -8,3 +8,4 @@ dependencies:
 #  - nbsphinx==0.8.1
   - pip:
     - sphinx_rtd_theme==0.5.2
+    - sphinx-comments==0.0.3
