@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - sphinx==4.0.2
+  - myst-parser==0.15.1
+#  - nbsphinx==0.8.1
+  - pip:
+    - sphinx_rtd_theme==0.5.2
