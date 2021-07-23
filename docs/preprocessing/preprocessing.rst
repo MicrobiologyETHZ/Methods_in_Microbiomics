@@ -12,7 +12,7 @@ General Considerations
 ----------------
 Example Workflow
 ----------------
-.. image:: ../images/Data-Preprocessing.png
+.. image:: ../images/Preprocessing.png
 
 
 
@@ -40,7 +40,7 @@ Example command
 Other Considerations
 --------------------
 
-.. image:: ../images/Data-Preprocessing2.png
+.. image:: ../images/Preprocessing2.png
 
 
 ------------------
