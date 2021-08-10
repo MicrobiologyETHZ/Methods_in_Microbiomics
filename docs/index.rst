@@ -105,8 +105,7 @@ Resources
    :maxdepth: 1
 
    profiling/16S
-   profiling/motus
-   profiling/mtags
+   profiling/metagenomes
    profiling/variants
    profiling/function
 
