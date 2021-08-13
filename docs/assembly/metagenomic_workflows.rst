@@ -46,34 +46,37 @@ This protocol will allow you to create a denovo gene catalog from your metagenom
     You can use multiple threads (16-32) to speed up the assembly
 
 
-
 4. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length.
 
 
-5. Gene calling.
-    We use **prodigal** to extract protein-coding genes from metagenomic contigs. Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add ``-p meta`` option.
+5. Gene calling. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (usually use **contigs** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna), as well as an annotation file (.gff)
 
     **Example command**:
 
-.. code-block:: console
+    .. code-block:: console
 
-    metaspades.py -t {threads} -m {memory} --only-assembler --pe1-1 {forward_reads.fq.gz} --pe1-2 \
-    {reverse_reads.fq.gz} --pe1-s {singeltons.fq.gz} --pe-1m {merged_reads.fq.gz} -o {spades_output_directory}
+        zcat {in.fa.gz} | prodigal -a {out.faa} -d {out.fna} -f gff -o {out.gff} -c -q -p meta
 
-6. Gene de-replication
+6. Gene de-replication. The next step is to remove duplicated sequences from the catalog. (Aggregation across samples?) Called genes are dereplicated using **BBTools Dedupe** and **CD-HIT**. Some additional step?
 
-**Example command**:
+    **Example command**:
 
-.. code-block:: console
+    .. code-block:: console
 
-    metaspades.py -t {threads} -m {memory} --only-assembler --pe1-1 {forward_reads.fq.gz} --pe1-2 \
-    {reverse_reads.fq.gz} --pe1-s {singeltons.fq.gz} --pe-1m {merged_reads.fq.gz} -o {spades_output_directory}
+        dedupe.sh -Xmx500G in={in.fasta} out={out.rep.fasta} outd={out.red.fasta} \
+        threads=64 absorbrc=f exact=t touppercase=t usejni=t ac=t mergenames=t absorbmatch=t; \
+        cd-hit-est -i {out.rep.fasta} -o {out.fasta} -c 0.95 -T 64 \
+        -M 0 -G 0 -aS 0.9 -g 1 -r 0 -d 0
 
 
 Profiling
 ^^^^^^^^^
 
-.. image:: ../images/Profiling-gene-catalog.png
+.. image:: ../images/Gene-Catalog-Profiling.png
+
+7. Read alignment.
+8. Filtering the alignment files.
+9. Counting gene abundance for each sample.
 
 
 -----
@@ -83,36 +86,67 @@ MAGs
 The Holy Grail of metagenomics is to be able to assemble individual microbial genomes from complex community samples. However assemblies with short read assemblers fails to reconstruct complete genomes. For that reason, binning approaches have been developed to facilitate creation of Metagenome Assembled Genomes (MAGs).
 
 
-The first steps (link to preprocessing) and (link to assemlby) are the same for MAGs as for Gene Catalog workflow. This workflow starts with size-filtered metaSPAdes assembled contigs.
+.. image:: ../images/MAGs.png
 
-Cross-Mapping
-^^^^^^^^^^^^^
+The first steps (Steps 1 through 3) are the same for MAGs as for :ref:`Gene Catalogs` workflow. This workflow starts with size-filtered metaSPAdes assembled contigs.
+
+All-to-all Alignment
+^^^^^^^^^^^^^^^^^^^^
 
 **Purpose**:
 
 4. In this step, quality controlled for each of the metagenomic samples is mapped to each of the metagenomic assemblies using BWA. Map reads from all samples against scaffolds in each other sample. Here we use -a to allow mapping to secondary sites.
 
-**Example Command**:
+    **Example Command**:
 
-.. code-block:: console
-    bwa
+    .. code-block:: console
 
+        bwa
+
+.. important::
+
+    **Computational Resources**: !
 
 5. The generated alignment files are then filtered to only include alingments that are at least 45 nucletides long, with an identity of >= 97 and covering 80 of the read sequence. The alignment filtering was done using ... Other alternatives?
 
-**Example Command**:
+    **Example Command**:
 
-.. code-block:: console
-    sushicounter
+    .. code-block:: console
+
+        sushicounter
 
 Metagenomic Binning
 ^^^^^^^^^^^^^^^^^^^
 
 **Purpose:**
 
-6. Metagenomic Binning
-    MetaBAT2 for within and between sample coverages for each scaffold
-    MetaBAT2 for actual binning
+6. Within- and between-sample abundance correlation for each scaffold.
+
+    **Example Command**:
+
+    .. code-block:: console
+
+        metaBAT2
+
+
+
+.. note::
+
+    How many samples do I need to benefit?
+    Strictly speaking need at least 3, with as few as 20 starting to see improvement in the assemblies
+
+
+7. Metagenomic Binning
+
+    **Example Command**:
+
+    .. code-block:: console
+
+        metaBAT2
+
+
+Quality Control
+^^^^^^^^^^^^^^^
 
 8. Quality checks: CheckM adn Anvi'o
 
@@ -120,16 +154,6 @@ Metagenomic Binning
 
 9. Taxonomic/Functional annotations -> page for that
 
-- Strictly speaking need at least 3, with as few as 20 starting to see improvement in the assemblies
-
-
-
-
-Why cross-sample mapping?
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-How many samples do I need to benefit?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 Further Reading
