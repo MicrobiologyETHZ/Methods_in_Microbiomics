@@ -10,7 +10,7 @@ Technical advances in sequencing technologies in recent decades have allowed det
 Gene Catalogs
 --------------
 
-    Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors, as well as disease associations.
+Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors, as well as disease associations.
 
 .. note:: Integrated catologs of reference genes have been generated for many ecosystems (<add link to ocean>, <add link to human gut>), and might be a good starting point for the analysis.
 
