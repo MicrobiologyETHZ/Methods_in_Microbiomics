@@ -421,3 +421,4 @@ buildNumber.properties
 # added by Anna for general purposes :)
 
 *data*
+*.xmind
