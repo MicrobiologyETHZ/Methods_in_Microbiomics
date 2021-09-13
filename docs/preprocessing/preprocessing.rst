@@ -15,7 +15,7 @@ Data quality control is an essential first step in any bioinformatic workflow. B
 
 .. image:: ../images/Preprocessing.png
 
-1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding site, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preproccessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adpater trimming is perfomed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is show below.
+1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding site, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preproccessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adpater trimming is perfomed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
 
     **Example command**
         .. code-block:: console
