@@ -6,16 +6,16 @@ Data Preprocessing
 General Considerations
 -----------------------
 
-Data quality control is an essential first step in any bioinformatic workflow. Below we discuss recommended preprocessing steps for **short read Illumina** sequencing data. Broadly, these steps involve Illumina adapter removal, contaminant filtering and quality-trimming. Additional preprocessing steps, recommended only for specific workflows are detailed in :ref:`Other Considerations`.
+Data quality control is an essential first step in any bioinformatics workflow. Below we discuss recommended preprocessing steps for **short read Illumina** sequencing data. Broadly, these steps involve Illumina adapter removal, contaminant filtering and quality-trimming. Additional preprocessing steps, recommended only for specific workflows, are detailed in :ref:`Other Considerations`.
 
 .. important::
 
-    This applies to (standard) Illumina short read data. Long read sequencing data from other technologies, or other library preparataions from Illumina (ex. Nextera Mate Pair Reads data) will require a different preprocessing protocol.
+    This applies to (standard) Illumina short read data. Long read sequencing data from other technologies, or other library preparations from Illumina (ex. Nextera Mate Pair Reads data) will require a different preprocessing protocol.
 
 
 .. image:: ../images/Preprocessing.png
 
-1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding site, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preproccessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adpater trimming is perfomed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
+1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding sites, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preprocessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adapter trimming is performed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, a FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
 
     **Example command**
         .. code-block:: console
@@ -43,7 +43,7 @@ hdist=1     hamming distance for reference k-mers
     `Why are adapter sequences trimmed from only the 3' ends of reads? <https://emea.support.illumina.com/bulletins/2016/04/adapter-trimming-why-are-adapter-sequences-trimmed-from-only-the--ends-of-reads.html>`_
 
 
-2. **Contaminant removal**. Spike-ins (most commonly PhiX) are usually used for quality control of sequencing runs, as well as to ensure nucleotide diversity when sequencing low complexity libraries. These sequences should not be present in your data, but we perform this filtering step prior to downstream analysis to be sure. Here we also use BBDuk; the command is very similar to the one shown above, however PhiX genome is provided as the reference.
+2. **Contaminant removal**. Spike-ins (most commonly PhiX) are usually used for quality control of sequencing runs, as well as to ensure nucleotide diversity when sequencing low complexity libraries. These sequences should not be present in your data, but we perform this filtering step prior to downstream analysis to be completely sure. Here we also use BBDuk. However, a PhiX genome is provided as the reference.
 
     **Example command**
 
@@ -55,11 +55,14 @@ hdist=1     hamming distance for reference k-mers
         ref=<phix_fasta> k=31 hdist=1 refstats=<phix_stats> statscolumns=5 2>> {log.log}
 
 
+**Options Explained**
+
+The command is very similar to the one shown above.
+
+
 .. note::
 
-    PhiX and low complexity libraries. High nucleotide diversity (i.e. equal relative proportions of A,C,G, and T in each cycle) is critical to the performance of Illumina sequencers. Low diversity (or low complexity libraries) libraries, such as amplicon libraries, will have a large proportion on one nucleotide and small proportion of other nucleotides in a cycle. To compensate for low complexity, PhiX DNA sequence is often added to the library. Different sequencers use different chemistry and image processing software, and require different amounts of PhiX spike-in (anywhere between 5% and 50%). Check the latest information about your sequencing platform.
-
-
+    PhiX and low complexity libraries. High nucleotide diversity (i.e. equal relative proportions of A,C,G, and T in each cycle) is critical to the performance of Illumina sequencers. Low diversity (or low complexity libraries) libraries, such as amplicon libraries, will have a large proportion on one nucleotide and small proportion of other nucleotides in a cycle. To compensate for low complexity, a PhiX DNA sequence is often added to the library. Different sequencers use different chemistry and image processing software, and require different amounts of PhiX spike-in (anywhere between 5% and 50%). Check the latest information about your sequencing platform.
 
 
 3. **Quality filtering and trimming**. In this step we use BBDuk to trim low quality bases from the ends of the reads, and filter reads based on length, average read quality, and number of Ns present.
@@ -79,13 +82,13 @@ hdist=1     hamming distance for reference k-mers
 minlength=45     filter out reads that are shorter than 45 bp
 qtrim=rl         trim low quality bases on the right and left ends of the reads
 trimq=14         regions with average quality BELOW 14 will be trimmed
-maq=20           filter out reads with average quality below
+maq=20           filter out reads with average quality BELOW 20
 maxns=1          filter out reads with more than 1 N
 =============    ==========================================================
 
 .. note::
 
-    Base quality scores (i.e. level of confidence for any one base call) are integral part of many bioinformatic pipelines (i.e. alignment and variant calling). Quality scores are usually expressed on Phred scale (:math:`Q=-log_{10}P`, where P is the probability of an error in the base call). Base quality scores normally ranged somewhere between 2 and 40, where  Q40 represents an error probability of 1/10000.  More recently, Illumina started using binned quality scores. For example, NovaSeq (with RTA3) only produces 4 Q-scores: 2 is assigned to no-calls, 12 to calls <Q15, 23 to ~Q20 and 37 to >Q30. According to Illumina, and in our hands these binned quality scores did not have affect on the downstream analyses (i.e. variant calling).
+    Base quality scores (i.e. level of confidence for any one base call) are an integral part of many bioinformatics pipelines (i.e. alignment and variant calling). Quality scores are usually expressed on a Phred scale (:math:`Q=-log_{10}P`, where P is the probability of an error in the base call). Base quality scores normally ranged somewhere between 2 and 40, where  Q40 represents an error probability of 1/10000.  More recently, Illumina started using binned quality scores. For example, NovaSeq (with RTA3) only produces 4 Q-scores: 2 is assigned to no-calls, 12 to calls <Q15, 23 to ~Q20 and 37 to >Q30. According to Illumina and in our hands, these binned quality scores did not affect the downstream analyses (i.e. variant calling).
 
 
 All of the preprocessing commands can be piped together as follows:
