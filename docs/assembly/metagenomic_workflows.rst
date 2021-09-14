@@ -2,34 +2,18 @@
 Metagenome Assembly
 ====================
 
-Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation, which has proved to be challenging for many communities. Sequencing of microbial DNA extracted directly from enviromental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes, as the first step to understanding the communities functional potential. Furthermore, algorithmic improvements as well as increased availability of computational resources make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes, MAGs). Methods for microbial community composition are discussed in :doc:`../profiling/metagenomes`. Here we describe building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
+Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation, which has proved to be challenging for many communities. Sequencing of microbial DNA extracted directly from enviromental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes, as the first step to understanding the communities functional potential. Furthermore, algorithmic improvements as well as increased availability of computational resources make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes, MAGs). Methods for microbial community composition are discussed in :doc:`../profiling/metagenomes`. Here we describe building :ref:`Metagenomic Assembly`, as well as building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
+
+--------------------
+Metagenomic Assembly
+--------------------
+
+.. image:: ../images/Metagenomic_Assembly_Overview.png
 
 
+1. **Preprocessing**. Before proceeding the the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with bbnorm.sh and merging (also add link in preprocessing)
 
---------------
-Gene Catalogs
---------------
-
-Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors, as well as disease associations.
-
-.. note:: Integrated catologs of reference genes have been generated for many ecosystems (<add link to ocean>, <add link to human gut>), and might be a good starting point for the analysis.
-
-
-Preprocessing
-^^^^^^^^^^^^^
-
-1. Before proceeding the the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`
-2. In addition to standard quality control and adapter trimming, we also suggest normalization with bbnorm.sh and merging (also add link in preprocessing)
-
-Creation
-^^^^^^^^
-
-This protocol will allow you to create a denovo gene catalog from your metagenomic samples.
-
-.. image:: ../images/Building-gene-catalog.png
-
-
-3. Following data preprocessing, we use clean reads to perform a metagenomic assembly using **metaSPAdes**. metaSPAdes is part of SPAdes_ assembly toolkit. assembly. ,
+2. **Metagenomic Assembly**. Following data preprocessing, we use clean reads to perform a metagenomic assembly using **metaSPAdes**. metaSPAdes is part of SPAdes_ assembly toolkit. assembly. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length.
 
 .. _SPAdes: https://github.com/ablab/spades
 
@@ -46,10 +30,26 @@ This protocol will allow you to create a denovo gene catalog from your metagenom
     You can use multiple threads (16-32) to speed up the assembly
 
 
-4. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length.
+3. The metagenomic contigs generated in step 2 can now be used to build and/or profile :ref:`Gene Catalogs` or to construct :ref:`MAGs`.
+
+--------------
+Gene Catalogs
+--------------
+
+Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors, as well as disease associations.
+
+.. note:: Integrated catologs of reference genes have been generated for many ecosystems (<add link to ocean>, <add link to human gut>), and might be a good starting point for the analysis.
 
 
-5. Gene calling. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (usually use **contigs** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna), as well as an annotation file (.gff)
+Creation
+^^^^^^^^
+
+This protocol will allow you to create a denovo gene catalog from your metagenomic samples.
+
+.. image:: ../images/Building-gene-catalog.png
+
+
+1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (usually use **contigs** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna), as well as an annotation file (.gff)
 
     **Example command**:
 
@@ -57,7 +57,7 @@ This protocol will allow you to create a denovo gene catalog from your metagenom
 
         zcat {in.fa.gz} | prodigal -a {out.faa} -d {out.fna} -f gff -o {out.gff} -c -q -p meta
 
-6. Gene de-replication. The next step is to remove duplicated sequences from the catalog. (Aggregation across samples?) Called genes are dereplicated using **BBTools Dedupe** and **CD-HIT**. Some additional step?
+2. **Gene de-replication**. The next step is to remove duplicated sequences from the catalog. (Aggregation across samples?) Called genes are dereplicated using **BBTools Dedupe** and **CD-HIT**. Some additional step?
 
     **Example command**:
 
@@ -74,9 +74,9 @@ Profiling
 
 .. image:: ../images/Gene-Catalog-Profiling.png
 
-7. Read alignment.
-8. Filtering the alignment files.
-9. Counting gene abundance for each sample.
+1. **Read alignment**.
+2. **Filtering the alignment files**.
+3. **Counting gene abundance**.
 
 
 -----
@@ -90,12 +90,7 @@ The Holy Grail of metagenomics is to be able to assemble individual microbial ge
 
 The first steps (Steps 1 through 3) are the same for MAGs as for :ref:`Gene Catalogs` workflow. This workflow starts with size-filtered metaSPAdes assembled contigs.
 
-All-to-all Alignment
-^^^^^^^^^^^^^^^^^^^^
-
-**Purpose**:
-
-4. In this step, quality controlled for each of the metagenomic samples is mapped to each of the metagenomic assemblies using BWA. Map reads from all samples against scaffolds in each other sample. Here we use -a to allow mapping to secondary sites.
+1. **All-to-all Alignment**. In this step, quality controlled for each of the metagenomic samples is mapped to each of the metagenomic assemblies using BWA. Map reads from all samples against scaffolds in each other sample. Here we use -a to allow mapping to secondary sites.
 
     **Example Command**:
 
@@ -107,7 +102,7 @@ All-to-all Alignment
 
     **Computational Resources**: !
 
-5. The generated alignment files are then filtered to only include alingments that are at least 45 nucletides long, with an identity of >= 97 and covering 80 of the read sequence. The alignment filtering was done using ... Other alternatives?
+The generated alignment files are then filtered to only include alignments that are at least 45 nucleotides long, with an identity of >= 97 and covering 80 of the read sequence. The alignment filtering was done using ... Other alternatives?
 
     **Example Command**:
 
@@ -115,28 +110,20 @@ All-to-all Alignment
 
         sushicounter
 
-Metagenomic Binning
-^^^^^^^^^^^^^^^^^^^
-
-**Purpose:**
-
-6. Within- and between-sample abundance correlation for each scaffold.
+2. **Within- and between-sample abundance correlation for each contig**.
 
     **Example Command**:
 
     .. code-block:: console
 
         metaBAT2
-
-
 
 .. note::
 
     How many samples do I need to benefit?
     Strictly speaking need at least 3, with as few as 20 starting to see improvement in the assemblies
 
-
-7. Metagenomic Binning
+3. **Metagenomic Binning**
 
     **Example Command**:
 
@@ -145,14 +132,13 @@ Metagenomic Binning
         metaBAT2
 
 
-Quality Control
-^^^^^^^^^^^^^^^
-
-8. Quality checks: CheckM adn Anvi'o
+4. **Quality Control**. Quality checks: CheckM adn Anvi'o
 
     Quality Metrics
 
-9. Taxonomic/Functional annotations -> page for that
+
+
+Taxonomic/Functional annotations -> page for that
 
 
 
