@@ -11,9 +11,10 @@ Metagenomic Assembly
 .. image:: ../images/Metagenomic_Assembly_Overview.png
 
 
-1. **Preprocessing**. Before proceeding the the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with bbnorm.sh and merging (also add link in preprocessing)
+1. **Data Preprocessing**. Before proceeding the the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with **bbnorm.sh** and merging (See :doc:`../preprocessing/preprocessing` for more details)
 
-2. **Metagenomic Assembly**. Following data preprocessing, we use clean reads to perform a metagenomic assembly using **metaSPAdes**. metaSPAdes is part of SPAdes_ assembly toolkit. assembly. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length.
+2. **Metagenomic Assembly**. Following data preprocessing, we use clean reads to perform a metagenomic assembly using **metaSPAdes**. metaSPAdes is part of SPAdes_ assembly toolkit. assembly. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length. The script we use for contig filtering can be found here: :download:`contig_filter.py <../scripts/contig_filter.py>`.
+
 
 .. _SPAdes: https://github.com/ablab/spades
 
@@ -21,8 +22,30 @@ Metagenomic Assembly
 
     .. code-block:: console
 
-        metaspades.py -t {threads} -m {memory} --only-assembler --pe1-1 {forward_reads.fq.gz} --pe1-2 \
-        {reverse_reads.fq.gz} --pe1-s {singeltons.fq.gz} --pe-1m {merged_reads.fq.gz} -o {spades_output_directory}
+        metaspades.py -t {threads} -m {memory} --only-assembler --pe1-1 <forward_reads.fq.gz> --pe1-2 \
+        <reverse_reads.fq.gz> --pe1-s <singeltons.fq.gz> --pe-1m <merged_reads.fq.gz> -o <output_directory>
+
+
+**Options Explained**
+
+================     =====================================================================================================
+-t                   Number of threads.
+-m                   Set memory limit in Gb. Spades will terminate if that limit is reached.
+--only-assembler     Runs assemlby module only (spades can also perform read error correction, this step will be skipped).
+--pe-1               Forward reads.
+--pe1-2              Reverse reads.
+--pe1-s              Unpaired reads.
+--pe-1m              Merged reads.
+-o                   Specify output directory.
+================     =====================================================================================================
+
+**Example Command for filtering and stats**:
+
+  .. code-block:: console
+
+      python contig_filter.py {params.sample} contigs {sample/contigs.fasta.gz {params.workfolder}/{params.sample}
+      assembly-stats -l 500 -t <(zcat {sample.min500.fasta.gz) > {sample}.assembly.stats
+
 
 .. note::
 
@@ -57,16 +80,66 @@ This protocol will allow you to create a denovo gene catalog from your metagenom
 
         zcat {in.fa.gz} | prodigal -a {out.faa} -d {out.fna} -f gff -o {out.gff} -c -q -p meta
 
-2. **Gene de-replication**. The next step is to remove duplicated sequences from the catalog. (Aggregation across samples?) Called genes are dereplicated using **BBTools Dedupe** and **CD-HIT**. Some additional step?
+=========    =====================================================================================================
+-a
+-d
+-f
+-o
+-c
+-q
+-p
+=========    =====================================================================================================
 
-    **Example command**:
+
+2. **Gene de-replication**. The next step is to remove duplicated sequences from the catalog. (Aggregation across samples?) Called genes are dereplicated using BBTools Dedupe_ and CD-HIT_. Some additional step?
+
+.. _Dedupe: https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/dedupe-guide/
+
+.. _CD-HIT: https://github.com/weizhongli/cdhit/wiki
+
+    **Example command: dereplication**:
 
     .. code-block:: console
 
         dedupe.sh -Xmx500G in={in.fasta} out={out.rep.fasta} outd={out.red.fasta} \
         threads=64 absorbrc=f exact=t touppercase=t usejni=t ac=t mergenames=t absorbmatch=t; \
+
+**Options Explained**
+
+=============    =====================================================================================================
+-Xmx500G
+usejni
+in
+out
+outd
+threads
+absorbrc
+exact
+touppercase
+ac
+mergenames
+absorbmatch
+=============    =====================================================================================================
+
+    **Example command: clustering**:
+
+    .. code-block:: console
+
         cd-hit-est -i {out.rep.fasta} -o {out.fasta} -c 0.95 -T 64 \
         -M 0 -G 0 -aS 0.9 -g 1 -r 0 -d 0
+
+=========    =====================================================================================================
+-i
+-o
+-c
+-T
+-M
+-G
+-aS
+-g
+-r
+-d
+=========    =====================================================================================================
 
 
 Profiling
