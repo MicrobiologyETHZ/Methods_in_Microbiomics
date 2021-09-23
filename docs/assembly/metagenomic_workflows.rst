@@ -91,7 +91,7 @@ This protocol will allow you to create a denovo gene catalog from your metagenom
 =========    =====================================================================================================
 
 
-2. **Gene de-replication**. The next step is to remove duplicated sequences from the catalog. (Aggregation across samples?) Called genes are dereplicated using BBTools Dedupe_ and CD-HIT_. Some additional step?
+2. **Gene de-replication**. The next step is to remove duplicated sequences from the catalog. Called genes are dereplicated at 95% identity and 90% coverage of the shortergene using a combination of BBTools Dedupe_ and CD-HIT_.
 
 .. _Dedupe: https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/dedupe-guide/
 
@@ -141,13 +141,43 @@ absorbmatch
 -d
 =========    =====================================================================================================
 
+.. important::
+
+    There is an additional step that picks the longest sequence and updates the clustering file for dedupe. Need to ask Hans. Also at which point do you combine samples? after gene calling?
+
 
 Profiling
 ^^^^^^^^^
 
 .. image:: ../images/Gene-Catalog-Profiling.png
 
-1. **Read alignment**.
+This protocol allows quantification of genes in a gene catalog for each metagemomic sample.
+
+1. **Read alignment**. In the first step the (cleaned) sequencing reads are mapped back to the gene catalog using BWA_ aligner. Note that forward, reverse, singlton and merged reads are mapped separately and are then filtered and merged in the later step.
+
+.. _BWA: https://github.com/lh3/bwa
+
+    **Example Command**:
+
+.. code-block::
+
+    bwa mem -a -t {threads} {in.gc.fasta} {in.r1.fq.gz} | samtools view -F 4 -bh - > {out.r1.bam}
+    bwa mem -a -t {threads} {in.gc.fasta} {in.r2.fq.gz} | samtools view -F 4 -bh - > {out.r2.bam}
+    bwa mem -a -t {threads} {in.gc.fasta} {in.s.fq.gz} | samtools view -F 4 -bh - > {out.s.bam}
+    bwa mem -a -t {threads} {in.gc.fasta} {in.m.fq.gz} | samtools view -F 4 -bh - > {out.m.bam}
+
+
+==============    =====================================================================================================
+bwa mem
+-a
+-t
+samtools view
+
+==============    =====================================================================================================
+
+.. important::
+    These are not up to date! TBD
+
 2. **Filtering the alignment files**.
 3. **Counting gene abundance**.
 
