@@ -12,6 +12,21 @@ Set of guidelines and best practices for robust and reproducible bioinformatics 
 with the focus on Microbiomics research.
 
 
+Each of the sections listed below will have a link to a conda environment file and a toy dataset that can be for practice. After downloading the appropriate files, the conda environment can be created and activated as follows:
+
+.. code-block::
+
+   conda env create -f <example_conda.yaml>
+   conda activate example_conda
+
+Data files are provided as a compressed archive and can be extracted with the following command:
+
+.. code-block::
+
+   tar -xvzf <Example.tar.gz>
+
+
+
 .. important::
 
     This documentation is currently under constructions
