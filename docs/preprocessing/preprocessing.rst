@@ -13,6 +13,10 @@ Data quality control is an essential first step in any bioinformatics workflow. 
     This applies to (standard) Illumina short read data. Long read sequencing data from other technologies, or other library preparations from Illumina (e.g. Nextera Mate Pair Reads data) will require a different preprocessing protocol.
 
 
+.. note::
+
+    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/preprocessing.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. Also included are Illumina adapter sequences (adapters.fa) and PhiX genome (phix174_ill.ref.fa.gz)
+
 .. image:: ../images/Preprocessing.png
 
 1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding sites, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preprocessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adapter trimming is performed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, a FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
@@ -20,17 +24,17 @@ Data quality control is an essential first step in any bioinformatics workflow. 
     **Example command**
         .. code-block:: console
 
-            bbduk.sh -Xmx1G usejni=t in=<forward_reads> in2=<reverse_reads> \
-            out=<forward_trimmed_reads> out2=<reverse_trimmed_reads> \
-            outm=<reads_that_fail_filters> outs=<output_singletons>  \
-            refstats=<adapter_trimming_stats> statscolumns=5 overwrite=t ref=<input_adapters_fasta> \
-            ktrim=r k=23 mink=11 hdist=1  2>> <log_file>
+            bbduk.sh -Xmx1G usejni=t in=Sample1_R1.fq.gz in2=Sample1_R2.fq.gz \
+            out=Sample1_trimmed_R1.fq.gz out2=Sample1_trimmed_R2.fq.gz \
+            outm=Sample1_adapter_matched.fq.gz outs=Sample1_adapter_s.fq.gz  \
+            refstats=Sample1.adapter_trim.stats statscolumns=5 overwrite=t ref=adapters.fa \
+            ktrim=r k=23 mink=11 hdist=1 2 >> preprocessing.log
 
 **Options Explained**
 
 ========    =========================================================================================================
--Xmx1G      sets a limit on memory (?)
-usejni=t    makes it faster?
+-Xmx1G      allocate 1G of memory
+usejni=t    enable JNI-accelerated version of BBDuk
 ktrim=r     trims the adapter as well as all the bases to the right of the adapter sequence
 k=23        length of the k-mer used for matching
 mink=11     additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
@@ -43,16 +47,16 @@ hdist=1     hamming distance for reference k-mers
     `Why are adapter sequences trimmed from only the 3' ends of reads? <https://emea.support.illumina.com/bulletins/2016/04/adapter-trimming-why-are-adapter-sequences-trimmed-from-only-the--ends-of-reads.html>`_
 
 
-2. **Contaminant removal**. Spike-ins (most commonly PhiX) are usually used for quality control of sequencing runs as well as to ensure nucleotide diversity when sequencing low complexity libraries. These sequences should not be present in your data, but we perform this filtering step prior to downstream analysis to be completely sure. Here we also use BBDuk. However, a PhiX genome is provided as the reference.
+2. **Contaminant removal**. Spike-ins (most commonly PhiX) are usually used for quality control of sequencing runs as well as to ensure nucleotide diversity when sequencing low complexity libraries. These sequences should not be present in your data, but we perform this filtering step prior to downstream analysis to be completely sure. Here we also use BBDuk. Now PhiX genome is provided as the reference.
 
     **Example command**
 
     .. code-block:: console
 
-        bbduk.sh -Xmx1G usejni=t in=<forward_reads> in2=<reverse_reads> \
-        out=<forward_filtered_reads> out2=<reverse_filtered_reads> \
-        outm=<output_phix_matched> outs=<output_phix_singletons> \
-        ref=<phix_fasta> k=31 hdist=1 refstats=<phix_stats> statscolumns=5 2>> {log.log}
+        bbduk.sh -Xmx1G usejni=t in=Sample1_trimmed_R1.fq.gz in2=Sample1_trimmed_R2.fq.gz \
+        out=Sample1_phix_removed_R1.fq.gz out2=Sample1_phix_removed_R2.fq.gz \
+        outm=Sample1_phix_matched.fq.gz outs=Sample1_phix_s.fq.gz \
+        ref=phix174_ill.ref.fa.gz k=31 hdist=1 refstats=Sample1_phix.stats statscolumns=5
 
 
 **Options Explained**
@@ -71,10 +75,10 @@ The command is very similar to the one shown above.
 
     .. code-block:: console
 
-        bbduk.sh -Xmx1G usejni=t in=<forward_fastq> in2=<reverse_fastq>  \
-        fastawrap=10000 out1={output.fq1_clean} out2={output.fq2_clean} \
-        outm={output.qc_failed} outs={output.qc_singletons} minlength=45 \
-        qtrim=rl maq=20 maxns=1  stats={output.qc_stats} statscolumns=5 trimq=14  2>> {log.log};
+        bbduk.sh -Xmx1G usejni=t in=Sample1_phix_removed_R1.fq.gz in2=Sample1_phix_removed_R2.fq.gz  \
+        out1=Sample1_clean_R1.fq.gz out2=Sample1_clean_R2.fq.gz \
+        outm=Sample1_qc_failed.fq.gz outs=Sample1_s.fq.gz minlength=45 \
+        qtrim=rl maq=20 maxns=1  stats=Sample1_qc.stats statscolumns=5 trimq=14
 
 **Options Explained**
 
@@ -95,17 +99,17 @@ All of the preprocessing commands can be piped together as follows:
 
 .. code-block:: console
 
-    bbduk.sh -Xmx1G pigz=t bgzip=f usejni=t in=<forward_fastq> in2=<reverse_fastq> \
-    out=stdout.fq outm=<output_adapter_matched> outs=<output_adapter_singletons>  \
-    refstats=<output_adapter_stats> statscolumns=5 overwrite=t ref=<input.adapters> \
-    ktrim=r k=23 mink=11 hdist=1  2 >> <log_file> | \
-    bbduk.sh -Xmx1G usejni=t pigz=t bgzip=f interleaved=true overwrite=t \
-    in=stdin.fq out=stdout.fq outm={output.phix_matched} outs={output.phix_singletons} \
-    ref={input.phix} k=31 hdist=1 refstats={output.phix_stats} statscolumns=5 2>> {log.log} | \
-    bbduk.sh -Xmx1G pigz=t bgzip=f usejni=t overwrite=t interleaved=true \
-    in=stdin.fq fastawrap=10000 out1={output.fq1_clean} out2={output.fq2_clean} \
-    outm={output.qc_failed} outs={output.qc_singletons} minlength={params.minlen} \
-    qtrim=rl maq={params.maq} maxns=1  stats={output.qc_stats} statscolumns=5 trimq={params.trimq}  2>> {log.log};
+    bbduk.sh -Xmx1G usejni=t in=Sample1_R1.fq.gz in2=Sample1_R2.fq.gz \
+    out=stdout.fq outm=Sample1_adapter_matched.fq.gz outs=Sample1_adapter_s.fq.gz  \
+    refstats=Sample1.adapter_trim.stats statscolumns=5 overwrite=t ref=adapters.fa \
+    ktrim=r k=23 mink=11 hdist=1  2 >> preprocessing.log | \
+    bbduk.sh -Xmx1G usejni=t interleaved=true overwrite=t \
+    in=stdin.fq out=stdout.fq outm=Sample1_phix_matched.fq.gz outs=Sample1_phix_s.fq.gz \
+    ref=phix174_ill.ref.fa.gz k=31 hdist=1 refstats=Sample1_phix.stats statscolumns=5 2>> preprocessing.log | \
+    bbduk.sh -Xmx1G usejni=t overwrite=t interleaved=true \
+    in=stdin.fq out1=Sample1_clean_R1.fq.gz out2=Sample1_clean_R2.fq.gz \
+    outm=Sample1_qc_failed.fq.gz outs=Sample1_s.fq.gz minlength=45 \
+    qtrim=rl maq=20 maxns=1  stats=Sample1_qc.stats statscolumns=5 trimq=14  2>> preprocessing.log;
 
 
 
@@ -113,33 +117,69 @@ All of the preprocessing commands can be piped together as follows:
 Other Considerations
 --------------------
 
+Below are some of the other preprocessing steps that are recommended for specific applications only. All of these steps will be performed on the clean reads produced by general preprocessing workflow outlined above.
+
 ========================    ==============================================  ===========
  **Preprocessing Step**               **Recommended for**                    **Tools**
 ========================    ==============================================  ===========
-Paired-read merging         Metagenomic assembly, 16S and mOTUs profiling
-Coverage normalization      Metagenomic assembly
-Filtering out host reads    Any samples containing host DNA
+Filtering out host reads    Any samples containing host DNA                  BBMap
+Coverage normalization      Metagenomic assembly (very large samples only)   BBNorm
+Paired-read merging         Metagenomic assembly, 16S and mOTUs profiling    BBMerge
 ========================    ==============================================  ===========
-
 
 Filtering out host reads
 ^^^^^^^^^^^^^^^^^^^^^^^^
+    Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is perfomred using `BBMap <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
 
     **Example Command**
+
     .. code-block::
 
         bbmap.sh -Xmx23g usejni=t threads=20 overwrite=t qin=33 minid=0.95 maxindel=3 bwr=0.16 bw=12 quickmatch fast \
-        minhits=2 path={human_bbmap_ref} qtrim=rl trimq=15 untrim in1={in.1.fq.gz} in2={in.2.fq.gz} outu1={out.1.fq.gz} \
-        outu2={out.2.fq.gz} outm={out.human.matched.fq.gz} 2>> {out.rmHuman.log}
+        minhits=2 path=<host_bbmap_ref> qtrim=rl trimq=15 untrim in1=<in.1.fq.gz> in2=<in.2.fq.gz> outu1=<out.1.fq.gz> \
+        outu2=<out.2.fq.gz> outm=<out.host.matched.fq.gz> 2>> removeHost.log}
 
-        # This step has to be repeated for singleton sequences generated in the QC step:
 
-        bbmap.sh -Xmx23g usejni=t threads=24 overwrite=t qin=33 minid=0.95 maxindel=3 bwr=0.16 bw=12 quickmatch fast    minhits=2 \
-        path={human_bbmap_ref} qtrim=rl trimq=15 untrim in={in.s.fq.gz} outu={out.s.fq.gz} outm={out.s.human.matched.fq.gz} 2>> {out.rmHuman.log}
+    This step has to be repeated for singleton sequences generated in the QC step:
+
+    .. code-block::
+
+        bbmap.sh -Xmx23g usejni=t threads=24 overwrite=t qin=33 minid=0.95 maxindel=3 \
+        bwr=0.16 bw=12 quickmatch fast    minhits=2 \
+        path=<host_bbmap_ref> qtrim=rl trimq=15 untrim in=<in.s.fq.gz> outu=<out.s.fq.gz> \
+        outm=<out.s.human.matched.fq.gz> 2>> <out.rmHuman.log>
+
 
 Normalization
 ^^^^^^^^^^^^^
+    This step normalizes the coverage by down-sampling reads over high-coverage areas. This step is only necessary for very large metagenomic samples in order to make the assembly computationally tractable. An example using `BBNorm <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbnorm-guide/>`_ is shown below.
+
+**Example Command**
+
+    .. code-block::
+
+        mkdir -p {params.tmpdir}
+        cd {params.tmpdir}/
+        rsync {input.fqz1} r1.fq.gz
+        rsync {input.fqz2} r2.fq.gz
+        rsync {input.fqzs} s.fq.gz
+        bbnorm.sh -Xmx{params.norm_mem}G threads={threads} extra=r1.fq.gz,r2.fq.gz in=s.fq.gz out={output.fqzs} target=40 mindepth=0 hist={output.hist2} peaks={output.peaks2} &> {log.logs};
+
+    As above this step needs to be repeated for the singletons.
+
+    .. code-block::
+        bbnorm.sh -Xmx{params.norm_mem}G threads={threads} extra=s.fq.gz in1=r1.fq.gz in2=r2.fq.gz out1={output.fqz1} out2={output.fqz2} target=40 mindepth=0 hist={output.hist} peaks={output.peaks} &> {log.logpe};
+        rm *fq.gz
 
 
 Pair-read Merging
 ^^^^^^^^^^^^^^^^^
+
+    Merging refers to merging two overlapping reads into one. This is recommended for amplicon data, mOTUs profiling and metagenomic assembly. We do not usually merge the reads for isolate genome assembly. This can be done using `BBMerge <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmerge-guide/>`_ .
+
+**Example Command**
+    .. code-block::
+
+        bbmerge.sh -Xmx32G threads=32 overwrite=t in1=Sample1_R1.fq.gz in2=Sample1_R2.fq.gz out=Sample1.m.fq.gz \
+        outu1=Sample1.merge.R1.fq.gz outu2=Sample1.merge.R2.fq.gz minoverlap=16 usejni=t \
+        ihist=Sample1.merge.hist &> merge.log
