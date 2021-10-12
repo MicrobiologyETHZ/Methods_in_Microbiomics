@@ -14,6 +14,10 @@ Set of guidelines and best practices for robust and reproducible bioinformatics 
 with the focus on Microbiomics research.
 
 
+.. important::
+
+    This documentation is currently under constructions
+
 .. _tutorials:
 
 ----------
@@ -32,13 +36,6 @@ Data files are provided as a compressed archive and can be extracted with the fo
 .. code-block::
 
    tar -xvzf <Example.tar.gz>
-
-
-
-.. important::
-
-    This documentation is currently under constructions
-
 
 .. _main-reproducible-research:
 
