@@ -12,3 +12,6 @@ sphinx:
 conda:
   environment: environment.yaml
 
+# Build PDF & ePub
+formats:
+  - pdf

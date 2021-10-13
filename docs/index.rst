@@ -1,8 +1,10 @@
-
 .. Microbial Informatics documentation master file, created by
    sphinx-quickstart on Fri Nov 27 14:14:37 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+
+
+
 
 =======================
 Methods in Microbiomics
@@ -12,7 +14,17 @@ Set of guidelines and best practices for robust and reproducible bioinformatics 
 with the focus on Microbiomics research.
 
 
-Each of the sections listed below will have a link to a conda environment file and a toy dataset that can be for practice. After downloading the appropriate files, the conda environment can be created and activated as follows:
+.. important::
+
+    This documentation is currently under constructions
+
+.. _tutorials:
+
+----------
+Tutorials
+----------
+
+Each of the sections listed below will have a link to a conda environment file and a toy dataset that can be used for practice. After downloading the appropriate files, the conda environment can be created and activated as follows:
 
 .. code-block::
 
@@ -24,13 +36,6 @@ Data files are provided as a compressed archive and can be extracted with the fo
 .. code-block::
 
    tar -xvzf <Example.tar.gz>
-
-
-
-.. important::
-
-    This documentation is currently under constructions
-
 
 .. _main-reproducible-research:
 
