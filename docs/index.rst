@@ -24,18 +24,21 @@ with the focus on Microbiomics research.
 Tutorials
 ----------
 
-Each of the sections listed below will have a link to a conda environment file and a toy dataset that can be used for practice. After downloading the appropriate files, the conda environment can be created and activated as follows:
+For each of the sections below we have provided a link to a conda environment file and a toy dataset that can be used for practice.
+To start,  create a directory for the tutorial (for example, for  :doc:`/preprocessing/preprocessing`, run
 
 .. code-block::
 
-   conda env create -f <example_conda.yaml>
-   conda activate example_conda
+   mkdir preprocessing_tutorial
+   cd preprocessing_tutorial
 
-Data files are provided as a compressed archive and can be extracted with the following command:
+Below and in each for the sections (i.e. :doc:`/preprocessing/preprocessing`) there will be a link to test data set and a conda environment file (for example, for preprocessing it will be :code:`preprocessing.yaml`) Download these files and save them to the tutorial directory.Now you can create and activate the conda environment and extract the test data.
 
 .. code-block::
 
-   tar -xvzf <Example.tar.gz>
+   conda env create -f preprocessing.yaml
+   conda activate preprocessing
+   tar -xvzf Sample1_isolate.tar.gz
 
 .. _main-reproducible-research:
 
@@ -49,11 +52,15 @@ Data Preprocessing
    See :doc:`/preprocessing/preprocessing` for more.
 
 
+Download :download:`data preprocessing conda environment file </downloads/preprocessing.yaml>` and :download:`data preprocessing test dataset </downloads/Sample1_isolate.tar.gz>`
+
 -----------------------
 Assembly
 -----------------------
 
 Best practices for assembly of genomes and metagenomes
+
+Download :download:`isolate assembly conda environment file </downloads/isolate_assembly.yaml>` and :download:`isolate assembly test dataset </downloads/Sample1_isolate.tar.gz>`
 
 
 ----------

@@ -2,18 +2,16 @@
 Genome Assembly
 ================
 
-Over the recent years, bacterial whole genome sequencing has become an indispensable tool for microbiologists. While powerful, short read sequencing technologies only allow assembly of draft genomes (i.e. assembly consisting of multiple scaffolds). As illustrated below, during short read assembly individual DNA sequences are first assembled into contigs. The contigs can then be linked together into scaffolds (for example with  `mate-pair reads <https://www.illumina.com/science/technology/next-generation-sequencing/mate-pair-sequencing.html>`_).
-
-Another figure here. Figure text (needs proofreading): DNA is randomly sheared into inserts of known size distribution (i.e., min, max, mean). Paired-end reads may be overlapping providing the possibility to 'merge' reads into one sequence (short-insert paired-end reads (SIPERs). In case they do not overlap (long-insert paired-end reads (LIPERs) or mate pair), the sequence between the paired reads remains unknown, while the length of the inner distance can be estimated due to the known insert size distribution. This information helps the scaffolding process.
-
+Over the recent years, bacterial whole genome sequencing has become an indispensable tool for microbiologists. While powerful, short read sequencing technologies only allow assembly of draft genomes (i.e. assembly consisting of multiple scaffolds). As illustrated below, during whole genome shotgun sequencing, DNA is randomly sheared into inserts of known size distribution and sequenced (if paired-end sequencing is used, two DNA sequences (reads) are generated - one from each end of a DNA fragment). The assemblers look for overlaps between sequencing reads to stitch them together into contigs. The contigs can then sometimes be linked together into longer scaffolds (for example with information from `mate-pair reads <https://www.illumina.com/science/technology/next-generation-sequencing/mate-pair-sequencing.html>`_).
 
 .. image:: /images/Genome_Assembly.png
 
 
 .. note::
 
-    Long read sequencing (with PacBio or Nanopore) offers creation of complete circularized bacterial genomes. However, the bioinformatics methods for this are still in development. They are likely to change as technology develops, and the standard protocols are less well established (See :doc:`/assembly/long_read` for current suggestions).
+    Long read sequencing (with PacBio or Nanopore) offers creation of complete circularized bacterial genomes. However, the bioinformatics methods for this are still in development. They are likely to change as technology develops, and the standard protocols are less well established (See `this genome assemlby guide`_ and  :doc:`/assembly/long_read` for current suggestions).
 
+.. _this genome assemlby guide: https://github.com/rrwick/Trycycler/wiki/Guide-to-bacterial-genome-assembly
 
 -----------------------------------------
 Isolate genome assembly using short reads
@@ -21,18 +19,27 @@ Isolate genome assembly using short reads
 
 .. image:: /images/Isolate_Genome_Assembly.png
 
+
+.. note::
+
+    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/isolate_assembly.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for genome assembly.
+
+
 1. **Data Preprocessing**. Before proceeding to the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with bbnorm.sh and merging (see :doc:`../preprocessing/preprocessing` for more details). Besides the common preprocessing steps, we usually run mOTUs_ on the cleaned sequencing reads, to check for sample contamination or mis-labelling (both occur more frequently than you would expect). For more details please check the :doc:`/profiling/motus` section.
 
 .. _mOTUs: https://github.com/motu-tool/mOTUs
 
-2. **Genome Assembly**. Following data preprocessing, we assemble the cleaned reads using SPAdes_. Subsequently, we generate some assembly statistics using assembly-stats, and filter out contigs that are < 500 bp in length. The script we use for contig filtering can be found here: :download:`contig_filter.py <../scripts/contig_filter.py>`.
+2. **Genome Assembly**. Following data preprocessing, we assemble the cleaned reads using SPAdes_. While SPAdes_ generated scaffolds using paired end data (i.e. no mate-pair libraries), there will be few differences between scaffolds.fasta and contigs.fasta. We use scaffolds for all subsequent analysis.
 
-.. _SPAdes:
- **Example Command**
+.. _SPAdes: https://github.com/ablab/spades
+
+**Example Command**
+
 .. code-block::
 
-    spades.py -t 4 --isolate --pe1-1 {input.fq1} --pe1-2 {input.fq2} \
-    --pe1-s {input.s} -o {params.outdir}
+    mkdir sample1_assembly; \
+    spades.py -t 4 --isolate --pe1-1 Sample1_R1.fq.gz \
+    --pe1-2 Sample1_R2.fq.gz  -o sample1_assembly
 
 **Options Explained**
 
@@ -41,50 +48,76 @@ Isolate genome assembly using short reads
 --isolate            Use SPAdes isolate mode
 --pe-1               Forward reads
 --pe1-2              Reverse reads
---pe1-s              Unpaired reads
 -o                   Specify output directory
 ================     =====================================================================================================
 
-**Example Command for filtering and stats**:
 
-  .. code-block:: console
-
-      python contig_filter.py {params.sample} scaffolds {sample/contigs.fasta.gz {params.workfolder}/{params.sample}
-      assembly-stats -l 500 -t <(zcat {sample.min500.fasta.gz) > {sample}.assembly.stats
+3. **Genome Quality Assesment**. Following assembly, we generate assembly statistics using assembly-stats, and filter out scaffolds that are < 500 bp in length. The script we use for contig/scaffold filtering can be found here: :download:`contig_filter.py<../scripts/contig_filter.py>`. Alternatively, the metrics to evaluate genome quality can be also calculated using QUAST_. The output will contain information on the number of contigs, the largest contig, total length of the assembly, GC%, N50, L50 and others. If reference genome assembly is available, QUAST_ will also assess misassemblies and try to categorize them.
 
 
+.. note::
 
-3. **Genome Quality Assesment**. The metrics to evaluate genome quality are calculated using QUAST_. The output will contain information on the number of contigs, the largest contig, total length of the assembly, GC%, N50, L50 and others. If reference genome assembly is available, QUAST_ will also assess misassemblies and try to categorize them.
-
-**N50 and L50**: Given a set of contigs sorted by length in descending order, N50 is the length of the shortest contig added to the lengths of previous contigs to obtain a sum which accounts for at least 50% of the length of the total genome. L50 is the smallest number of contigs that add up to at least 50% of the genome length.
+    **N50 and L50**: Given a set of contigs sorted by length in descending order, L50 is the smallest number of contigs, whose length adds up to at least 50% of the genome length. N50 is the length of the smallest contig included in L50 (i.e. if L50 is 2, N50 will be length of the 2nd contig).
 
 .. image:: /images/n50.png
 
 
 .. _QUAST: http://quast.sourceforge.net/quast.html
 
-    **Example Command**:
+**Example Command for filtering and stats**:
 
-    .. code-block:: console
+.. code-block:: console
 
-        quast.py {input.scaf1} -1 {input.r1} -2 {input.r2} -o {params.outDir}
+  python contig_filter.py Sample1 scaffolds \
+  sample1_assembly/scaffolds.fasta sample1_assembly;
+  assembly-stats -l 500 \
+  -t sample1_assembly/Sample1.scaffolds.min500.fasta > \
+  sample1_assembly/Sample1.assembly.stats
 
 
 
-4. Gene Calling and Annotation
+**Example QUAST Command**:
 
- **Example Command**
+.. code-block:: console
+
+    quast.py sample1_assembly/Sample1.scaffolds.min500.fasta \
+    -1 Sample1_R1.fq.gz -2 Sample1_R2.fq.gz -o sample1_assembly
+
+
+4. **Gene Calling and Annotation**. Genome annotation is locating of genomic features (i.e. genes, rRNAs, tRNAs, etc) in the newly assembled genomes, and for protein coding genes, describing the putative gene product. The example below shows how this can be accomplished using prokka_. More information about prokka can be found here_.
+
+.. _here: https://pubmed.ncbi.nlm.nih.gov/24642063/
+
+.. _prokka: https://github.com/tseemann/prokka
+
+**Example Command**
+
 .. code-block::
 
-    prokka --outdir {params.outdir} --locustag {params.locustag} \
-    --compliant --prefix {params.locustag} {input.scaffolds} --force
+    prokka --outdir sample1_assembly --locustag sample1 \
+    --compliant --prefix sample1 sample1_assembly/Sample1.scaffolds.min500.fasta --force
+
+================     =====================================================================================================
+--outdir             Output folder
+--locustag           Locus tag prefix
+--compliant          Force Genbank/ENA/DDJB compliance: --addgenes --mincontiglen 200 --centre XXX
+--addgenes           Add 'gene' features for each 'CDS' feature
+--mincontiglen       Minimum contig size [NCBI needs 200]
+--centre             Sequencing centre ID.
+--prefix             Filename output prefix
+--force              Force overwriting existing output folder
+================     =====================================================================================================
 
 
 -----------------------
 Alternative Approach
 -----------------------
-Alternatively
 
+Alternatively, we had good results building short-read assemblies with Unicycler_. However, these are not significantly different from SPAdes assemblies described above (not surprising, since Unicycler runs SPAdes under the hood). In addition, Unicycler_ is not being actively developed, and does not support the lastes version of SPAdes. Please see Ryan Wick's `Genome Assembly Guide`_ for example command.
+
+
+.. _Unicycler: https://github.com/rrwick/Unicycler
+.. _Genome Assembly Guide: https://github.com/rrwick/Trycycler/wiki/Guide-to-bacterial-genome-assembly#6-unicycler-short-read-assembly
 
 
 

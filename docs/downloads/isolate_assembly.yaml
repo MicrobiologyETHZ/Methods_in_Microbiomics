@@ -7,3 +7,4 @@ dependencies:
   - python>=3.6
   - assembly-stats==1.0.*
   - prokka=1.14
+  - quast=5.0.*
