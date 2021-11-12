@@ -46,7 +46,7 @@ Isolate genome assembly using short reads
 ================     =====================================================================================================
 -t                   Number of threads
 --isolate            Use SPAdes isolate mode
---pe-1               Forward reads
+--pe1-1              Forward reads
 --pe1-2              Reverse reads
 -o                   Specify output directory
 ================     =====================================================================================================
@@ -83,6 +83,13 @@ Isolate genome assembly using short reads
     quast.py sample1_assembly/Sample1.scaffolds.min500.fasta \
     -1 Sample1_R1.fq.gz -2 Sample1_R2.fq.gz -o sample1_assembly
 
+**Options Explained**
+
+================     =====================================================================================================
+-1 (or --pe1)        File with forward paired-end reads in FASTQ format (files compressed with gzip are allowed).
+-2 (or --pe2)        File with reverse paired-end reads in FASTQ format (files compressed with gzip are allowed).
+-o                   Specify output directory
+================     =====================================================================================================
 
 4. **Gene Calling and Annotation**. Genome annotation is locating of genomic features (i.e. genes, rRNAs, tRNAs, etc) in the newly assembled genomes, and for protein coding genes, describing the putative gene product. The example below shows how this can be accomplished using prokka_. More information about prokka can be found here_.
 
@@ -96,6 +103,8 @@ Isolate genome assembly using short reads
 
     prokka --outdir sample1_assembly --locustag sample1 \
     --compliant --prefix sample1 sample1_assembly/Sample1.scaffolds.min500.fasta --force
+
+**Options Explained**
 
 ================     =====================================================================================================
 --outdir             Output folder
