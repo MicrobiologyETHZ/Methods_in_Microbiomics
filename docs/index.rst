@@ -16,7 +16,7 @@ with the focus on Microbiomics research.
 
 .. important::
 
-    This documentation is currently under constructions
+    This documentation is currently under construction.
 
 .. _tutorials:
 
@@ -24,21 +24,37 @@ with the focus on Microbiomics research.
 Tutorials
 ----------
 
-For each of the sections below we have provided a link to a conda environment file and a toy dataset that can be used for practice.
-To start,  create a directory for the tutorial (for example, for  :doc:`/preprocessing/preprocessing`, run
+Tutorials are available for each section listed below. To start, create a directory for the tutorial of your interest:
+
+.. code-block::
+
+   mkdir <section>_tutorial
+   cd <section>_tutorial
+
+For example, for  :doc:`/preprocessing/preprocessing`, run:
 
 .. code-block::
 
    mkdir preprocessing_tutorial
    cd preprocessing_tutorial
 
-Below and in each for the sections (i.e. :doc:`/preprocessing/preprocessing`) there will be a link to test data set and a conda environment file (for example, for preprocessing it will be :code:`preprocessing.yaml`) Download these files and save them to the tutorial directory.Now you can create and activate the conda environment and extract the test data.
+For each of the sections we have provided a link to a conda environment file and a test dataset that can be used for practice. Download these files and save them to the tutorial directory. Next, you can create and activate the conda environment and extract the test data:
+
+.. code-block::
+
+   conda env create -f <environment name>.yaml
+   conda activate <environment name>
+   tar -xvzf Sample1_isolate.tar.gz
+
+For example, for  :doc:`/preprocessing/preprocessing`, run:
 
 .. code-block::
 
    conda env create -f preprocessing.yaml
    conda activate preprocessing
    tar -xvzf Sample1_isolate.tar.gz
+
+Now, you are ready to run the example commands given in the corresponding section.
 
 .. _main-reproducible-research:
 
