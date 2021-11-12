@@ -43,7 +43,7 @@ Metagenomic Assembly
 
   .. code-block:: console
 
-      python contig_filter.py {params.sample} contigs {sample/contigs.fasta.gz {params.workfolder}/{params.sample}
+      python contig_filter.py {params.sample} scaffolds {sample/scaffolds.fasta.gz {params.workfolder}/{params.sample}
       assembly-stats -l 500 -t <(zcat {sample.min500.fasta.gz) > {sample}.assembly.stats
 
 
@@ -53,7 +53,7 @@ Metagenomic Assembly
     You can use multiple threads (16-32) to speed up the assembly.
 
 
-3. The metagenomic contigs generated in step 2 can now be used to build and/or profile :ref:`Gene Catalogs` or to construct :ref:`MAGs`.
+3. The metagenomic scaffolds generated in step 2 can now be used to build and/or profile :ref:`Gene Catalogs` or to construct :ref:`MAGs`.
 
 --------------
 Gene Catalogs
@@ -72,7 +72,7 @@ This protocol will allow you to create a de novo gene catalog from your metageno
 .. image:: ../images/Building-gene-catalog.png
 
 
-1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (usually uses **contigs** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add the ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna) as well as an annotation file (.gff).
+1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (usually uses **scaffolds** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add the ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna) as well as an annotation file (.gff).
 
     **Example command**:
 
@@ -93,42 +93,17 @@ This protocol will allow you to create a de novo gene catalog from your metageno
 =========    =====================================================================================================
 
 
-2. **Gene de-replication**. The next step is to remove duplicated sequences from the catalog. Called genes are de-replicated at 95% identity and 90% coverage of the shorter gene using a combination of BBTools Dedupe_ and CD-HIT_.
-
-.. _Dedupe: https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/dedupe-guide/
+2. **Gene de-replication**. At this point gene-nucleotide sequences from all samples are concatenated together and duplicated sequences are removed from the catalog. Genes are de-replicated at 95% identity and 90% coverage of the shorter gene using CD-HIT_.
 
 .. _CD-HIT: https://github.com/weizhongli/cdhit/wiki
 
-    **Example command: de-replication**:
+    **Example command: **:
 
     .. code-block:: console
 
-        dedupe.sh -Xmx500G in={in.fasta} out={out.rep.fasta} outd={out.red.fasta} \
-        threads=64 absorbrc=f exact=t touppercase=t usejni=t ac=t mergenames=t absorbmatch=t; \
-
-**Options Explained**
-
-=============    =====================================================================================================
--Xmx500G         To force a program to use 500 G of RAM
-usejni           Set to true (t) to enable JNI-accelerated versions of BBMerge, BBMap, and Dedupe. Requires the C code to be compiled.
-in               A single file or a comma-delimited list of files
-out              Destination for all output contigs
-outd             Optional; removed duplicates will go here
-threads          Number of worker threads to spawn, default is number of logical processors
-absorbrc         Set to true (t) to absorb reverse-complements as well as normal orientation
-exact            Set to true (t) to only allow exact symbol matches; when false (f), an 'N' will match any symbol
-touppercase      Set to true (t) to convert lowercase letters in reads to upper case
-ac               Set to true (t) to absorb full containments of contigs
-mergenames       Set to true (t) to concatenate respective headers when a sequence absorbs another
-absorbmatch      Set to true (t) to absorb exact matches of contigs
-=============    =====================================================================================================
-
-    **Example command: clustering**:
-
-    .. code-block:: console
-
-        cd-hit-est -i {out.rep.fasta} -o {out.fasta} -c 0.95 -T 64 \
-        -M 0 -G 0 -aS 0.9 -g 1 -r 0 -d 0
+        zcat prodigal/*fna > gene_catalog_all.fna
+        cd-hit-est -i gene_catalog_all.fna -o cdhit9590/gene_catalog_cdhit9590.fasta \
+        -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
 
 **Options Explained**
 
@@ -145,10 +120,16 @@ absorbmatch      Set to true (t) to absorb exact matches of contigs
 -d           length of description in .clstr file, default 20; if set to 0, it takes the fasta defline and stops at first space
 =========    =====================================================================================================
 
-.. important::
 
-    There is an additional step that picks the longest sequence and updates the clustering file for dedupe. Need to ask Hans. Also at which point do you combine samples? after gene calling?
+The fasta file generated by CD-HIT_ will contain a representative sequence for each cluster. To extract protein sequences for each gene in the catalog, we first extract all the sequence identifiers from the CD-HIT_ output file and use seqtk_ subseq to extract these sequences from `gene_catalog_all.faa`. This file can be then used for downstream analysis (ex. KEGG annotations, see :doc:`../profiling/function`)
 
+.. _seqtk: https://github.com/lh3/seqtk
+
+    **Example command: **:
+
+    .. code-block:: console
+        grep "^>"gene_catalog_cdhit9590.fasta | cut -f 2 -d ">" | cut -f 1 -d " " > gene_catalog_cdhit9590.headers
+        seqtk subseq gene_catalog_all.faa gene_catalog_cdhit9590.headers  > gene_catalog_cdhit9590.faa
 
 Profiling
 ^^^^^^^^^
@@ -182,11 +163,36 @@ samtools view      Views and converts SAM/BAM/CRAM files
 -h                 Include the header in the output
 ==============    =====================================================================================================
 
-.. important::
-    These are not up to date! TBD
 
 2. **Filtering the alignment files**.
 3. **Counting gene abundance**.
+
+.. important::
+
+    We're currently working on a tool that can merge and filter alignment files, as well as quantify gene abundances. Stay tuned! In the meanwhile, gene catalog profiling can also be achieved using MOCAT_ (See below)
+
+.. _MOCAT: https://mocat.embl.de
+
+
+Profiling with MOCAT
+^^^^^^^^^^^^^^^^^^^^
+
+1. MOCAT_ can be used to map preprocessed metagenomic reads and filter the alignments (i=95 l=45)
+
+    **Example Command**
+
+2. The per-sample abundance of each reference gene in the catalog is calculated as the gene length-normalized insert count with MOCAT_ profile option
+
+    **Example Command**
+
+.. note::
+
+    Mapping rates
+
+
+.. important::
+
+    Per-cell normalization. Metagenomic profiles should be normalized to relative cell numbers in the sample by dividing the gene abundances by the median abundance of 10 universal single-copy phylogenetic marker genes (MGs).
 
 
 -----
