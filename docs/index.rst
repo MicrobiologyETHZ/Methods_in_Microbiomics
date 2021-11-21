@@ -74,7 +74,7 @@ Download :download:`data preprocessing conda environment file </downloads/prepro
 Assembly
 -----------------------
 
-Best practices for assembly of genomes and metagenomes
+Best practices for :doc:`/assembly/genome_assembly` and :docs:`/assembly/metagenomic_workflows`.
 
 Download :download:`isolate assembly conda environment file </downloads/isolate_assembly.yaml>` and :download:`isolate assembly test dataset </downloads/Sample1_isolate.tar.gz>`
 
