@@ -419,5 +419,6 @@ buildNumber.properties
 .snakemake/
 
 # added by Anna for general purposes :)
-*.xmind
+
 *data*
+*.xmind

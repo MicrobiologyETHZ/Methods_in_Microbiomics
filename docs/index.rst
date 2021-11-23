@@ -1,8 +1,10 @@
-
 .. Microbial Informatics documentation master file, created by
    sphinx-quickstart on Fri Nov 27 14:14:37 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+
+
+
 
 =======================
 Methods in Microbiomics
@@ -14,8 +16,45 @@ with the focus on Microbiomics research.
 
 .. important::
 
-    This documentation is currently under constructions
+    This documentation is currently under construction.
 
+.. _tutorials:
+
+----------
+Tutorials
+----------
+
+Tutorials are available for each section listed below. To start, create a directory for the tutorial of your interest:
+
+.. code-block::
+
+   mkdir <section>_tutorial
+   cd <section>_tutorial
+
+For example, for  :doc:`/preprocessing/preprocessing`, run:
+
+.. code-block::
+
+   mkdir preprocessing_tutorial
+   cd preprocessing_tutorial
+
+For each of the sections we have provided a link to a conda environment file and a test dataset that can be used for practice. Download these files and save them to the tutorial directory. Next, you can create and activate the conda environment and extract the test data:
+
+.. code-block::
+
+   conda env create -f <environment name>.yaml
+   conda activate <environment name>
+   tar -xvzf Sample1_isolate.tar.gz
+
+For example, for  :doc:`/preprocessing/preprocessing`, run:
+
+.. code-block::
+
+   conda env create -f preprocessing.yaml
+   conda activate preprocessing
+   tar -xvzf Sample1_isolate.tar.gz
+
+Now, you are ready to run the example commands given in the corresponding section.
 
 .. _main-reproducible-research:
 
@@ -29,11 +68,15 @@ Data Preprocessing
    See :doc:`/preprocessing/preprocessing` for more.
 
 
+Download :download:`data preprocessing conda environment file </downloads/preprocessing.yaml>` and :download:`data preprocessing test dataset </downloads/Sample1_isolate.tar.gz>`
+
 -----------------------
 Assembly
 -----------------------
 
-Best practices for assembly of genomes and metagenomes
+Best practices for :doc:`/assembly/genome_assembly` and :docs:`/assembly/metagenomic_workflows`.
+
+Download :download:`isolate assembly conda environment file </downloads/isolate_assembly.yaml>` and :download:`isolate assembly test dataset </downloads/Sample1_isolate.tar.gz>`
 
 
 ----------
