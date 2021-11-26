@@ -4,6 +4,13 @@ Metagenome Assembly
 
 Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation, which has proved to be challenging for many communities. Sequencing of microbial DNA extracted directly from environmental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes as the first step to understanding the communities functional potential. Furthermore, algorithmic improvements as well as increased availability of computational resources make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes (MAGs)). Methods for microbial community composition are discussed in :doc:`../profiling/metagenomes`. Here we describe building :ref:`Metagenomic Assembly` as well as building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
 
+
+.. note::
+
+    Sample data for this section can be found :download:`here <../downloads/MetaG.tar.gz>`. The conda environment specifications are :download:`here <../downloads/metaG.yaml>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. After unpacking the data, run :code:`cd metag_test`, and you should see a :code:`reads` directory containing a set of forward (.1.fq.gz) and reverse (.2.fq.gz) reads for 3 metagenomic samples. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for metagenomic assembly. There should also be :code:`scaffolds_filter.py`.
+
+
+
 --------------------
 Metagenomic Assembly
 --------------------
@@ -23,25 +30,31 @@ Metagenomic Assembly
 
 1. **Data Preprocessing**. Before proceeding to the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with **bbnorm.sh** and merging (see :doc:`../preprocessing/preprocessing` for more details).
 
-2. **Metagenomic Assembly**. Following data preprocessing, we use clean reads to perform a metagenomic assembly using **metaSPAdes**. metaSPAdes is part of the SPAdes_ assembly toolkit. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length. The script we use for contig filtering can be found here: :download:`contig_filter.py <../scripts/contig_filter.py>`.
+2. **Metagenomic Assembly**. Following data preprocessing, we use clean reads to perform a metagenomic assembly using **metaSPAdes**. metaSPAdes is part of the SPAdes_ assembly toolkit. Following the assembly, we generate some assembly statistics using **assembly-stats**, and filter out contigs that are < 1 kbp in length. The script we use for scaffold filtering can be found here: :download:`scaffold_filter.py <../scripts/scaffold_filter.py>`. It is also included in the test dataset for this section.
 
 
 .. _SPAdes: https://github.com/ablab/spades
 
-    **Example command**:
+**Assembly**:
 
     .. code-block:: console
 
-        metaspades.py -t {threads} -m {memory} --only-assembler --pe1-1 <forward_reads.fq.gz> --pe1-2 \
-        <reverse_reads.fq.gz> --pe1-s <singeltons.fq.gz> --pe-1m <merged_reads.fq.gz> -o <output_directory>
+        mkdir metag_assembly
+        for i in 1 2 3
+            do
+                mkdir metag_assembly/metag$i
+                metaspades.py -t 4 -m 10 --only-assembler \
+                --pe1-1 reads/metag$i.1.fq.gz \
+                --pe1-2 reads/metag$i.2.fq.gz \
+                -o metag_assembly/metag$i
+            done
 
-
-**Options Explained**
 
 ================     =====================================================================================================
 -t                   Number of threads
 -m                   Set memory limit in Gb; spades will terminate if that limit is reached
---only-assembler     Run assembly module only (spades can also perform read error correction, this step will be skipped)
+--only-assembler     Run assembly module only (spades can also perform read error correction,
+                     this step will be skipped)
 --pe-1               Forward reads
 --pe1-2              Reverse reads
 --pe1-s              Unpaired reads
@@ -49,18 +62,48 @@ Metagenomic Assembly
 -o                   Specify output directory
 ================     =====================================================================================================
 
-**Example Command for filtering and stats**:
-
-  .. code-block:: console
-
-      python contig_filter.py {params.sample} scaffolds {sample/scaffolds.fasta.gz {params.workfolder}/{params.sample}
-      assembly-stats -l 500 -t <(zcat {sample.min500.fasta.gz) > {sample}.assembly.stats
-
 
 .. note::
 
-    **Computational Resources**: Metagenomic assembly requires a lot of memory (usually > 100 Gb).
-    You can use multiple threads (16-32) to speed up the assembly.
+    **Computational Resources** needed for metagenomic assembly will vary significantly between datasets. In general, metagenomic assembly requires a lot of memory (usually > 100 Gb). You can use multiple threads (16-32) to speed up the assembly. Because test data set provided is very small, merging of the pair-end reads was not necessary (see :doc:`../preprocessing/preprocessing`). It is helpful when working with real data - don't forget to include the merged and singlton files with `--pe-1m` and `--pe1-s` options.
+
+
+**Filtering**:
+
+Assumes :code:`scaffolds_filter.py` is in :code:`metag_test`
+
+  .. code-block:: console
+
+      cd metag_assembly
+      for i in 1 2 3
+        do
+            python ../scaffold_filter.py metag$i scaffolds metag$i/scaffolds.fasta metag$i META
+        done
+
+
+=======================     ==========================================================================================
+metag1                      Sample name
+scaffolds                   Sequence type (can be contigs, scaffolds or transcripts)
+metag1/scaffolds.fasta      Input assembly to filter
+metag1                      Prefix for the output file
+META                        Type of assembly (META for metagenomics or ISO for isolate genomes
+=======================     ==========================================================================================
+
+**Stats**:
+
+  .. code-block:: console
+
+      for i in 1 2 3
+        do
+            assembly-stats -l 500 -t <(cat metag$i/metag$i.scaffolds.min500.fasta) \
+            > metag$i/metag$i.assembly.stats
+        done
+
+
+====    ==============================================================
+-l       Minimum length cutoff for each sequence
+-t       Print tab-delimited output
+====    ==============================================================
 
 
 3. The metagenomic scaffolds generated in step 2 can now be used to build and/or profile :ref:`Gene Catalogs` or to construct :ref:`MAGs`.
@@ -69,7 +112,7 @@ Metagenomic Assembly
 Gene Catalogs
 --------------
 
-Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors as well as disease associations.
+Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors, as well as disease associations.
 
 .. note:: Integrated catalogs of reference genes have been generated for many ecosystems (<add link to ocean>, <add link to human gut>) and might be a good starting point for the analysis.
 
@@ -88,15 +131,19 @@ This protocol will allow you to create a de novo gene catalog from your metageno
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
         class id2,id3 tool
 
-1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (usually uses **scaffolds** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode we add the ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna) as well as an annotation file (.gff).
+1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (using **scaffolds** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic mode, we add the ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna) for each gene, as well as an annotation file (.gff).
 
-    **Example command**:
+**Gene Calling**
+
 
     .. code-block:: console
 
-        zcat {in.fa.gz} | prodigal -a {out.faa} -d {out.fna} -f gff -o {out.gff} -c -q -p meta
-
-**Options Explained**
+        for i in 1 2 3
+          do
+            prodigal -a metag$i/metag$i.faa -d metag$i/metag$i.fna -f gff \
+            -o metag$i/metag$i.gff -c -q -p meta \
+            -i metag$i/metag$i.scaffolds.min500.fasta
+          done
 
 =========    =====================================================================================================
 -a           Specify protein translations file
@@ -105,7 +152,8 @@ This protocol will allow you to create a de novo gene catalog from your metageno
 -o           Specify output file, default stdout
 -c           Closed ends, do not allow partial genes at edges of sequence
 -q           Run quietly (suppress logging output)
--p           Specify mode: normal: Single genome, any number of sequences (Default); train: Do only training. Input should be multiple FASTA of one or more closely related genomes; anon: Anonymous sequences, analyze using preset training files, ideal for metagenomic data or single short sequences.
+-p           Specify mode: single or meta
+-i           Input FASTA or Genbank file
 =========    =====================================================================================================
 
 
@@ -113,15 +161,18 @@ This protocol will allow you to create a de novo gene catalog from your metageno
 
 .. _CD-HIT: https://github.com/weizhongli/cdhit/wiki
 
-    **Example command: **:
+**Clustering**
 
     .. code-block:: console
 
-        zcat prodigal/*fna > gene_catalog_all.fna
+        cd ..
+        mkdir gene_catalog
+        cat metag_assembly/metag*/metag*fna > gene_catalog/gene_catalog_all.fna
+        cat metag_assembly/metag*/metag*faa > gene_catalog/gene_catalog_all.faa
+        cd gene_catalog
+        mkdir cdhit9590
         cd-hit-est -i gene_catalog_all.fna -o cdhit9590/gene_catalog_cdhit9590.fasta \
         -c 0.95 -T 64 -M 0 -G 0 -aS 0.9 -g 1 -r 1 -d 0
-
-**Options Explained**
 
 =========    =====================================================================================================
 -i           Input filename in fasta format, required
@@ -141,11 +192,15 @@ The fasta file generated by CD-HIT_ will contain a representative sequence for e
 
 .. _seqtk: https://github.com/lh3/seqtk
 
-    **Example command: **:
 
     .. code-block:: console
-        grep "^>"gene_catalog_cdhit9590.fasta | cut -f 2 -d ">" | cut -f 1 -d " " > gene_catalog_cdhit9590.headers
-        seqtk subseq gene_catalog_all.faa gene_catalog_cdhit9590.headers  > gene_catalog_cdhit9590.faa
+
+        grep "^>" cdhit9590/gene_catalog_cdhit9590.fasta | \
+        cut -f 2 -d ">" | \
+        cut -f 1 -d " " > cdhit9590/cdhit9590.headers
+        seqtk subseq gene_catalog_all.faa cdhit9590/cdhit9590.headers \
+        > cdhit9590/gene_catalog_cdhit9590.faa
+
 
 Profiling
 ^^^^^^^^^
@@ -154,8 +209,8 @@ Profiling
 
    flowchart LR
         id1( Gene Catalog<br/>Profiling) --> id2(read alignment<br/>fa:fa-cog BWA)
-        id2 --> id3(filtering<br/>the alignment files)
-        id3 --> id4(counting gene abundance)
+        id2 --> id3(filtering<br/>the alignment files<br/>fa:fa-ban)
+        id3 --> id4(counting<br/>gene abundance<br/>fa:fa-ban)
         classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
         class id2,id3,id4 tool
@@ -163,31 +218,35 @@ Profiling
 
 This protocol allows quantification of genes in a gene catalog for each metagenomic sample.
 
-1. **Read alignment**. In the first step the (cleaned) sequencing reads are mapped back to the gene catalog using BWA_ aligner. Note that forward, reverse, singlton and merged reads are mapped separately and are then filtered and merged in the later step.
+1. **Read alignment**. In the first step, (cleaned) sequencing reads are mapped back to the gene catalog using BWA_ aligner. Note that forward, reverse, singlton and merged reads are mapped separately and are then filtered and merged in a later step.
 
 .. _BWA: https://github.com/lh3/bwa
 
-    **Example Command**:
+**Alignemnt**
+
+Make sure you are back in :code:`metag_test` directory. Note that test data does not include merged and singleton files. If you have those, do not forget to align those separately as well.
 
 .. code-block::
 
-    bwa mem -a -t {threads} {in.gc.fasta} {in.r1.fq.gz} | samtools view -F 4 -bh - > {out.r1.bam}
-    bwa mem -a -t {threads} {in.gc.fasta} {in.r2.fq.gz} | samtools view -F 4 -bh - > {out.r2.bam}
-    bwa mem -a -t {threads} {in.gc.fasta} {in.s.fq.gz} | samtools view -F 4 -bh - > {out.s.bam}
-    bwa mem -a -t {threads} {in.gc.fasta} {in.m.fq.gz} | samtools view -F 4 -bh - > {out.m.bam}
+    mkdir alignments
+    bwa index gene_catalog/cdhit9590/gene_catalog_cdhit9590.fasta
 
-**Options Explained**
+    bwa mem -a -t 4 gene_catalog/cdhit9590/gene_catalog_cdhit9590.fasta reads/metag1.1.fq.gz \
+    | samtools view -F 4 -bh - > alignments/metag1.r1.bam
+
+    bwa mem -a -t 4 gene_catalog/cdhit9590/gene_catalog_cdhit9590.fasta reads/metag1.2.fq.gz \
+    | samtools view -F 4 -bh - > alignments/metag1.r2.bam
+
 
 ==============    =====================================================================================================
 bwa mem            Align 70bp-1Mbp query sequences with the BWA-MEM algorithm, the algorithm works by seeding alignments with maximal exact matches (MEMs) and then extending seeds with the affine-gap Smith-Waterman algorithm (SW)
 -a                 Output all found alignments for single-end or unpaired paired-end reads, these alignments will be flagged as secondary alignments
 -t                 Number of threads
 samtools view      Views and converts SAM/BAM/CRAM files
--F *FLAG*          Do not output alignments with any bits set in *FLAG* present in the FLAG field; *FLAG* can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/), in octal by beginning with `0' (i.e. /^0[0-7]+/), as a decimal number not beginning with '0' or as a comma-separated list of flag names
+-F *FLAG*          Do not output alignments with any bits set in *FLAG* present in the FLAG field
 -b                 Output in the BAM format
 -h                 Include the header in the output
 ==============    =====================================================================================================
-
 
 2. **Filtering the alignment files**.
 3. **Counting gene abundance**.
@@ -204,7 +263,7 @@ samtools view      Views and converts SAM/BAM/CRAM files
 
 .. important::
 
-    Per-cell normalization. Metagenomic profiles should be normalized to relative cell numbers in the sample by dividing the gene abundances by the median abundance of 10 universal single-copy phylogenetic marker genes (MGs). Is there a tutorial?
+    Per-cell normalization. Metagenomic profiles should be normalized to relative cell numbers in the sample by dividing the gene abundances by the median abundance of 10 universal single-copy phylogenetic marker genes (MGs).
 
 
 -----
@@ -225,7 +284,9 @@ The Holy Grail of metagenomics is to be able to assemble individual microbial ge
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
         class id2,id3,id4,id5 tool
 
- This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`).
+
+
+This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`).
 
 1. **All-to-all Alignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA. Here we use -a to allow mapping to secondary sites.
 
