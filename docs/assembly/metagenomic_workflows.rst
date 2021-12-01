@@ -288,33 +288,46 @@ The Holy Grail of metagenomics is to be able to assemble individual microbial ge
 
 This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`).
 
-1. **All-to-all Alignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA. Here we use -a to allow mapping to secondary sites.
+1. **All-to-all Alignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA. Here we use -a to allow mapping to secondary sites. Note that merged, singleton, forward and reverse reads are all aligned separately, and are later merged into a single :code:`bam` file.
 
-    **Example Command**:
+.. important::
+
+    For MAG construction, the generated alignment files are filtered to only include alignments that are at least 45 nucleotides long, with an identity of >= 95 and covering 80 of the read sequence. The alignment filtering was done custom tool we are building in the lab and is not included in the example command below. Please contact us to learn more.
+
+
+**Mapping every sample to every assembly**:
 
     .. code-block:: console
-
-        bwa
+        mkdir alignments
+        for i in 1 2 3:
+          for j in 1 2 3:
+              do
+                bwa mem -a -t 16 metag$i/metag$i.scaffolds.min500.fasta reads/metag$j.1.fq \
+                | samtools view -F 4 -bh - | samtools sort -O bam -@ 4 -m 4G> alignments/metag$j_to_metag$i.1.bam
+                bwa mem -a -t 16 metag$i/metag$i.scaffolds.min500.fasta reads/metag$j.2.fq \
+                | samtools view -F 4 -bh - |samtools sort -O bam -@ 4 -m 4G > alignments/metag$j_to_metag$i.2.bam
+                samtools merge -o alignments/metag$j_to_metag$i.bam \
+                alignments/metag$j_to_metag$i.1.bam alignments/metag$j_to_metag$i.2.bam
+              done
 
 .. important::
 
     **Computational Resources**: !
 
-The generated alignment files are then filtered to only include alignments that are at least 45 nucleotides long, with an identity of >= 97 and covering 80 of the read sequence. The alignment filtering was done using ... Other alternatives?
-
-    **Example Command**:
-
-    .. code-block:: console
-
-        sushicounter
 
 2. **Within- and between-sample abundance correlation for each contig**.
 
-    **Example Command**:
+**Depth calculation**:
 
     .. code-block:: console
 
-        metaBAT2
+        for i in 1 2 3:
+          for j in 1 2 3:
+              do
+                jgi_summarize_bam_contig_depths --outputDepth alignments/metag$j_vs_metag$i.depth \
+                alignments/metag$j_to_metag$i.bam
+              done
+
 
 .. note::
 
@@ -323,11 +336,9 @@ The generated alignment files are then filtered to only include alignments that 
 
 3. **Metagenomic Binning**
 
-    **Example Command**:
-
     .. code-block:: console
 
-        metaBAT2
+        metabat2 -i {output.tmp_assembly} -a {params.depthfile} -o {params.prefix} --minContig {params.min_contig_size} --maxEdges {params.max_edges} -x {params.min_cv} --numThreads {threads} --minClsSize {params.min_bin_length} --saveCls -v &> {log.log};
 
 
 4. **Quality Control**. Quality checks: CheckM and Anvi'o
