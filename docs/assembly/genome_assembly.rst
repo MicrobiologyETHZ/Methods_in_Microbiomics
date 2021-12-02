@@ -17,7 +17,18 @@ Over the recent years, bacterial whole genome sequencing has become an indispens
 Isolate genome assembly using short reads
 -----------------------------------------
 
-.. image:: /images/Isolate_Genome_Assembly.png
+.. mermaid::
+
+    flowchart LR
+        id1( Isolate Genome<br/>Assembly) --> id2(data<br/>preprocessing<br/>fa:fa-cog optional: mOTUs)
+        id2 --> id3(genome<br/>assembly<br/>fa:fa-cog SPAdes)
+        id3 --> id4(assembly quality<br/>control<br/>fa:fa-cog QUAST<br/>fa:fa-cog assembly-stats)
+        id4 --> id5(genome<br/>annotation<br/>fa:fa-cog prokka)
+        classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+        style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+        style id2 fill:#F78A4A,stroke:#F8F7F7,stroke-width:1px
+        class id3,id4,id5 tool
+
 
 
 .. note::
@@ -41,7 +52,6 @@ Isolate genome assembly using short reads
     spades.py -t 4 --isolate --pe1-1 Sample1_R1.fq.gz \
     --pe1-2 Sample1_R2.fq.gz  -o sample1_assembly
 
-**Options Explained**
 
 ================     =====================================================================================================
 -t                   Number of threads
@@ -52,7 +62,7 @@ Isolate genome assembly using short reads
 ================     =====================================================================================================
 
 
-3. **Genome Quality Assesment**. Following assembly, we generate assembly statistics using assembly-stats, and filter out scaffolds that are < 500 bp in length. The script we use for contig/scaffold filtering can be found here: :download:`contig_filter.py<../scripts/contig_filter.py>`. Alternatively, the metrics to evaluate genome quality can be also calculated using QUAST_. The output will contain information on the number of contigs, the largest contig, total length of the assembly, GC%, N50, L50 and others. If reference genome assembly is available, QUAST_ will also assess misassemblies and try to categorize them.
+3. **Assembly Quality Control**. Following assembly, we generate assembly statistics using assembly-stats, and filter out scaffolds that are < 500 bp in length. The script we use for contig/scaffold filtering can be found here: :download:`contig_filter.py<../scripts/contig_filter.py>`. Alternatively, the metrics to evaluate genome quality can be also calculated using QUAST_. The output will contain information on the number of contigs, the largest contig, total length of the assembly, GC%, N50, L50 and others. If reference genome assembly is available, QUAST_ will also assess misassemblies and try to categorize them.
 
 
 .. note::
@@ -74,6 +84,13 @@ Isolate genome assembly using short reads
   -t sample1_assembly/Sample1.scaffolds.min500.fasta > \
   sample1_assembly/Sample1.assembly.stats
 
+=================================      =======================================================================
+Sample1                                Sample name
+scaffolds                              Sequence type (can be contigs, scaffolds or transcripts)
+sample1_assembly/scaffolds.fasta       Input assembly to filter
+sample1_assembly                       Prefix for the output file
+ISO                                    Type of assembly (ISO for metagenomics or META for isolate genomes
+=================================      =======================================================================
 
 
 **Example QUAST Command**:

@@ -17,7 +17,18 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
     Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/preprocessing.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. Also included are Illumina adapter sequences (adapters.fa) and PhiX genome (phix174_ill.ref.fa.gz).
 
-.. image:: ../images/Preprocessing.png
+
+.. mermaid::
+
+   flowchart LR
+        id1( Preprocessing) --> id2(adapter<br/>trimming<br/>fa:fa-cog BBTools BBDuk)
+        id2 --> id3(contaminant<br/>filtering<br/>fa:fa-cog BBTools BBDuk)
+        id3 --> id4(quality filtering/<br/>trimming<br/>fa:fa-cog BBTools BBDuk)
+        classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+        style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+        class id2,id3,id4 tool
+
+
 
 1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding sites, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preprocessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adapter trimming is performed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, a FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
 
