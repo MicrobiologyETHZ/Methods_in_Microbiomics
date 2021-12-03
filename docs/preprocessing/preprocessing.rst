@@ -43,14 +43,14 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
 **Options Explained**
 
-========    =========================================================================================================
--Xmx        This will be passed to Java to set memory usage.
-usejni      Enable JNI-accelerated version of BBDuk.
-ktrim       Trims the adapter as well as all the bases to the right of the adapter sequence
-k           Length of the k-mer used for matching
-mink        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
-hdist       Hamming distance for reference k-mers
-========    =========================================================================================================
+==========    =========================================================================================================
+``-Xmx``        This will be passed to Java to set memory usage.
+``usejni``      Enable JNI-accelerated version of BBDuk.
+``ktrim``       Trims the adapter as well as all the bases to the right of the adapter sequence
+``k``           Length of the k-mer used for matching
+``mink``        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
+``hdist``       Hamming distance for reference k-mers
+==========    =========================================================================================================
 
 
 .. note::
@@ -94,13 +94,13 @@ The command is very similar to the one shown above.
 
 **Options Explained**
 
-=============    ==========================================================
-minlength=45     filters out reads that are shorter than 45 bp
-qtrim=rl         trims low quality bases on the right and left ends of the reads
-trimq=14         regions with average quality BELOW 14 will be trimmed
-maq=20           filters out reads with average quality BELOW 20
-maxns=1          filters out reads with more than 1 N
-=============    ==========================================================
+================    ==========================================================
+``minlength=45``     filters out reads that are shorter than 45 bp
+``qtrim=rl``         trims low quality bases on the right and left ends of the reads
+``trimq=14``         regions with average quality BELOW 14 will be trimmed
+``maq=20``           filters out reads with average quality BELOW 20
+``maxns=1``          filters out reads with more than 1 N
+================    ==========================================================
 
 .. note::
 
@@ -168,21 +168,21 @@ Filtering out host reads
         outm=out.s.human.matched.fq.gz 2>> out.rmHuman.log
 
 =============    ==========================================================
-qin              Set to 33 or 64 to specify input quality value ASCII offset. 33 is Sanger, 64 is old Solexa. Could be left unspecified (default=auto)
-minid            Approximate minimum alignment identity to look for.
-maxindel         Don't look for indels longer than this. Lower is faster.
-bwr              If above zero, restrict alignment band to this fraction of read length.  Faster but less accurate.
-bw               Set the bandwidth directly.
-qickmatch        Generate cigar strings more quickly.
-fast             Sets other paramters to run faster, at reduced sensitivity
-minhits          Minimum number of seed hits required for candidate sites.
-path             Specify the location to write the index.
-qtrim            Quality-trim ends before mapping.
-trimq            Trim regions with average quality below this.
-untrim           Undo trimming after mapping.
-in               Primary reads input
-outu             Write only unmapped reads to this file.
-outm             Write only mapped reads to this file.
+``qin``              Set to 33 or 64 to specify input quality value ASCII offset. 33 is Sanger, 64 is old Solexa. Could be left unspecified (default=auto)
+``minid``            Approximate minimum alignment identity to look for.
+``maxindel``         Don't look for indels longer than this. Lower is faster.
+``bwr``              If above zero, restrict alignment band to this fraction of read length.  Faster but less accurate.
+``bw``               Set the bandwidth directly.
+``qickmatch``        Generate cigar strings more quickly.
+``fast``             Sets other paramters to run faster, at reduced sensitivity
+``minhits``          Minimum number of seed hits required for candidate sites.
+``path``             Specify the location to write the index.
+``qtrim``            Quality-trim ends before mapping.
+``trimq``            Trim regions with average quality below this.
+``untrim``           Undo trimming after mapping.
+``in``               Primary reads input
+``outu``             Write only unmapped reads to this file.
+``outm``             Write only mapped reads to this file.
 =============    ==========================================================
 
 
@@ -203,17 +203,17 @@ Normalization
         peaks=output.peaks2 &> s_norm.log
 
 =============    ==========================================================
--Xmx             This will be passed to Java to set memory usage.
-threads          Set to number of threads desired.
-extra            Additional files to use for input, but not for output
-in1              Path to the forward reads.
-in2              Path to the reverse reads.
-out1             Normalized forward reads.
-out2             Normalized reverse reads.
-target           Target normalization depth.
-mindepth         Kmers with depth below this number will not be included when calculating the depth of a read.
-hist             Specify a file to write the input kmer depth histogram.
-peaks            Write the peaks to this file.
+``-Xmx``             This will be passed to Java to set memory usage.
+``threads``          Set to number of threads desired.
+``extra``            Additional files to use for input, but not for output
+``in1``              Path to the forward reads.
+``in2``              Path to the reverse reads.
+``out1``             Normalized forward reads.
+``out2``             Normalized reverse reads.
+``target``           Target normalization depth.
+``mindepth``         Kmers with depth below this number will not be included when calculating the depth of a read.
+``hist``             Specify a file to write the input kmer depth histogram.
+``peaks``            Write the peaks to this file.
 =============    ==========================================================
 
 Pair-read Merging
@@ -228,15 +228,15 @@ Pair-read Merging
         outu1=Sample1.merge.R1.fq.gz outu2=Sample1.merge.R2.fq.gz minoverlap=16 usejni=t \
         ihist=Sample1.merge.hist &> merge.log
 
-=============    ==========================================================
--Xmx             This will be passed to Java to set memory usage.
-threads          Set to number of threads desired.
-in1              Path to the forward reads.
-in2              Path to the reverse reads.
-out              File for merged reads.
-outu1            File for forward unmerged reads.
-outu2            File for reverse unmerged reads.
-minoverlap       Minimum number of overlapping bases to allow merging.
-ihist            Insert length histogram output file.
-usejni           Do overlapping in C code, which is faster.  Requires compiling the C code.
-=============    ==========================================================
+=================     ==========================================================
+``-Xmx``               This will be passed to Java to set memory usage.
+``threads``            Set to number of threads desired.
+``in1``                Path to the forward reads.
+``in2``                Path to the reverse reads.
+``out``                File for merged reads.
+``outu1``              File for forward unmerged reads.
+``outu2``              File for reverse unmerged reads.
+``minoverlap``         Minimum number of overlapping bases to allow merging.
+``ihist``              Insert length histogram output file.
+``usejni``             Do overlapping in C code, which is faster.  Requires compiling the C code.
+=================     ==========================================================
