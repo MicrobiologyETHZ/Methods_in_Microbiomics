@@ -28,16 +28,16 @@ Metagenomic Assembly
 
 **Options Explained**
 
-================     =====================================================================================================
--t                   Number of threads
--m                   Set memory limit in Gb; spades will terminate if that limit is reached
---only-assembler     Run assembly module only (spades can also perform read error correction, this step will be skipped)
---pe-1               Forward reads
---pe1-2              Reverse reads
---pe1-s              Unpaired reads
---pe-1m              Merged reads
--o                   Specify output directory
-================     =====================================================================================================
+=====================     =====================================================================================================
+``-t``                     Number of threads
+``-m``                     Set memory limit in Gb; spades will terminate if that limit is reached
+``--only-assembler``       Run assembly module only (spades can also perform read error correction, this step will be skipped)
+``--pe-1``                 Forward reads
+``--pe1-2``                Reverse reads
+``--pe1-s``                Unpaired reads
+``--pe-1m``                Merged reads
+``-o``                     Specify output directory
+=====================     =====================================================================================================
 
 **Example Command for filtering and stats**:
 
@@ -83,13 +83,13 @@ This protocol will allow you to create a de novo gene catalog from your metageno
 **Options Explained**
 
 =========    =====================================================================================================
--a           Specify protein translations file
--d           Specify nucleotide sequences file
--f           Specify output format: gbk: Genbank-like format (Default); gff: GFF format; sqn: Sequin feature table format; sco: Simple coordinate output
--o           Specify output file, default stdout
--c           Closed ends, do not allow partial genes at edges of sequence
--q           Run quietly (suppress logging output)
--p           Specify mode: normal: Single genome, any number of sequences (Default); train: Do only training. Input should be multiple FASTA of one or more closely related genomes; anon: Anonymous sequences, analyze using preset training files, ideal for metagenomic data or single short sequences.
+``-a``           Specify protein translations file
+``-d``           Specify nucleotide sequences file
+``-f``           Specify output format: gbk: Genbank-like format (Default); gff: GFF format; sqn: Sequin feature table format; sco: Simple coordinate output
+``-o``           Specify output file, default stdout
+``-c``           Closed ends, do not allow partial genes at edges of sequence
+``-q``           Run quietly (suppress logging output)
+``-p``           Specify mode: normal: Single genome, any number of sequences (Default); train: Do only training. Input should be multiple FASTA of one or more closely related genomes; anon: Anonymous sequences, analyze using preset training files, ideal for metagenomic data or single short sequences.
 =========    =====================================================================================================
 
 
@@ -108,20 +108,20 @@ This protocol will allow you to create a de novo gene catalog from your metageno
 
 **Options Explained**
 
-=============    =====================================================================================================
--Xmx500G         To force a program to use 500 G of RAM
-usejni           Set to true (t) to enable JNI-accelerated versions of BBMerge, BBMap, and Dedupe. Requires the C code to be compiled.
-in               A single file or a comma-delimited list of files
-out              Destination for all output contigs
-outd             Optional; removed duplicates will go here
-threads          Number of worker threads to spawn, default is number of logical processors
-absorbrc         Set to true (t) to absorb reverse-complements as well as normal orientation
-exact            Set to true (t) to only allow exact symbol matches; when false (f), an 'N' will match any symbol
-touppercase      Set to true (t) to convert lowercase letters in reads to upper case
-ac               Set to true (t) to absorb full containments of contigs
-mergenames       Set to true (t) to concatenate respective headers when a sequence absorbs another
-absorbmatch      Set to true (t) to absorb exact matches of contigs
-=============    =====================================================================================================
+================    =====================================================================================================
+``-Xmx500G``         To force a program to use 500 G of RAM
+``usejni``           Set to true (t) to enable JNI-accelerated versions of BBMerge, BBMap, and Dedupe. Requires the C code to be compiled.
+``in``               A single file or a comma-delimited list of files
+``out``              Destination for all output contigs
+``outd``             Optional; removed duplicates will go here
+``threads``          Number of worker threads to spawn, default is number of logical processors
+``absorbrc``         Set to true (t) to absorb reverse-complements as well as normal orientation
+``exact``            Set to true (t) to only allow exact symbol matches; when false (f), an 'N' will match any symbol
+``touppercase``      Set to true (t) to convert lowercase letters in reads to upper case
+``ac``               Set to true (t) to absorb full containments of contigs
+``mergenames``       Set to true (t) to concatenate respective headers when a sequence absorbs another
+``absorbmatch``      Set to true (t) to absorb exact matches of contigs
+================    =====================================================================================================
 
     **Example command: clustering**:
 
@@ -133,16 +133,16 @@ absorbmatch      Set to true (t) to absorb exact matches of contigs
 **Options Explained**
 
 =========    =====================================================================================================
--i           Input filename in fasta format, required
--o           Output filename, required
--c           Sequence identity threshold, default 0.9 (this is the default cd-hit's "global sequence identity" calculated as: number of identical amino acids in alignment divided by the full length of the shorter sequence
--T           Number of threads, default 1; with 0, all CPUs will be used
--M           Memory limit (in MB) for the program, default 800; 0 for unlimitted
--G           Use global sequence identity, default 1; if set to 0, then use local sequence identity, calculated as: number of identical amino acids in alignment divided by the length of the alignment NOTE!!! don't use -G 0 unless you use alignment coverage controls (e.g. options -aS)
--aS          Alignment coverage for the shorter sequence, default 0.0; if set to 0.9, the alignment must cover 90% of the sequence
--g           1 or 0, default 0; by cd-hit's default algorithm, a sequence is clustered to the first cluster that meets the threshold (fast cluster); if set to 1, the program will cluster it into the most similar cluster that meets the threshold (accurate but slow mode); either 1 or 0 won't change the representatives of final clusters
--r           1 or 0, default 1; by default do both +/+ & +/- alignments; if set to 0, only +/+ strand alignment
--d           length of description in .clstr file, default 20; if set to 0, it takes the fasta defline and stops at first space
+``-i``           Input filename in fasta format, required
+``-o``           Output filename, required
+``-c``           Sequence identity threshold, default 0.9 (this is the default cd-hit's "global sequence identity" calculated as: number of identical amino acids in alignment divided by the full length of the shorter sequence
+``-T``           Number of threads, default 1; with 0, all CPUs will be used
+``-M``           Memory limit (in MB) for the program, default 800; 0 for unlimitted
+``-G``           Use global sequence identity, default 1; if set to 0, then use local sequence identity, calculated as: number of identical amino acids in alignment divided by the length of the alignment NOTE!!! don't use -G 0 unless you use alignment coverage controls (e.g. options -aS)
+``-aS``          Alignment coverage for the shorter sequence, default 0.0; if set to 0.9, the alignment must cover 90% of the sequence
+``-g``           1 or 0, default 0; by cd-hit's default algorithm, a sequence is clustered to the first cluster that meets the threshold (fast cluster); if set to 1, the program will cluster it into the most similar cluster that meets the threshold (accurate but slow mode); either 1 or 0 won't change the representatives of final clusters
+``-r``           1 or 0, default 1; by default do both +/+ & +/- alignments; if set to 0, only +/+ strand alignment
+``-d``           length of description in .clstr file, default 20; if set to 0, it takes the fasta defline and stops at first space
 =========    =====================================================================================================
 
 .. important::
@@ -173,13 +173,13 @@ This protocol allows quantification of genes in a gene catalog for each metageno
 **Options Explained**
 
 ==============    =====================================================================================================
-bwa mem            Align 70bp-1Mbp query sequences with the BWA-MEM algorithm, the algorithm works by seeding alignments with maximal exact matches (MEMs) and then extending seeds with the affine-gap Smith-Waterman algorithm (SW)
--a                 Output all found alignments for single-end or unpaired paired-end reads, these alignments will be flagged as secondary alignments
--t                 Number of threads
+``bwa mem``            Align 70bp-1Mbp query sequences with the BWA-MEM algorithm, the algorithm works by seeding alignments with maximal exact matches (MEMs) and then extending seeds with the affine-gap Smith-Waterman algorithm (SW)
+``-a``                 Output all found alignments for single-end or unpaired paired-end reads, these alignments will be flagged as secondary alignments
+``-t``                 Number of threads
 samtools view      Views and converts SAM/BAM/CRAM files
--F *FLAG*          Do not output alignments with any bits set in *FLAG* present in the FLAG field; *FLAG* can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/), in octal by beginning with `0' (i.e. /^0[0-7]+/), as a decimal number not beginning with '0' or as a comma-separated list of flag names
--b                 Output in the BAM format
--h                 Include the header in the output
+``-F *FLAG*``          Do not output alignments with any bits set in *FLAG* present in the FLAG field; *FLAG* can be specified in hex by beginning with `0x' (i.e. /^0x[0-9A-F]+/), in octal by beginning with `0' (i.e. /^0[0-7]+/), as a decimal number not beginning with '0' or as a comma-separated list of flag names
+``-b``                 Output in the BAM format
+``-h``                 Include the header in the output
 ==============    =====================================================================================================
 
 .. important::
