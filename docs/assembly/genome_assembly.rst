@@ -55,9 +55,9 @@ Isolate genome assembly using short reads
 
 ================     =====================================================================================================
 -t                   Number of threads
---isolate            Use SPAdes isolate mode
---pe1-1              Forward reads
---pe1-2              Reverse reads
+``--isolate``        Use SPAdes isolate mode
+``--pe1-1``          Forward reads
+``--pe1-2``          Reverse reads
 -o                   Specify output directory
 ================     =====================================================================================================
 
@@ -102,11 +102,11 @@ ISO                                    Type of assembly (ISO for metagenomics or
 
 **Options Explained**
 
-================     =====================================================================================================
--1 (or --pe1)        File with forward paired-end reads in FASTQ format (files compressed with gzip are allowed).
--2 (or --pe2)        File with reverse paired-end reads in FASTQ format (files compressed with gzip are allowed).
--o                   Specify output directory
-================     =====================================================================================================
+==================     =====================================================================================================
+-1 (or ``--pe1``)        File with forward paired-end reads in FASTQ format (files compressed with gzip are allowed).
+-2 (or ``--pe2``)        File with reverse paired-end reads in FASTQ format (files compressed with gzip are allowed).
+-o                       Specify output directory
+==================     =====================================================================================================
 
 4. **Gene Calling and Annotation**. Genome annotation is locating of genomic features (i.e. genes, rRNAs, tRNAs, etc) in the newly assembled genomes, and for protein coding genes, describing the putative gene product. The example below shows how this can be accomplished using prokka_. More information about prokka can be found here_.
 
@@ -123,16 +123,16 @@ ISO                                    Type of assembly (ISO for metagenomics or
 
 **Options Explained**
 
-================     =====================================================================================================
---outdir             Output folder
---locustag           Locus tag prefix
---compliant          Force Genbank/ENA/DDJB compliance: --addgenes --mincontiglen 200 --centre XXX
---addgenes           Add 'gene' features for each 'CDS' feature
---mincontiglen       Minimum contig size [NCBI needs 200]
---centre             Sequencing centre ID.
---prefix             Filename output prefix
---force              Force overwriting existing output folder
-================     =====================================================================================================
+===================     =====================================================================================================
+``--outdir``            Output folder
+``--locustag``          Locus tag prefix
+``--compliant``         Force Genbank/ENA/DDJB compliance: ``--addgenes --mincontiglen 200 --centre XXX``
+``--addgenes``          Add 'gene' features for each 'CDS' feature
+``--mincontiglen``      Minimum contig size [NCBI needs 200]
+``--centre``            Sequencing centre ID.
+``--prefix``            Filename output prefix
+``--force``             Force overwriting existing output folder
+===================     =====================================================================================================
 
 
 -----------------------
