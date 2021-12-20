@@ -17,7 +17,18 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
     Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/preprocessing.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. Also included are Illumina adapter sequences (adapters.fa) and PhiX genome (phix174_ill.ref.fa.gz).
 
-.. image:: ../images/Preprocessing.png
+
+.. mermaid::
+
+   flowchart LR
+        id1( Preprocessing) --> id2(adapter<br/>trimming<br/>fa:fa-cog BBTools BBDuk)
+        id2 --> id3(contaminant<br/>filtering<br/>fa:fa-cog BBTools BBDuk)
+        id3 --> id4(quality filtering/<br/>trimming<br/>fa:fa-cog BBTools BBDuk)
+        classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+        style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+        class id2,id3,id4 tool
+
+
 
 1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding sites, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preprocessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adapter trimming is performed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, a FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
 
@@ -32,14 +43,14 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
 **Options Explained**
 
-========    =========================================================================================================
--Xmx        This will be passed to Java to set memory usage.
-usejni      Enable JNI-accelerated version of BBDuk.
-ktrim       Trims the adapter as well as all the bases to the right of the adapter sequence
-k           Length of the k-mer used for matching
-mink        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
-hdist       Hamming distance for reference k-mers
-========    =========================================================================================================
+==========    =========================================================================================================
+``-Xmx``        This will be passed to Java to set memory usage.
+``usejni``      Enable JNI-accelerated version of BBDuk.
+``ktrim``       Trims the adapter as well as all the bases to the right of the adapter sequence
+``k``           Length of the k-mer used for matching
+``mink``        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
+``hdist``       Hamming distance for reference k-mers
+==========    =========================================================================================================
 
 
 .. note::
@@ -83,13 +94,13 @@ The command is very similar to the one shown above.
 
 **Options Explained**
 
-=============    ==========================================================
-minlength=45     filters out reads that are shorter than 45 bp
-qtrim=rl         trims low quality bases on the right and left ends of the reads
-trimq=14         regions with average quality BELOW 14 will be trimmed
-maq=20           filters out reads with average quality BELOW 20
-maxns=1          filters out reads with more than 1 N
-=============    ==========================================================
+================    ==========================================================
+``minlength=45``     filters out reads that are shorter than 45 bp
+``qtrim=rl``         trims low quality bases on the right and left ends of the reads
+``trimq=14``         regions with average quality BELOW 14 will be trimmed
+``maq=20``           filters out reads with average quality BELOW 20
+``maxns=1``          filters out reads with more than 1 N
+================    ==========================================================
 
 .. note::
 
@@ -157,21 +168,21 @@ Filtering out host reads
         outm=out.s.human.matched.fq.gz 2>> out.rmHuman.log
 
 =============    ==========================================================
-qin              Set to 33 or 64 to specify input quality value ASCII offset. 33 is Sanger, 64 is old Solexa. Could be left unspecified (default=auto)
-minid            Approximate minimum alignment identity to look for.
-maxindel         Don't look for indels longer than this. Lower is faster.
-bwr              If above zero, restrict alignment band to this fraction of read length.  Faster but less accurate.
-bw               Set the bandwidth directly.
-qickmatch        Generate cigar strings more quickly.
-fast             Sets other paramters to run faster, at reduced sensitivity
-minhits          Minimum number of seed hits required for candidate sites.
-path             Specify the location to write the index.
-qtrim            Quality-trim ends before mapping.
-trimq            Trim regions with average quality below this.
-untrim           Undo trimming after mapping.
-in               Primary reads input
-outu             Write only unmapped reads to this file.
-outm             Write only mapped reads to this file.
+``qin``              Set to 33 or 64 to specify input quality value ASCII offset. 33 is Sanger, 64 is old Solexa. Could be left unspecified (default=auto)
+``minid``            Approximate minimum alignment identity to look for.
+``maxindel``         Don't look for indels longer than this. Lower is faster.
+``bwr``              If above zero, restrict alignment band to this fraction of read length.  Faster but less accurate.
+``bw``               Set the bandwidth directly.
+``qickmatch``        Generate cigar strings more quickly.
+``fast``             Sets other paramters to run faster, at reduced sensitivity
+``minhits``          Minimum number of seed hits required for candidate sites.
+``path``             Specify the location to write the index.
+``qtrim``            Quality-trim ends before mapping.
+``trimq``            Trim regions with average quality below this.
+``untrim``           Undo trimming after mapping.
+``in``               Primary reads input
+``outu``             Write only unmapped reads to this file.
+``outm``             Write only mapped reads to this file.
 =============    ==========================================================
 
 
@@ -192,17 +203,17 @@ Normalization
         peaks=output.peaks2 &> s_norm.log
 
 =============    ==========================================================
--Xmx             This will be passed to Java to set memory usage.
-threads          Set to number of threads desired.
-extra            Additional files to use for input, but not for output
-in1              Path to the forward reads.
-in2              Path to the reverse reads.
-out1             Normalized forward reads.
-out2             Normalized reverse reads.
-target           Target normalization depth.
-mindepth         Kmers with depth below this number will not be included when calculating the depth of a read.
-hist             Specify a file to write the input kmer depth histogram.
-peaks            Write the peaks to this file.
+``-Xmx``             This will be passed to Java to set memory usage.
+``threads``          Set to number of threads desired.
+``extra``            Additional files to use for input, but not for output
+``in1``              Path to the forward reads.
+``in2``              Path to the reverse reads.
+``out1``             Normalized forward reads.
+``out2``             Normalized reverse reads.
+``target``           Target normalization depth.
+``mindepth``         Kmers with depth below this number will not be included when calculating the depth of a read.
+``hist``             Specify a file to write the input kmer depth histogram.
+``peaks``            Write the peaks to this file.
 =============    ==========================================================
 
 Pair-read Merging
@@ -217,15 +228,15 @@ Pair-read Merging
         outu1=Sample1.merge.R1.fq.gz outu2=Sample1.merge.R2.fq.gz minoverlap=16 usejni=t \
         ihist=Sample1.merge.hist &> merge.log
 
-=============    ==========================================================
--Xmx             This will be passed to Java to set memory usage.
-threads          Set to number of threads desired.
-in1              Path to the forward reads.
-in2              Path to the reverse reads.
-out              File for merged reads.
-outu1            File for forward unmerged reads.
-outu2            File for reverse unmerged reads.
-minoverlap       Minimum number of overlapping bases to allow merging.
-ihist            Insert length histogram output file.
-usejni           Do overlapping in C code, which is faster.  Requires compiling the C code.
-=============    ==========================================================
+=================     ==========================================================
+``-Xmx``               This will be passed to Java to set memory usage.
+``threads``            Set to number of threads desired.
+``in1``                Path to the forward reads.
+``in2``                Path to the reverse reads.
+``out``                File for merged reads.
+``outu1``              File for forward unmerged reads.
+``outu2``              File for reverse unmerged reads.
+``minoverlap``         Minimum number of overlapping bases to allow merging.
+``ihist``              Insert length histogram output file.
+``usejni``             Do overlapping in C code, which is faster.  Requires compiling the C code.
+=================     ==========================================================
