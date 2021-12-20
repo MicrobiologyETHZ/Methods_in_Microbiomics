@@ -31,7 +31,7 @@ release = '0.0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['myst_parser', 'sphinx_comments', 'sphinx.ext.autosectionlabel',
-              'sphinxcontrib.mermaid'
+              'sphinxcontrib.mermaid', 'sphinx_copybutton'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

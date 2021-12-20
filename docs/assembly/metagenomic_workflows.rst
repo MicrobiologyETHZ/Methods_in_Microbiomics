@@ -2,12 +2,12 @@
 Metagenome Assembly
 ====================
 
-Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation, which is proving to be challenging. Sequencing of microbial DNA extracted directly from environmental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes as the first step to understanding the communities' functional potential. Furthermore, algorithmic improvements, as well as increased availability of computational resources, make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes (MAGs)). Methods for microbial community composition are discussed in :doc:`../profiling/metagenomes`. Here we describe building :ref:`Metagenomic Assembly` as well as building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
+Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation. Sequencing of microbial DNA extracted directly from environmental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes as the first step to understanding the communities' functional potential. Furthermore, algorithmic improvements, as well as increased availability of computational resources, make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes (MAGs)). Methods for microbial community composition analysis are discussed in :doc:`../profiling/metagenomes`. Here we describe building :ref:`Metagenomic Assembly` as well as building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
 
 
 .. note::
 
-    Sample data for this section can be found :download:`here <../downloads/MetaG.tar.gz>`. The conda environment specifications are :download:`here <../downloads/metaG.yaml>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. After unpacking the data, run :code:`cd metag_test`, and you should see a :code:`reads` directory containing a set of forward (.1.fq.gz) and reverse (.2.fq.gz) reads for 3 metagenomic samples. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for metagenomic assembly. There should also be :code:`scaffolds_filter.py`.
+    Sample data and conda environment file for this section can be found :download:`here <../downloads/metag.tar.gz>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. After unpacking the data, run :code:`cd metag_test`, and you should see conda specifications :code:`metag.yaml` and a :code:`reads` directory containing a set of forward (.1.fq.gz) and reverse (.2.fq.gz) reads for 3 metagenomic samples. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for metagenomic assembly. There should also be :code:`scaffolds_filter.py`.
 
 
 --------------------
@@ -40,13 +40,13 @@ Metagenomic Assembly
 
         mkdir metag_assembly
         for i in 1 2 3
-            do
-                mkdir metag_assembly/metag$i
-                metaspades.py -t 4 -m 10 --only-assembler \
-                --pe1-1 reads/metag$i.1.fq.gz \
-                --pe1-2 reads/metag$i.2.fq.gz \
-                -o metag_assembly/metag$i
-            done
+          do
+            mkdir metag_assembly/metag$i
+            metaspades.py -t 4 -m 10 --only-assembler \
+            --pe1-1 reads/metag$i.1.fq.gz \
+            --pe1-2 reads/metag$i.2.fq.gz \
+            -o metag_assembly/metag$i
+          done
 
 
 =====================     ==========================================================================================
@@ -75,15 +75,16 @@ Assumes :code:`scaffolds_filter.py` is in :code:`metag_test`
 
       cd metag_assembly
       for i in 1 2 3
-        python ../scaffold_filter.py metag$i scaffolds metag$i/scaffolds.fasta metag$i META
-
+        do
+          python ../scaffold_filter.py metag$i scaffolds metag$i/scaffolds.fasta metag$i META
+        done
 
 ===========================     ======================================================================================
 ``metag1``                      Sample name
 ``scaffolds``                   Sequence type (can be contigs, scaffolds or transcripts)
 ``metag1/scaffolds.fasta``      Input assembly to filter
 ``metag1``                      Prefix for the output file
-``META``                        Type of assembly (META for metagenomics or ISO for isolate genomes
+``META``                        Type of assembly (META for metagenomics or ISO for isolate genomes)
 ===========================     ======================================================================================
 
 **Stats**:
@@ -91,8 +92,10 @@ Assumes :code:`scaffolds_filter.py` is in :code:`metag_test`
   .. code-block:: bash
 
       for i in 1 2 3
-        assembly-stats -l 500 -t <(cat metag$i/metag$i.scaffolds.min500.fasta) \
-        > metag$i/metag$i.assembly.stats
+        do
+          assembly-stats -l 500 -t <(cat metag$i/metag$i.scaffolds.min500.fasta) \
+          > metag$i/metag$i.assembly.stats
+        done
 
 
 =======      ==============================================================
@@ -109,10 +112,11 @@ Gene Catalogs
 
 Gene catalog generation and profiling (i.e. gene abundance estimation) can provide important insights into the community's structure, diversity and functional potential. This analysis could also identify relationships between genetic composition and environmental factors, as well as disease associations.
 
-.. note:: Integrated catalogs of reference genes have been generated for many ecosystems (e.g. ocean_, `human gut`_) and might be a good starting point for the analysis.
+.. note:: Integrated catalogs of reference genes have been generated for many ecosystems (e.g. ocean_, `human gut`_, and `many others`_) and might be a good starting point for the analysis.
 
 .. _ocean: https://doi.org/10.1016/j.cell.2019.10.014
 .. _human gut: https://doi.org/10.1038/s41587-020-0603-3
+.. _many others: https://doi.org/10.1038/s41586-021-04233-4
 
 
 Building
@@ -129,10 +133,11 @@ This protocol will allow you to create a de novo gene catalog from your metageno
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
         class id2,id3 tool
 
-1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (using **scaffolds** as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic data, we add the ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna) for each gene, as well as an annotation file (.gff).
+1. **Gene calling**. We use **prodigal** to extract protein-coding genes from metagenomic assemblies (using **scaffolds** >= 500 bp as input). Prodigal has different gene prediction modes with single genome mode as default. To run prodigal on metagenomic data, we add the ``-p meta`` option. This will produce a fasta file with amino acid sequences (.faa), nucleotide sequences (.fna) for each gene, as well as an annotation file (.gff).
 
 **Gene Calling**
 
+Assumes you are in the :code:`metag_assembly` directory.
 
     .. code-block:: bash
 
@@ -266,12 +271,12 @@ Make sure you are back in :code:`metag_test` directory. Note that test data do n
 
 .. note::
 
-    Gene catologs and collections of MAGs are often used to infer abundance of microorganisms in metagenomic samples, however none are comprehensive and will miss some members (the majority) of the microbial community. It is important to estimate what percentage of the microbial community is represented in a gene catalog or a collection of MAGs. This is evaluated using mapping rates: number of mapped reads (after alignment and filtering, as described in :ref:`Profiling`) divided by total number of quality-control reads.
+    Gene catologs and collections of MAGs are often used to infer abundance of microorganisms in metagenomic samples, however none are comprehensive and will miss some members (or the majority) of the microbial community. It is important to estimate what percentage of the microbial community is represented in a gene catalog or a collection of MAGs. This is evaluated using mapping rates: number of mapped reads (after alignment and filtering, as described in :ref:`Profiling`) divided by total number of quality-control reads.
 
 
 .. important::
 
-    Per-cell normalization. Metagenomic profiles should be normalized to relative cell numbers in the sample.  This can be achieved by dividing the gene abundances by the median abundance of 10 universal `single-copy phylogenetic marker genes (MGs)_`.
+    Per-cell normalization. Metagenomic profiles should be normalized to relative cell numbers in the sample.  This can be achieved by dividing the gene abundances by the median abundance of 10 universal `single-copy phylogenetic marker genes (MGs)`_.
 
 .. _single-copy phylogenetic marker genes (MGs): https://doi.org/10.1038/nmeth.2693
 
@@ -301,13 +306,13 @@ MAG Building
         id1(MAGs) --> id2(all-to-all <br/>alignment<br/>fa:fa-cog BWA)
         id2 --> id3(within- and<br/>between-sample<br/>abundance correlation<br/>for each scaffold<br/>fa:fa-cog MetaBAT2 )
         id3 --> id4(metagenomic<br/>binning<br/>fa:fa-cog MetaBAT2)
-        id4 --> id5(quality control<br/>fa:fa-cog CheckM & anvi'o)
+        id4 --> id5(quality control<br/>fa:fa-cog CheckM)
         classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
         class id2,id3,id4,id5 tool
 
 
-This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`).
+This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`). Note that for MAG building we are using >= 1000 bp **scaffolds**.
 
 1. **All-to-all lignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA_. Here we use ``-a`` to allow mapping to secondary sites. Note that merged, singleton, forward and reverse reads are all aligned separately, and are later merged into a single :code:`bam` file.
 
@@ -317,19 +322,24 @@ This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted
 
 **Create BWA index for each assembly**:
 
+Make sure you are in the :code:`metag_test` directory and have run metagenomic assembly steps described above.
+
 .. code-block:: bash
 
     for i in 1 2 3
+      do
         bwa index metag_assembly/metag$i/metag$i.scaffolds.min1000.fasta
+      done
 
 
 **Mapping every sample to every assembly**:
 
-    .. code-block:: console
+    .. code-block:: bash
 
-        mkdir alignments
+        mkdir -p alignments
         for i in 1 2 3
-          for j in 1 2 3
+          do
+            for j in 1 2 3
               do
                 bwa mem -a -t 16 metag_assembly/metag$i/metag$i.scaffolds.min1000.fasta reads/metag$j.1.fq.gz \
                 | samtools view -F 4 -bh - | samtools sort -O bam -@ 4 -m 4G > alignments/metag"$j"_to_metag"$i".1.bam
@@ -338,15 +348,25 @@ This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted
                 samtools merge alignments/metag"$j"_to_metag"$i".bam \
                 alignments/metag"$j"_to_metag"$i".1.bam alignments/metag"$j"_to_metag"$i".2.bam
               done
+          done
+**BWA**:
 
-==============   =======================================================
+==============    =====================================================================================================
+``-a``                 Output all found alignments for single-end or unpaired paired-end reads, these alignments will be flagged as secondary alignments
+``-t``                 Number of threads
+==============    =====================================================================================================
 
-==============   =======================================================
+**samtools**:
 
+===============    =====================================================================================================
+``-F *FLAG*``      Do not output alignments with any bits set in *FLAG* present in the FLAG field. When *FLAG* is 4, do not output unmapped reads.
+``-b``             Output in the BAM format
+``-h``             Include the header in the output
+===============    =====================================================================================================
 
 .. important::
 
-    **Computational Resources**: Depending on the size of the dataset, this step would require significant computational resources. For example,
+    **Computational Resources**: Depending on the size of the dataset, this step would require significant computational resources.
 
 
 2. **Within- and between-sample abundance correlation for each contig**. MetaBAT2_ provides `jgi_summarize_bam_contig_depth` script that allows quantification of within- and between-sample abundances for each scaffold. Here we generate an abundance (depth) file for each metagenomic assembly by providing the alignment files generated using this assembly. This depth file will be used by MetaBAT2_ in the next step for scaffold binning.
@@ -373,9 +393,11 @@ This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted
 
         mkdir mags
         for i in 1 2 3
-          metabat2 -i metag_assembly/metag$i/metag$i.scaffolds.min1000.fasta -a alignments/metag$i.depth \
-          -o mags/metag$i --minContig 2000 \
-          --maxEdges 500 -x 1 --minClsSize 200000 --saveCls -v
+          do
+            metabat2 -i metag_assembly/metag$i/metag$i.scaffolds.min1000.fasta -a alignments/metag$i.depth \
+            -o mags/metag$i --minContig 2000 \
+            --maxEdges 500 -x 1 --minClsSize 200000 --saveCls -v
+          done
 
 
 4. **Quality Control**. After MAG reconstruction, it is important to estimate how well the binning perform. CheckM_ places each bin on a reference phylogenetic tree and evaluates genome quality by looking at a set of clade-specific marker genes. CheckM_ outputs completeness (estimation of fraction of genome present), contamination (percetange of foreign scaffolds), and strain heterogeneity (high strain heterogeneity would suggest that contamination is due to presence of closely related strains in your sample).
