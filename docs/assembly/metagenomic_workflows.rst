@@ -54,14 +54,14 @@ Metagenomic Assembly
 ``-m``                    Set memory limit in Gb; spades will terminate if that limit is reached
 ``--only-assembler``      Run assembly module only (spades can also perform read error correction,
                           this step will be skipped)
-``--pe-1``                Forward reads
+``--pe1-1``               Forward reads
 ``--pe1-2``               Reverse reads
 ``--pe1-s``               Unpaired reads
-``--pe-1m``               Merged reads
+``--pe1-m``               Merged reads
 ``-o``                    Specify output directory
 =====================     ==========================================================================================
 
-    **Computational Resources** needed for metagenomic assembly will vary significantly between datasets. In general, metagenomic assembly requires a lot of memory (usually > 100 Gb). You can use multiple threads (16-32) to speed up the assembly. Because test data set provided is very small, merging of the pair-end reads was not necessary (see :doc:`../preprocessing/preprocessing`). It is helpful when working with real data - don't forget to include the merged and singlton files with ``--pe-1m`` and ``--pe1-s`` options.
+    **Computational Resources** needed for metagenomic assembly will vary significantly between datasets. In general, metagenomic assembly requires a lot of memory (usually > 100 Gb). You can use multiple threads (16-32) to speed up the assembly. Because test data set provided is very small, merging of the pair-end reads was not necessary (see :doc:`../preprocessing/preprocessing`). It is helpful when working with real data - don't forget to include the merged and singlton files with ``--pe1-m`` and ``--pe1-s`` options.
 
 
 **Filtering**:
