@@ -9,11 +9,12 @@ mOTUs
 --------
 
 - Overview
-- Database
+- Profiling using marker genes
+- Extensive database.  For more details see ...
 
 .. note::
 
-    Sample data and conda environment file for this section can be found :download:`here <../downloads/metag.tar.gz>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. ...
+    Sample data and conda environment file for this section can be found :download:`here <../downloads/metag.tar.gz>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. ... Installation requires database download expect it to take a little bit of time.
 
 
 .. mermaid::
@@ -27,16 +28,23 @@ mOTUs
         style id2 fill:#F78A4A,stroke:#F8F7F7,stroke-width:1px
         class id3,id4 tool
 
-
+|
 1. **Data Preprocessing**. Before proceeding to the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest merging of paired-end reads (see :doc:`../preprocessing/preprocessing` for more details). Using merged reads increases speed and accuracy.
 
-2. **Profile**.
+
+2. **Profile**. Taxonomic profiles for each sample can be generated using mOTUs_ `profile` command. The output profile will consist of identified mOTUs and their abundance.
+
+
+.. _mOTUs: https://github.com/motu-tool/mOTUs
 
 .. code-block:: bash
 
-    motus profile -f {in.1.fq.gz } -r {in.2.fq.gz} -s {in.s.fq.gz},{in.m.fq.gz} -n {sample} \
--o {out.motus} -I {out.bam} -t {threads} -v 100 -y {counting_method} -c
-
+    for i in ERR479298 ERR479297
+      do
+        echo motus profile -f ERR479298_sample.1.fq.gz  -r ERR479298_sample.2.fq.gz \
+        -s ERR479298_sample.s.fq.gz,ERR479298_sample.m.fq.gz -n {sample} \
+        -o motus_profiles -v 100 -y {counting_method} -c -k
+      done
 
 ==============    =====================================================================================================
 ``-f``
@@ -44,22 +52,35 @@ mOTUs
 ``-s``
 ``-n``
 ``-o``
-``-I``
-``-t``
 ``-v``
 ``-y``
 ``-c``
 ``-k``
 ==============    =====================================================================================================
 
-3. **Merge**.
+|
+.. important::
+    Low read counts and -1. See FAQ for more information.
+
+
+|
+3. **Merge**. Individual taxonomic profiles can be merged together using  mOTUs_ `merge` command to facilitate downstream analysis.
 
 .. code-block:: bash
 
-    motus merge -i ERR479298s-default.motus,bp1_precomputed/ERR479045- default.motus -o merged.motus
+    motus merge -i ERR479298_sample.motus,ERR479298_sample.motus -o merged.motus
+
+========  ===============================
+``-i``
+``-o``
+========  ===============================
+
 
 
 --------
 mTAGs
 --------
+
+.. note::
+    Differences between mTAGs and mOTUs.
 
