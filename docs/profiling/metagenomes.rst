@@ -8,9 +8,12 @@ Taxonomic profiling of complex microbial communities is an essential first step 
 mOTUs
 --------
 
-- Overview
-- Profiling using marker genes
-- Extensive database.  For more details see ...
+    mOTUs_ determines the composition of metagenomic samples using 10 single copy phylogenetic marker genes and an extensive database consisting of reference genomes, metagenomes and metagenome assembled genomes from 23 different environments. Different use cases and applications are discussed in detail in our `recent publication`_ and on `mOTUs website`_. Here we provide a quick reference guide to basic mOTUs functionality.
+
+.. _mOTUs: https://github.com/motu-tool/mOTUs
+.. _recent publication: https://doi.org/10.1002/cpz1.218
+.. _mOTUs website: https://motu-tool.org/
+
 
 .. note::
 
@@ -35,44 +38,47 @@ mOTUs
 2. **Profile**. Taxonomic profiles for each sample can be generated using mOTUs_ `profile` command. The output profile will consist of identified mOTUs and their abundance.
 
 
-.. _mOTUs: https://github.com/motu-tool/mOTUs
-
 .. code-block:: bash
 
-    for i in ERR479298 ERR479297
-      do
-        echo motus profile -f ERR479298_sample.1.fq.gz  -r ERR479298_sample.2.fq.gz \
-        -s ERR479298_sample.s.fq.gz,ERR479298_sample.m.fq.gz -n {sample} \
-        -o motus_profiles -v 100 -y {counting_method} -c -k
-      done
+    motus profile -f ERR479298_sample.1.fq.gz  -r ERR479298_sample.2.fq.gz \
+    -s ERR479298_sample.s.fq.gz,ERR479298_sample.m.fq.gz -n {sample} \
+    -o motus_profiles -c -k mOTU -q -p
 
-==============    =====================================================================================================
-``-f``
-``-r``
-``-s``
-``-n``
-``-o``
-``-v``
-``-y``
-``-c``
-``-k``
-==============    =====================================================================================================
 
-|
+========  ======================================================================
+``-f``      input file(s) for reads in forward orientation
+``-r``      input file(s) for reads in reverse orientation
+``-s``      input file(s) for unpaired reads (singletons or merged pair end reads)
+``-n``      sample name
+``-o``      output file name
+``-c``      print result as counts instead of relative abundances
+``-k``      taxonomic level (kingdom, phylum, class, order, family, genus, mOTU)
+``-q``      print the full rank taxonomy
+``-p``      print NCBI taxonomy identifiers
+========  ======================================================================
+
+
 .. important::
-    Low read counts and -1. See FAQ for more information.
+    Expect mOTU counts (when run with ``-c`` option) to be relatively small (compared to total number of reads in your sample). The counts are proportional to the library size, and you can expect ~600 mOTU counts for 5,000,000 reads. If you still think you should be getting higher counts, please see FAQ_ for common issues.
+
+.. _FAQ: https://github.com/motu-tool/mOTUs/wiki/FAQ
+
+.. note::
+
+    The unassigned at the end of the profile file represents the fraction of unmapped reads. This represents species that we know to be present in the sample, but we are not able to quantify individually; hence we group them together into an unassigned fraction. For almost all the analysis, it is better to remove this value, since it does not represent a single species/clade. Please see FAQ_ for more information.
 
 
-|
 3. **Merge**. Individual taxonomic profiles can be merged together using  mOTUs_ `merge` command to facilitate downstream analysis.
 
 .. code-block:: bash
 
-    motus merge -i ERR479298_sample.motus,ERR479298_sample.motus -o merged.motus
+    motus merge -i ERR479298_sample.motus,ERR479298_sample.motus -o merged.motus \
+    -a bioreactor,bee,freshwater,human,marine,mouse,soil,wastewater
 
 ========  ===============================
-``-i``
-``-o``
+``-i``     list of mOTU profiles to merge
+``-o``     output file name
+``-a``     add pre-computed profiles from different environmental samples: air, bioreactor, bee, cat, cattle, chicken, dog, fish, freshwater, human, marine, mouse, pig, sheep, soil, termite, wastewater
 ========  ===============================
 
 
