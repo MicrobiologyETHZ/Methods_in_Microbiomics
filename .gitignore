@@ -195,7 +195,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
+#downloads/
 eggs/
 .eggs/
 lib/
@@ -422,3 +422,4 @@ buildNumber.properties
 
 *data*
 *.xmind
+/other

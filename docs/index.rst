@@ -139,7 +139,6 @@ Resources
 
    assembly/genome_assembly
    assembly/metagenomic_workflows
-   assembly/long_read
 
 .. toctree::
    :caption: Profiling

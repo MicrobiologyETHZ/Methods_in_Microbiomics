@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Methods in Microbiomics'
-copyright = '2020, Anna Sintsova'
-author = 'Anna Sintsova'
+copyright = '2020, Sunagawa Group'
+author = 'Sunagawa Group'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.1'

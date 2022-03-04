@@ -9,7 +9,7 @@ Over the recent years, bacterial whole genome sequencing has become an indispens
 
 .. note::
 
-    Long read sequencing (with PacBio or Nanopore) offers creation of complete circularized bacterial genomes. However, the bioinformatics methods for this are still in development. They are likely to change as technology develops, and the standard protocols are less well established (See `this genome assemlby guide`_ and  :doc:`/assembly/long_read` for current suggestions).
+    Long read sequencing (with PacBio or Nanopore) offers creation of complete circularized bacterial genomes. However, the bioinformatics methods for this are still in development. They are likely to change as technology develops, and the standard protocols are less well established (See `this genome assemlby guide`_ for current suggestions).
 
 .. _this genome assemlby guide: https://github.com/rrwick/Trycycler/wiki/Guide-to-bacterial-genome-assembly
 

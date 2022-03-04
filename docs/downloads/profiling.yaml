@@ -1,0 +1,12 @@
+name: profling
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - motus==3.0.1
+  - metasnv==1.0.3
+  - hmmer==3.3.2
+  - vsearch==2.21.1
+  - pip:
+      - mtags
