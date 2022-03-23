@@ -161,13 +161,15 @@ mOTUs_ and mTAGs_ both generate taxonomic profiles from shotgun metagenomic data
 
 Here are a few considerations to keep in mind:
 
-#. mTAGs profiles based on  profiling 16S rRNA gene with 97% OTUs. If you would like to compare your data to rRNA-based studies, mTAGs_ would be a better choice.
+#. The main difference is that mTAGs_ is based on rRNA genes clustered at 97% identity, while mOTUS_ is based on 10 universal single-copy marker genes.
 
-#. Since, unlike mTAGs_, mOTUS_ does not rely on  16S rRNA,  it avoids the potential problem of 16S copy number variation.
+#. If you would like to compare your data to rRNA-based studies (for example 16S rRNA amplicon), mTAGs_ would be a better choice.
 
-#. mTAGs relies on SILVA database,  which in general has a better coverage of diversity. The -% of not profiled reads is usually much lower in mTAGs compared to mOTUs. However, this highly dependent on the environment being studied.
+#. Since mOTUS_ does not rely on rRNA genes (unlike mTAGs_), it avoids the potential problem of copy number variation.
 
-#. OTU defined by a single 16S sequence can correspond to multipli mOTUs, i.e. the resolution of mOTUs might be higher compared to mTAGs.
+#. mTAGs relies on SILVA database, which in general has a better coverage of diversity. The -% of not profiled reads is usually much lower in mTAGs compared to mOTUs. However, this highly dependent on the environment being studied.
 
-#. The general patterns found in alpha and beta diversity correlate  well between these two methods.
+#. Very often the resolution of the mOTUs clusters is higher than that of rRNA OTUs. As a consequence, a single 16S sequence can correspond to multiple mOTUs.
+
+#. The general patterns found in alpha and beta diversity correlate well between these two methods.
 
