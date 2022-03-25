@@ -86,16 +86,10 @@ Profiling
 Best practises for profiling of amplicon and metagenomic data
 
 
-----------
-Annotation
-----------
-SNVs, mVIRs, BGCs.
-
-
 ---------------
 Transcriptomics
 ---------------
-Best practices for transcriptomic and metatranscriptomic data profiling
+Best practices for transcriptomic and metatranscriptomic data analysis
 
 
 --------------
@@ -105,22 +99,11 @@ Modelling
 Best practices in metagenomic data analysis
 
 
---------------
-Workflows
---------------
-
-Example implementation of best practices
-
-
 -------
 Support
 -------
-* For quesions, comments and suggestions contact ...
 
-
----------
-Resources
----------
+* If you have any quesions or suggestions leave a comment below!
 
 
 .. toctree::
@@ -148,18 +131,19 @@ Resources
 
    profiling/16S
    profiling/metagenomes
+..
    profiling/variants
    profiling/function
 
-.. toctree::
-   :caption: Annotation
-   :name: annotation
-   :hidden:
-   :maxdepth: 1
+..
+   .. toctree::
+      :caption: Annotation
+      :name: annotation
+      :hidden:
+      :maxdepth: 1
 
-   annotation/bgc.rst
-   annotation/mvirs.rst
-
+      annotation/bgc.rst
+      annotation/mvirs.rst
 
 .. toctree::
    :caption: Transcriptomics
@@ -178,13 +162,4 @@ Resources
 
    modelling/modelling.rst
 
-
-
-.. toctree::
-   :caption: Workflows
-   :name: workflows
-   :hidden:
-   :maxdepth: 1
-
-   workflows/workflows.rst
 
