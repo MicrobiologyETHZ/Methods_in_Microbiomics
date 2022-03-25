@@ -1,3 +1,161 @@
 ===================
 16S Amplicon
 ===================
+Intro on what 16S is
+
+16S Sequencing primers
+^^^^^^^^^^^^^^^^^^^^^^
+
+
+1. Removing adapters and splitting reads in forward/reverse orientation. It is essential to remove adapter sequences for `dada2` pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While is happens only rarely, this step saves some work in the downstream analysis. We also split forward adn reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
+
+.. _cutadapt:
+
+.. code-block::
+
+   cutadapt -O 12 --discard-untrimmed -g GTGYCAGCMGCCGCGGTAA -G CCGYCAATTYMTTTRAGTTT
+  -o sample1.tmp.fw_R1.fastq.gz -p sample1.tmp.fw_R2.fastq.gz raw/sample1_R1.fastq.gz raw/sample1_R2.fastq.gz
+   -j 8 --pair-adapters --minimum-length 75;
+   cutadapt -O 12 --times 5 -g GTGYCAGCMGCCGCGGTAA -o sample1.fw_R1.fastq.gz -j 8 sample1.tmp.fw_R1.fastq.gz;
+   cutadapt -O 12 --times 5 -g CCGYCAATTYMTTTRAGTTT -o sample1.fw_R2.fastq.gz -j 8 sample1.tmp.fw_R2.fastq.gz;
+   cutadapt -O 12 --discard-untrimmed -G GTGYCAGCMGCCGCGGTAA -g CCGYCAATTYMTTTRAGTTT
+   -o sample1.tmp.rev_R1.fastq.gz -p sample1.tmp.rev_R2.fastq.gz raw/sample1_R1.fastq.gz raw/fsample1_R2.fastq.gz
+   -j 8 --pair-adapters --minimum-length 75;
+   cutadapt -O 12 --times 5 -g CCGYCAATTYMTTTRAGTTT -o sample1.rev_R1.fastq.gz -j 8 sample1.tmp.rev_R1.fastq.gz;
+   cutadapt -O 12 --times 5 -g GTGYCAGCMGCCGCGGTAA -o sample1.rev_R2.fastq.gz -j 8 sample1.tmp.rev_R2.fastq.gz
+
+========================     ===========================================================================================
+``-O``
+``--discard-untrimmed``
+``-g``
+``-G``
+``-o``
+``-p``
+``-j``
+``--pair-adapters``
+``--minimum-length``
+========================     ===========================================================================================
+
+2. Filter and trim the reads. We next filter and trim low quality bases. This is important for dada2 merging to work.
+
+.. code-block::
+
+ library(dada2);
+ packageVersion("dada2")
+ args = commandArgs(trailingOnly=TRUE)
+ infqgz1 <- "cutadapt/flowcell1/lane/sample1.rev_R1.fastq.gz"
+ infqgz2 <- "cutadapt/flowcell1/lane/sample1.rev_R2.fastq.gz"
+ outfqgz1 <- "filtertrim/flowcell1/lane/sample1.rev_R1.fastq.gz"
+ outfqgz2 <- "filtertrim/flowcell1/lane/sample1.rev_R2.fastq.gz"
+ maxee <- 2
+ truncq <- 3
+ maxn <- 0
+ compress <- TRUE
+ minlen <- 150
+ trimright_1 <- 15
+ trimright_2 <- 15
+ threads <- 8
+ filterAndTrim(fwd=infqgz1, filt=outfqgz1,
+               rev=infqgz2, filt.rev=outfqgz2,
+               maxEE=maxee, truncQ=truncq, maxN=maxn, rm.phix=TRUE,
+               compress=compress, verbose=TRUE, multithread=threads, minLen=minlen,
+               trimRight = c(trimright_1, trimright_2))
+
+.. important::
+
+   Choosing truncation length (reads still need to overlap)
+===============  ===========================================================================
+``maxEE``
+``truncQ``
+``maxN``
+===============  ===========================================================================
+
+
+3. Learning Errors.
+
+.. warning::
+
+   New Illumina sequencing data (e.g. NovaSeq) provides only binned quality scores (see :doc:`../preprocessing/preprocessing` for more details). This created a proble for dada2 error learning step. This is an ongoing issue, and is discussed in detailed here_ and in `this tutorial`_. Below is our current solution to the problem, the best solution might be dataset specific.
+
+.. _here: https://github.com/benjjneb/dada2/issues/1307
+.. _this tutorial: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
+
+Here we define a modified error function that maintains monotonicity even with binned quality reads:
+
+.. code-block::
+
+  loessErrfun_mod <- function (trans) {
+   qq <- as.numeric(colnames(trans))
+   est <- matrix(0, nrow = 0, ncol = length(qq))
+   for (nti in c("A", "C", "G", "T")) {
+     for (ntj in c("A", "C", "G", "T")) {
+       if (nti != ntj) {
+         errs <- trans[paste0(nti, "2", ntj), ]
+         tot <- colSums(trans[paste0(nti, "2", c("A",
+   rlogp <- log10((errs + 1)/tot)
+"C", "G", "T")), ])
+       rlogp[is.infinite(rlogp)] <- NA
+      df <- data.frame(q = qq, errs = errs, tot = tot,
+                       rlogp = rlogp)
+      mod.lo <- loess(rlogp ~ q, df, weights = log10(tot),span = 2)
+      pred <- predict(mod.lo, qq)
+      maxrli <- max(which(!is.na(pred)))
+      minrli <- min(which(!is.na(pred)))
+      pred[seq_along(pred) > maxrli] <- pred[[maxrli]]
+      pred[seq_along(pred) < minrli] <- pred[[minrli]]
+      est <- rbind(est, 10^pred)
+} }
+}
+MAX_ERROR_RATE <- 0.25
+MIN_ERROR_RATE <- 1e-07
+est[est > MAX_ERROR_RATE] <- MAX_ERROR_RATE
+est[est < MIN_ERROR_RATE] <- MIN_ERROR_RATE
+err <- rbind(1 - colSums(est[1:3, ]), est[1:3, ], est[4,
+                                       ], 1 - colSums(est[4:6, ])
+colSums(est[7:9, ]), est[9, ], est[10:12, ], 1 - colSums(est[10:1
+, est[5:6, ], est[7:8, ], 1 -
+2,
+  rownames(err) <- paste0(rep(c("A", "C", "G", "T"), each = 4),
+                          "2", c("A", "C", "G", "T"))
+  colnames(err) <- colnames(trans)
+  return(err)
+}
+
+The error rates can than be modeled as follows:
+
+.. code-block::
+
+    samplefile <- "samplefile_r1_fw"
+    outfile <- "samplefile_r1_fw.errors.rds"
+    outfile.plot <- paste(outfile, '.pdf', sep = '')
+    threads <- 8
+    nbases <- 1e8
+    ]))
+    sample.files <- read.csv(samplefile, header=FALSE, sep='\t', stringsAsFactors = FA
+    LSE)[2]
+    s.f <- sample.files$V2
+    err <- learnErrors(s.f, nbases=nbases, multithread=threads, randomize=TRUE, verbos
+    e = 1, errorEstimationFunction = loessErrfun_mod)
+    saveRDS(err, file = outfile)
+    plot <- plotErrors(err,nominalQ=TRUE)
+    ggsave(outfile.plot, plot = plot)
+
+
+4. Sample Inference. Using the error model infer unique sequences in each sample.
+
+.. code-block::
+
+   dd <- dada(s.f, err=err, pool="pseudo", multithread = threads, errorEstimationFunc
+   tion = loessErrfun_mod)
+   seqtab <- makeSequenceTable(dd)
+
+
+5. Read Merging. Now reads can get merged into inserts. The fw subsample is merged in standard orientation. The rev subsample is merged in inverse orientation. That way, all inserts will have the same orientation after this step.
+
+
+6. Chimera Removal.
+
+7. Remove Spurious ASVs.
+
+8. Taxonomic annotation.
+
