@@ -1,3 +1,27 @@
 ===================
 16S Amplicon
 ===================
+
+.. important::
+
+    We use DADA2_ pipeline for 16S Amplicon analysis. Detailed workflow coming soon! For now please checkout `dada2 tutorial`_. If using Illumina data with binned quality scores, please checkout `this discussion`_
+
+.. _DADA2: https://doi.org/10.1038/nmeth.3869
+.. _dada2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
+.. _this discussion: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
+
+
+.. mermaid::
+
+   flowchart LR
+        id1( 16S <br/>Amplicon<br/>Analysis) --> id2(adapter <br/>removal<br/>fa:fa-cog cutadapt)
+        id2 --> id3(filtering<br/> and <br/>trimming<br/>fa:fa-cog dada2)
+        id3 --> id4(learning<br/> errors<br/>fa:fa-cog dada2)
+        id4 --> id5(sample<br/> inference<br/>fa:fa-cog dada2)
+        id5 --> id6(read<br/> mergeing<br/>fa:fa-cog dada2)
+        id6 --> id7(chimera <br/>removal<br/>fa:fa-cog dada2)
+        id7 --> id8(assign<br/> taxonomy<br/>fa:fa-cog DECIPHER)
+
+        classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+        style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+        class id2,id3,id4,id5,id6,id7 tool
