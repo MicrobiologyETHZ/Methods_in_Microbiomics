@@ -1,11 +1,58 @@
 ===================
 16S Amplicon
 ===================
-Intro on what 16S is
 
-16S Sequencing primers
+- Still method of choice for analysis of microbiomes
+- Allows to evaluate community composition. Metrics like alpha and beta diversity can reveal information can show association with environmental conditions or clinical variables.
+
+- 16s rRNA genes is about 1500 bp long. encodes small subunit rRNA of prokaryotes
+- Composed of conserved and 9 variable regions
+- Use conserved regions as primer binding sites, and variable regions for taxonomic classification
+- 18S rDNA is a DNA sequence encoding small subunit rRNA of eukaryotic ribosomes
+- ITS: ITS (Internal Transcribed Spacer) is part of the non-transcriptional region of the fungal rRNA gene. The ITS sequences used for fungal identification usually include ITS1 and ITS2.
+-  By detecting the sequence variation and abundance of the target area, the information of species classification and abundance, population structure, phylogenetic evolution and community comparison of environmental samples could be obtained.
+
+- Outcomes can be influenced by:
+    - sampling and storage
+    - primer annealing efficiency
+    - which variable region is targetted
+    - library preparation and sequencing
+    - bioinformatic processing pipelines (OTUs vs ASVs)
+    - database used for taxonomic annotation
+
+
+16S and 18S Sequencing primers
 ^^^^^^^^^^^^^^^^^^^^^^
 
+Below you can find a table listing commonly used primers for 16S analysis.
+
+515f-806r bacterial/archaeal primer pair, traditionally used by the Earth Microbiome Project (EMP; http://www.earthmicrobiome.org/emp-standard-protocols/16s/), was recently shown to be biased against both the Crenarchaeota/Thaumarchaeota (2), important environmental archaea, and the SAR11 clade, which is abundant in aquatic bacteria (3). Parada et al. (4) and Apprill et al. (5) have modified the 515f/806r 16S rRNA gene primer pair first designed for use with the Illumina platform, as described by Caporaso et al. in 2011 (1), to reduce these biases. Ref_
+
+.. _Ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5069754/
+
+
+=========== =================== ======================== ============= ====== =====================
+V-Region    Primer Names        Primer Sequences         Specificity   Size   Reference
+V1-V3       27F/534R            | AGAGTTTGATYMTGGCTCAG/  | Bacteria &  507    `Walker et al.`_
+                                | ATTACCGCGGCTGCTGG      | Archaea
+V3-V4       341F/785R           | CCTACGGGNGGCWGCAG/     | Bacteria &  465     `Klindworth et al.`_
+                                | GACTACHVGGGTATCTAATCC  | Archaea
+V4          515F/806R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  291    `Caporaso et al.`_
+                                | GGACTACHVGGGTWTCTAAT   | Archaea
+V4          515F-modified/806R  | GTGYCAGCMGCCGCGGTAA/   | Bacteria &  291    `Parada et al.`_
+                                | GGACTACHVGGGTWTCTAAT   | Archaea
+V4          515F/806R-modified  | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  291    `Apprill et al.`_
+                                | GGACTACNVGGGTWTCTAAT   | Archaea
+V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `Parada et al.`_
+                                | CCGYCAATTYMTTTRAGTTT   | Archaea &
+                                                         | Eukaryotes
+=========== =================== ======================== ============= ====== =====================
+
+.. _Caporaso et al.: https://doi.org/10.1073/pnas.1000080107
+.. _Parada et al.: https://doi.org/10.1111/1462-2920.13023
+.. _Apprill et al.: https://doi.org/10.3354/ame01753
+.. _Walker et al.: https://doi.org/10.1186/s40168-015-0087-4
+.. _Klindworth et al.: https://doi.org/10.1093/nar/gks808
 
 1. Removing adapters and splitting reads in forward/reverse orientation. It is essential to remove adapter sequences for `dada2` pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While is happens only rarely, this step saves some work in the downstream analysis. We also split forward adn reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
 
