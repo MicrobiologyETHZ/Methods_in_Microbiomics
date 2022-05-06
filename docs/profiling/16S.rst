@@ -2,6 +2,14 @@
 16S Amplicon
 ===================
 
+.. important::
+
+    We use DADA2_ pipeline for 16S Amplicon analysis. Detailed workflow coming soon! For now please checkout `dada2 tutorial`_. If using Illumina data with binned quality scores, please checkout `this discussion`_
+
+.. _DADA2: https://doi.org/10.1038/nmeth.3869
+.. _dada2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
+.. _this discussion: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
+
 - Still method of choice for analysis of microbiomes
 - Allows to evaluate community composition. Metrics like alpha and beta diversity can reveal information can show association with environmental conditions or clinical variables.
 
@@ -53,6 +61,32 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 .. _Apprill et al.: https://doi.org/10.3354/ame01753
 .. _Walker et al.: https://doi.org/10.1186/s40168-015-0087-4
 .. _Klindworth et al.: https://doi.org/10.1093/nar/gks808
+
+.. mermaid::
+
+   flowchart TD
+     subgraph Quality
+       id2(adapter <br/>removal<br/>fa:fa-cog cutadapt)
+     end
+     subgraph DADA2
+       direction RL
+       id3() --> id4(learning<br/> errors<br/>fa:fa-cog dada2)
+       id4 --> id5(sample<br/> inference<br/>fa:fa-cog dada2)
+       id5 --> id6(read<br/> merging<br/>fa:fa-cog dada2)
+       id6 --> id7(chimera <br/>removal<br/>fa:fa-cog dada2)
+     end
+     subgraph Taxonomic
+     id8(assign<br/> taxonomy<br/>fa:fa-cog DECIPHER)
+     end
+     id1(16S <br/>Amplicon<br/>Analysis) --> Quality --> DADA2 --> Taxonomic
+
+
+     classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+     style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+     class id2,id3,id4,id5,id6,id7,id8 tool
+
+
+
 
 1. Removing adapters and splitting reads in forward/reverse orientation. It is essential to remove adapter sequences for `dada2` pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While is happens only rarely, this step saves some work in the downstream analysis. We also split forward adn reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
 
