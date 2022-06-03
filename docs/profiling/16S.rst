@@ -30,7 +30,7 @@
 
 
 16S and 18S Sequencing primers
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Below you can find a table listing commonly used primers for 16S analysis.
 
@@ -62,35 +62,39 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 .. _Walker et al.: https://doi.org/10.1186/s40168-015-0087-4
 .. _Klindworth et al.: https://doi.org/10.1093/nar/gks808
 
+
+16S Data Analysis
+^^^^^^^^^^^^^^^^^
+
 .. mermaid::
 
    flowchart TD
-     subgraph Quality
-       id2(adapter <br/>removal<br/>fa:fa-cog cutadapt)
+     subgraph quality [Quality Control]
+       direction LR
+       id2(1. adapter removal<br/>fa:fa-cog cutadapt) --> id3(2. trim reads <br/>fa:fa-cog dada2)
      end
      subgraph DADA2
-       direction RL
-       id3() --> id4(learning<br/> errors<br/>fa:fa-cog dada2)
-       id4 --> id5(sample<br/> inference<br/>fa:fa-cog dada2)
-       id5 --> id6(read<br/> merging<br/>fa:fa-cog dada2)
-       id6 --> id7(chimera <br/>removal<br/>fa:fa-cog dada2)
+       direction LR
+       id4(3. learning errors<br/>fa:fa-cog dada2) --> id5(4. sample inference<br/>fa:fa-cog dada2)
+       id5 --> id6(5. read merging<br/>fa:fa-cog dada2)
+       id6 --> id7(6. chimera removal<br/>fa:fa-cog dada2)
      end
-     subgraph Taxonomic
-     id8(assign<br/> taxonomy<br/>fa:fa-cog DECIPHER)
+     subgraph tax [Taxonomic Annotation]
+     id8(7. assign taxonomy<br/>fa:fa-cog DECIPHER)
      end
-     id1(16S <br/>Amplicon<br/>Analysis) --> Quality --> DADA2 --> Taxonomic
-
+     id1(16S Amplicon Analysis) --> quality --> DADA2 --> tax
 
      classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+     classDef sub fill:#eeeeee,stroke:#000000
      style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+     class quality,DADA2,tax sub
      class id2,id3,id4,id5,id6,id7,id8 tool
 
 
 
+1. **Removing adapters and splitting reads in forward/reverse orientation**. It is essential to remove adapter sequences for `dada2` pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While this happens only rarely, this step saves some work in the downstream analysis. We also split forward and reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
 
-1. Removing adapters and splitting reads in forward/reverse orientation. It is essential to remove adapter sequences for `dada2` pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While is happens only rarely, this step saves some work in the downstream analysis. We also split forward adn reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
-
-.. _cutadapt:
+.. _cutadapt: https://cutadapt.readthedocs.io/en/stable/
 
 .. code-block::
 
@@ -117,7 +121,7 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 ``--minimum-length``
 ========================     ===========================================================================================
 
-2. Filter and trim the reads. We next filter and trim low quality bases. This is important for dada2 merging to work.
+2. Filter and trim the reads. We next trim low quality bases, a. This is important for dada2 merging to work.
 
 .. code-block::
 
@@ -143,8 +147,9 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
                trimRight = c(trimright_1, trimright_2))
 
 .. important::
+   How much do I truncate?  It is recommended to look at the quality profile of your data, and, while ensuring that you have enough sequence that your forward/reverse reads still overlap enough to merge, truncate off as much of the nucleotides that come after quality crashes as you can. The quality of the reverse reads usually deteriorates faster, thus reverse reads could need more trimming than the forward reads. Leave 30-40 nt overlap for merging.
 
-   Choosing truncation length (reads still need to overlap)
+
 ===============  ===========================================================================
 ``maxEE``
 ``truncQ``
@@ -152,11 +157,11 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 ===============  ===========================================================================
 
 
-3. Learning Errors.
+3. **Learning Error Rates**. DADA2 algorithm needs to first estimate error rates from the data. This should be done separately for samples sequenced on different lanes.
 
 .. warning::
 
-   New Illumina sequencing data (e.g. NovaSeq) provides only binned quality scores (see :doc:`../preprocessing/preprocessing` for more details). This created a proble for dada2 error learning step. This is an ongoing issue, and is discussed in detailed here_ and in `this tutorial`_. Below is our current solution to the problem, the best solution might be dataset specific.
+   New Illumina sequencing data (e.g. NovaSeq) provides only binned quality scores (see :doc:`../preprocessing/preprocessing` for more details). This created a problem for dada2 error learning step. This is an ongoing issue, and is discussed in detailed here_ and in `this tutorial`_. Below is our current solution to the problem, the best solution might be dataset specific.
 
 .. _here: https://github.com/benjjneb/dada2/issues/1307
 .. _this tutorial: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
@@ -222,7 +227,9 @@ The error rates can than be modeled as follows:
     ggsave(outfile.plot, plot = plot)
 
 
-4. Sample Inference. Using the error model infer unique sequences in each sample.
+4. **Sample Inference**. This is the core function of DADA2. Each read, its abundance and its quality is tested if its an actual, errorfree ASV or if its a spurious sequence with errors. The error function from the previous step is reused. Using the error model to infer unique ASVs in each sample. This is also done separetly for samples from different lanes. You can read more about the core sample inference algorithm in the `DADA2 paper`_.
+
+.. _DADA2 paper: https://doi.org/10.1038/nmeth.3869
 
 .. code-block::
 
@@ -231,12 +238,15 @@ The error rates can than be modeled as follows:
    seqtab <- makeSequenceTable(dd)
 
 
-5. Read Merging. Now reads can get merged into inserts. The fw subsample is merged in standard orientation. The rev subsample is merged in inverse orientation. That way, all inserts will have the same orientation after this step.
+5. **Read Merging**. Now reads can get merged into inserts. The fw subsample is merged in standard orientation. The rev subsample is merged in inverse orientation. That way, all inserts will have the same orientation after this step.
 
 
-6. Chimera Removal.
+6. Chimera Removal. Chimeras/Bimeras are removed from each sample individually. Remember that each sample consists of 2 subsamples, fw and rev :
 
-7. Remove Spurious ASVs.
+.. warning::
+    Should not be losing a log of reads in merging and chimera removal.
 
-8. Taxonomic annotation.
+7. Remove Spurious ASVs. In the next step we merge the individual tables to one big ASV table (14k rows, 15m ASVs). Most of the ASVs are spurious and appear in very little counts and in only 1 sample. We remove all ASVs that appear <5 times. That way we end up with an ASV table with 14k rows and 1.5m ASVs.
+
+8. Taxonomic annotation. Taxonomic annotation was performed using IDTAXA with the training set corresponding to the SILVA database v.138 and a confidence threshold of 40. Below is the code for the OTU table processing as an example (similar scripts were used for the ASV table but modified to run the taxonomic annotation in batches).
 
