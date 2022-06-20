@@ -119,7 +119,7 @@ Gene catalog generation and profiling (i.e. gene abundance estimation) can provi
 Building
 ^^^^^^^^
 
-This protocol will allow you to create a de novo gene catalog from your metagenomic samples.
+
 
 .. mermaid::
 

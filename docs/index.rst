@@ -121,7 +121,7 @@ Support
    :maxdepth: 1
 
    assembly/genome_assembly
-   assembly/metagenomic_workflows
+   assembly/metagenomic_workflows_new
 
 .. toctree::
    :caption: Profiling
