@@ -1,30 +1,29 @@
-===================
-16S Amplicon
-===================
+=======================
+16S Amplicon Sequencing
+=======================
 
 .. important::
 
-    We use DADA2_ pipeline for 16S Amplicon analysis. Detailed workflow coming soon! For now please checkout `dada2 tutorial`_. If using Illumina data with binned quality scores, please checkout `this discussion`_
+    We use DADA2_ pipeline for 16S Amplicon analysis. `DADA2 tutorial`_ provides a good introduction. If using Illumina data with binned quality scores, please checkout `this discussion`_
 
 .. _DADA2: https://doi.org/10.1038/nmeth.3869
-.. _dada2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
+.. _DADA2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
 .. _this discussion: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
 
-- Still method of choice for analysis of microbiomes
-- Allows to evaluate community composition. Metrics like alpha and beta diversity can reveal information can show association with environmental conditions or clinical variables.
+    16S amplicon sequencing still remains one of the most widely used methods for the analysis of microbiome community composition. Taxonomic composition, as well as alpha and beta diversity metrics can provide novel biological insight and show association with environmental conditions or clinical variables. 16s rRNA gene is about 1500 bp long and encodes rRNA component of the small subunit of prokaryotic ribosome. The gene is composed of highly conserved and 9 variable regions. This allows us to use the conserved regions as primer binding sites, and variable regions for taxonomic classification.
 
-- 16s rRNA genes is about 1500 bp long. encodes small subunit rRNA of prokaryotes
-- Composed of conserved and 9 variable regions
-- Use conserved regions as primer binding sites, and variable regions for taxonomic classification
-- 18S rDNA is a DNA sequence encoding small subunit rRNA of eukaryotic ribosomes
-- ITS: ITS (Internal Transcribed Spacer) is part of the non-transcriptional region of the fungal rRNA gene. The ITS sequences used for fungal identification usually include ITS1 and ITS2.
--  By detecting the sequence variation and abundance of the target area, the information of species classification and abundance, population structure, phylogenetic evolution and community comparison of environmental samples could be obtained.
+    .. note:
 
-- Outcomes can be influenced by:
-    - sampling and storage
+        Most of 16S sequencing primers (see table below) can only be used for taxonomic classification of prokaryotes. For eukaryotic studies, 18S rRNA sequencing  can be used. Additionally, ITS (Internal Transcribed Spacer), part of the non-transcriptional region of the fungal rRNA gene, can be used for taxonomic classification of fungal species. The ITS sequences used for fungal identification usually include ITS1 and ITS2.
+
+
+    Although 16S is a cost-effective and powerful technique, a number of factors can influence the outcomes of the analysis, hindering comparisons between studies.
+    The outcomes can be influenced by:
+
+    - sampling and sample storage
     - primer annealing efficiency
-    - which variable region is targetted
-    - library preparation and sequencing
+    - which variable region is targeted
+    - library preparation and sequencing protocols
     - bioinformatic processing pipelines (OTUs vs ASVs)
     - database used for taxonomic annotation
 
@@ -34,10 +33,10 @@
 
 Below you can find a table listing commonly used primers for 16S analysis.
 
-515f-806r bacterial/archaeal primer pair, traditionally used by the Earth Microbiome Project (EMP; http://www.earthmicrobiome.org/emp-standard-protocols/16s/), was recently shown to be biased against both the Crenarchaeota/Thaumarchaeota (2), important environmental archaea, and the SAR11 clade, which is abundant in aquatic bacteria (3). Parada et al. (4) and Apprill et al. (5) have modified the 515f/806r 16S rRNA gene primer pair first designed for use with the Illumina platform, as described by Caporaso et al. in 2011 (1), to reduce these biases. Ref_
+As described in `Walters et al`_, 515f-806r bacterial/archaeal primer pair, traditionally used by the `Earth Microbiome Project`_, has been shown to be biased against specific archeal and bacterial clades.  Parada et al. and Apprill et al. have modified the 515f/806r 16S rRNA gene primer pair to reduce these biases.
 
-.. _Ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5069754/
-
+.. _Walters et al: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5069754/
+.. _Earth Microbiom Project: https://earthmicrobiome.org/protocols-and-standards/16s/
 
 =========== =================== ======================== ============= ====== =====================
 V-Region    Primer Names        Primer Sequences         Specificity   Size   Reference
@@ -96,65 +95,12 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 
 .. _cutadapt: https://cutadapt.readthedocs.io/en/stable/
 
-.. code-block::
 
-   cutadapt -O 12 --discard-untrimmed -g GTGYCAGCMGCCGCGGTAA -G CCGYCAATTYMTTTRAGTTT
-  -o sample1.tmp.fw_R1.fastq.gz -p sample1.tmp.fw_R2.fastq.gz raw/sample1_R1.fastq.gz raw/sample1_R2.fastq.gz
-   -j 8 --pair-adapters --minimum-length 75;
-   cutadapt -O 12 --times 5 -g GTGYCAGCMGCCGCGGTAA -o sample1.fw_R1.fastq.gz -j 8 sample1.tmp.fw_R1.fastq.gz;
-   cutadapt -O 12 --times 5 -g CCGYCAATTYMTTTRAGTTT -o sample1.fw_R2.fastq.gz -j 8 sample1.tmp.fw_R2.fastq.gz;
-   cutadapt -O 12 --discard-untrimmed -G GTGYCAGCMGCCGCGGTAA -g CCGYCAATTYMTTTRAGTTT
-   -o sample1.tmp.rev_R1.fastq.gz -p sample1.tmp.rev_R2.fastq.gz raw/sample1_R1.fastq.gz raw/fsample1_R2.fastq.gz
-   -j 8 --pair-adapters --minimum-length 75;
-   cutadapt -O 12 --times 5 -g CCGYCAATTYMTTTRAGTTT -o sample1.rev_R1.fastq.gz -j 8 sample1.tmp.rev_R1.fastq.gz;
-   cutadapt -O 12 --times 5 -g GTGYCAGCMGCCGCGGTAA -o sample1.rev_R2.fastq.gz -j 8 sample1.tmp.rev_R2.fastq.gz
+2. **Filter and trim the reads**. We next trim low quality bases, this is important for dada2 merging to work. This can be accomplished with DADA2 `filterAndTrim` function.
 
-========================     ===========================================================================================
-``-O``
-``--discard-untrimmed``
-``-g``
-``-G``
-``-o``
-``-p``
-``-j``
-``--pair-adapters``
-``--minimum-length``
-========================     ===========================================================================================
-
-2. Filter and trim the reads. We next trim low quality bases, a. This is important for dada2 merging to work.
-
-.. code-block::
-
- library(dada2);
- packageVersion("dada2")
- args = commandArgs(trailingOnly=TRUE)
- infqgz1 <- "cutadapt/flowcell1/lane/sample1.rev_R1.fastq.gz"
- infqgz2 <- "cutadapt/flowcell1/lane/sample1.rev_R2.fastq.gz"
- outfqgz1 <- "filtertrim/flowcell1/lane/sample1.rev_R1.fastq.gz"
- outfqgz2 <- "filtertrim/flowcell1/lane/sample1.rev_R2.fastq.gz"
- maxee <- 2
- truncq <- 3
- maxn <- 0
- compress <- TRUE
- minlen <- 150
- trimright_1 <- 15
- trimright_2 <- 15
- threads <- 8
- filterAndTrim(fwd=infqgz1, filt=outfqgz1,
-               rev=infqgz2, filt.rev=outfqgz2,
-               maxEE=maxee, truncQ=truncq, maxN=maxn, rm.phix=TRUE,
-               compress=compress, verbose=TRUE, multithread=threads, minLen=minlen,
-               trimRight = c(trimright_1, trimright_2))
 
 .. important::
-   How much do I truncate?  It is recommended to look at the quality profile of your data, and, while ensuring that you have enough sequence that your forward/reverse reads still overlap enough to merge, truncate off as much of the nucleotides that come after quality crashes as you can. The quality of the reverse reads usually deteriorates faster, thus reverse reads could need more trimming than the forward reads. Leave 30-40 nt overlap for merging.
-
-
-===============  ===========================================================================
-``maxEE``
-``truncQ``
-``maxN``
-===============  ===========================================================================
+   How much do I truncate?  It is recommended to look at the quality profile of your data, and, while ensuring that you have enough sequence that your forward/reverse reads still overlap enough to merge, truncate off as many of the nucleotides that come after quality crashes as you can. The quality of the reverse reads usually deteriorates faster, thus reverse reads could need more trimming than the forward reads. Leave 30-40 nt overlap for merging.
 
 
 3. **Learning Error Rates**. DADA2 algorithm needs to first estimate error rates from the data. This should be done separately for samples sequenced on different lanes.
@@ -170,42 +116,42 @@ Here we define a modified error function that maintains monotonicity even with b
 
 .. code-block::
 
-  loessErrfun_mod <- function (trans) {
-   qq <- as.numeric(colnames(trans))
-   est <- matrix(0, nrow = 0, ncol = length(qq))
-   for (nti in c("A", "C", "G", "T")) {
-     for (ntj in c("A", "C", "G", "T")) {
-       if (nti != ntj) {
-         errs <- trans[paste0(nti, "2", ntj), ]
-         tot <- colSums(trans[paste0(nti, "2", c("A",
-   rlogp <- log10((errs + 1)/tot)
-"C", "G", "T")), ])
-       rlogp[is.infinite(rlogp)] <- NA
-      df <- data.frame(q = qq, errs = errs, tot = tot,
-                       rlogp = rlogp)
-      mod.lo <- loess(rlogp ~ q, df, weights = log10(tot),span = 2)
-      pred <- predict(mod.lo, qq)
-      maxrli <- max(which(!is.na(pred)))
-      minrli <- min(which(!is.na(pred)))
-      pred[seq_along(pred) > maxrli] <- pred[[maxrli]]
-      pred[seq_along(pred) < minrli] <- pred[[minrli]]
-      est <- rbind(est, 10^pred)
-} }
-}
-MAX_ERROR_RATE <- 0.25
-MIN_ERROR_RATE <- 1e-07
-est[est > MAX_ERROR_RATE] <- MAX_ERROR_RATE
-est[est < MIN_ERROR_RATE] <- MIN_ERROR_RATE
-err <- rbind(1 - colSums(est[1:3, ]), est[1:3, ], est[4,
-                                       ], 1 - colSums(est[4:6, ])
-colSums(est[7:9, ]), est[9, ], est[10:12, ], 1 - colSums(est[10:1
-, est[5:6, ], est[7:8, ], 1 -
-2,
-  rownames(err) <- paste0(rep(c("A", "C", "G", "T"), each = 4),
-                          "2", c("A", "C", "G", "T"))
-  colnames(err) <- colnames(trans)
-  return(err)
-}
+    loessErrfun_mod <- function (trans) {
+       qq <- as.numeric(colnames(trans))
+       est <- matrix(0, nrow = 0, ncol = length(qq))
+       for (nti in c("A", "C", "G", "T")) {
+         for (ntj in c("A", "C", "G", "T")) {
+           if (nti != ntj) {
+             errs <- trans[paste0(nti, "2", ntj), ]
+             tot <- colSums(trans[paste0(nti, "2", c("A","C", "G", "T")), ])
+             rlogp <- log10((errs + 1)/tot)
+             rlogp[is.infinite(rlogp)] <- NA
+             df <- data.frame(q = qq, errs = errs, tot = tot,
+                           rlogp = rlogp)
+             mod.lo <- loess(rlogp ~ q, df, weights = log10(tot),span = 2)
+             pred <- predict(mod.lo, qq)
+             maxrli <- max(which(!is.na(pred)))
+             minrli <- min(which(!is.na(pred)))
+             pred[seq_along(pred) > maxrli] <- pred[[maxrli]]
+             pred[seq_along(pred) < minrli] <- pred[[minrli]]
+             est <- rbind(est, 10^pred)
+            } }
+            }
+       MAX_ERROR_RATE <- 0.25
+       MIN_ERROR_RATE <- 1e-07
+       est[est > MAX_ERROR_RATE] <- MAX_ERROR_RATE
+       est[est < MIN_ERROR_RATE] <- MIN_ERROR_RATE
+       err <- rbind(1 - colSums(est[1:3, ]), est[1:3, ], est[4,
+                                               ], 1 - colSums(est[4:6, ])
+       colSums(est[7:9, ]), est[9, ], est[10:12, ], 1 - colSums(est[10:1
+        , est[5:6, ], est[7:8, ], 1 -
+        2,
+       rownames(err) <- paste0(rep(c("A", "C", "G", "T"), each = 4),
+                                  "2", c("A", "C", "G", "T"))
+       colnames(err) <- colnames(trans)
+       return(err)
+        }
+
 
 The error rates can than be modeled as follows:
 
@@ -227,26 +173,19 @@ The error rates can than be modeled as follows:
     ggsave(outfile.plot, plot = plot)
 
 
-4. **Sample Inference**. This is the core function of DADA2. Each read, its abundance and its quality is tested if its an actual, errorfree ASV or if its a spurious sequence with errors. The error function from the previous step is reused. Using the error model to infer unique ASVs in each sample. This is also done separetly for samples from different lanes. You can read more about the core sample inference algorithm in the `DADA2 paper`_.
+4. **Sample Inference**. This is the core function of DADA2. Each read, its abundance and its quality is tested if it's an actual, error-free ASV or if it's a spurious sequence with errors. The error function from the previous step is reused. DADA2 is using the error model to infer unique ASVs in each sample. This is also done separately for samples from different lanes. You can read more about the core sample inference algorithm in the `DADA2 paper`_.
 
 .. _DADA2 paper: https://doi.org/10.1038/nmeth.3869
 
-.. code-block::
+5. **Read Merging**. Now reads can get merged into inserts. The forward subsample is merged in standard orientation. The reverse subsample is merged in inverse orientation. That way, all inserts will have the same orientation after this step.
 
-   dd <- dada(s.f, err=err, pool="pseudo", multithread = threads, errorEstimationFunc
-   tion = loessErrfun_mod)
-   seqtab <- makeSequenceTable(dd)
-
-
-5. **Read Merging**. Now reads can get merged into inserts. The fw subsample is merged in standard orientation. The rev subsample is merged in inverse orientation. That way, all inserts will have the same orientation after this step.
-
-
-6. Chimera Removal. Chimeras/Bimeras are removed from each sample individually. Remember that each sample consists of 2 subsamples, fw and rev :
+6. Chimera Removal. Chimeras/Bimeras are removed from each sample individually. Remember that each sample consists of 2 subsamples, forward and reverse:
 
 .. warning::
-    Should not be losing a log of reads in merging and chimera removal.
+    Should not be losing a lot of reads in merging and chimera removal.
 
-7. Remove Spurious ASVs. In the next step we merge the individual tables to one big ASV table (14k rows, 15m ASVs). Most of the ASVs are spurious and appear in very little counts and in only 1 sample. We remove all ASVs that appear <5 times. That way we end up with an ASV table with 14k rows and 1.5m ASVs.
+7. Remove Spurious ASVs. In the next step we merge the individual tables to one big ASV table. Most of the ASVs are spurious and appear in very little counts and in only 1 sample. We remove all ASVs that appear < 5 times.
 
-8. Taxonomic annotation. Taxonomic annotation was performed using IDTAXA with the training set corresponding to the SILVA database v.138 and a confidence threshold of 40. Below is the code for the OTU table processing as an example (similar scripts were used for the ASV table but modified to run the taxonomic annotation in batches).
+8. Taxonomic annotation. Taxonomic annotation was performed using IDTAXA_ with the training set corresponding to the SILVA database v.138 and a confidence threshold of 40.
 
+.. _IDTAXA: https://doi.org/10.1186/s40168-018-0521-5

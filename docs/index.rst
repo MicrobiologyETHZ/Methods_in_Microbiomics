@@ -113,6 +113,7 @@ Support
    :maxdepth: 1
 
    preprocessing/preprocessing
+   preprocessing/example12
 
 .. toctree::
    :caption: Assembly
