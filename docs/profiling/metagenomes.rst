@@ -161,15 +161,30 @@ mOTUs_ and mTAGs_ both generate taxonomic profiles from shotgun metagenomic data
 
 Here are a few considerations to keep in mind:
 
-#. The main difference is that mTAGs_ is based on rRNA genes clustered at 97% identity, while mOTUS_ is based on 10 universal single-copy marker genes.
+#. mTAGs_ and mOTUs_ rely on different methodologies for classification. mTAGs_ uses rRNA sequences clustered at 97% identity, while mOTUs_ relies on 10 universal single-copy marker genes.
 
 #. If you would like to compare your data to rRNA-based studies (for example 16S rRNA amplicon), mTAGs_ would be a better choice.
 
-#. Since mOTUS_ does not rely on rRNA genes (unlike mTAGs_), it avoids the potential problem of copy number variation.
+#. Since mOTUs_ does not rely on rRNA genes (unlike mTAGs_), it avoids the potential problem of copy number variation.
 
-#. mTAGs relies on SILVA database, which in general has a better coverage of diversity. The -% of not profiled reads is usually much lower in mTAGs compared to mOTUs. However, this highly dependent on the environment being studied.
+#. mTAGs relies on SILVA database, which in general has a better coverage of diversity. The % of not profiled reads is usually much lower in mTAGs compared to mOTUs. However, this is highly dependent on the environment being studied.
 
 #. Very often the resolution of the mOTUs clusters is higher than that of rRNA OTUs. As a consequence, a single 16S sequence can correspond to multiple mOTUs.
 
 #. The general patterns found in alpha and beta diversity correlate well between these two methods.
 
+#. mOTUs profiles can provide additional information beyond the taxonomic annotation: ref-mOTUs are directly linked to genomes (through specIs defined in ProGenomes2_) and ext-mOTUs are obtained from MAGs. This allows to explore the gene content of the profiled mOTUs, which is not possible for mTAGs profiles, which are defined based on 16S rRNA sequences.
+
+.. _ProGenomes2: https://progenomes.embl.de/
+
+--------
+MAPseq
+--------
+
+MAPseq_ is a fast and accurate taxonomic classification tool. Since it relies on rRNA sequences for profiling, it can be applied to both amplicon and metagenomic data.
+
+.. _MAPseq: https://doi.org/10.1093/bioinformatics/btx517
+
+.. important::
+
+    Workflow coming soon!
