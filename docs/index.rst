@@ -103,7 +103,7 @@ Best practices in metagenomic data analysis
 Support
 -------
 
-* If you have any quesions or suggestions leave a comment below!
+* If you have any questions or suggestions leave a comment below!
 
 
 .. toctree::
@@ -163,4 +163,10 @@ Support
 
    modelling/modelling.rst
 
+.. toctree::
+   :caption: Tn-Seq
+   :name: Tn-Seq
+   :hidden:
+   :maxdepth: 1
 
+   tnseq/tnseq.rst
