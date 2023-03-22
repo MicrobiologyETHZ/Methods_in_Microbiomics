@@ -30,7 +30,7 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
 
 
-1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding sites, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preprocessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adapter trimming is performed using `BBDuk <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, a FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
+1.  **Adapter Trimming**. The adapter sequences contain the sequencing primer binding sites, index sequences, and sequences that allow flow-cell binding. Unless removed, these can interfere with downstream analyses. For this and other preprocessing steps, we use  `BBTools <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/>`_, a set of tools developed by the Joint Genome Institute. Adapter trimming is performed using `BBDuk <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_. In this step, a FASTA file with Illumina adapter sequences is specified as reference, and BBDuk will perform k-mer matching to trim the adapter sequences from the reads. The example command is shown below.
 
     **Example command**
         .. code-block:: console
@@ -141,7 +141,7 @@ Paired-read merging         Metagenomic assembly, 16S and mOTUs profiling    BBM
 
 Filtering out host reads
 ^^^^^^^^^^^^^^^^^^^^^^^^
-    Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is perfomred using `BBMap <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
+    Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is perfomred using `BBMap <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
 
 
 .. note::
@@ -188,7 +188,7 @@ Filtering out host reads
 
 Normalization
 ^^^^^^^^^^^^^
-    This step normalizes the coverage by down-sampling reads over high-coverage areas. This step is only necessary for very large metagenomic samples in order to make the assembly computationally tractable. An example using `BBNorm <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbnorm-guide/>`_ is shown below. As above this step needs to be repeated for the singletons.
+    This step normalizes the coverage by down-sampling reads over high-coverage areas. This step is only necessary for very large metagenomic samples in order to make the assembly computationally tractable. An example using `BBNorm <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbnorm-guide/>`_ is shown below. As above this step needs to be repeated for the singletons.
 
 **Example Command**
 
@@ -219,7 +219,7 @@ Normalization
 Pair-read Merging
 ^^^^^^^^^^^^^^^^^
 
-    Merging refers to merging two overlapping reads into one. This is recommended for amplicon data, mOTUs profiling and metagenomic assembly. We do not usually merge the reads for isolate genome assembly. This can be done using `BBMerge <https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmerge-guide/>`_ .
+    Merging refers to merging two overlapping reads into one. This is recommended for amplicon data, mOTUs profiling and metagenomic assembly. We do not usually merge the reads for isolate genome assembly. This can be done using `BBMerge <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmerge-guide/>`_ .
 
 **Example Command**
     .. code-block::
