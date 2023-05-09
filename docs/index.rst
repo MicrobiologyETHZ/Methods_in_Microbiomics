@@ -46,13 +46,21 @@ For each of the sections we have provided a link to a conda environment file and
    conda activate <environment name>
    tar -xvzf Sample1_isolate.tar.gz
 
-For example, for  :doc:`/preprocessing/preprocessing`, run:
+For example, for  :doc:`/assembly/genome_assembly`, run:
 
 .. code-block::
 
    conda env create -f preprocessing.yaml
    conda activate preprocessing
    tar -xvzf Sample1_isolate.tar.gz
+
+For  :doc:`/preprocessing/preprocessing`, run:
+
+.. code-block::
+
+   mamba env create -f isolate_assembly.yaml
+   conda activate isolate_assembly
+   tar -xvpf Sample1_isolate.tar.gz
 
 Now, you are ready to run the example commands given in the corresponding section.
 

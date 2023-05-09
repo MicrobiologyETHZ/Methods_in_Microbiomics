@@ -49,16 +49,17 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 ``ktrim``       Trims the adapter as well as all the bases to the right of the adapter sequence
 ``k``           Length of the k-mer used for matching
 ``mink``        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
-``hdist``       Hamming distance for reference k-mers
+``hdist``       Hamming distance for reference k-mers.
+``outs``        Write singleton reads whose mate has failed filters to this file.
 ==========    =========================================================================================================
 
 
 .. note::
 
-    `Why are adapter sequences trimmed from only the 3' ends of reads? <https://emea.support.illumina.com/bulletins/2016/04/adapter-trimming-why-are-adapter-sequences-trimmed-from-only-the--ends-of-reads.html>`_
+    | `Why are adapter sequences trimmed from only the 3' ends of reads? <https://emea.support.illumina.com/bulletins/2016/04/adapter-trimming-why-are-adapter-sequences-trimmed-from-only-the--ends-of-reads.html>`_
+    | `Why do we choose k-mer length between 23 and 11? <https://ucdavis-bioinformatics-training.github.io/2020-Genome_Assembly_Workshop/kmers/kmers>`_
 
-
-2. **Contaminant removal**. Spike-ins (most commonly PhiX) are usually used for quality control of sequencing runs as well as to ensure nucleotide diversity when sequencing low complexity libraries. These sequences should not be present in your data, but we perform this filtering step prior to downstream analysis to be completely sure. Here we also use BBDuk. Now PhiX genome is provided as the reference.
+2. **Contaminant removal**. Spike-ins (most commonly PhiX) are usually used for quality control of sequencing runs as well as to ensure nucleotide diversity when sequencing low complexity libraries. We perform this filtering step prior to downstream analysis to be completely sure that these sequences are not be present in your data. Here we use BBDuk and PhiX genome is used as the reference.
 
     **Example command**
 
@@ -73,8 +74,7 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
 **Options Explained**
 
-The command is very similar to the one shown above.
-
+Here, we use a different kmer size
 
 .. note::
 
@@ -104,7 +104,7 @@ The command is very similar to the one shown above.
 
 .. note::
 
-    Base quality scores (i.e. level of confidence for any one base call) are an integral part of many bioinformatics pipelines (i.e. alignment and variant calling). Quality scores are usually expressed on a Phred scale (:math:`Q=-10log_{10}P`, where P is the probability of an error in the base call). Base quality scores normally ranged somewhere between 2 and 40, where  Q40 represents an error probability of 1/10000.  More recently, Illumina started using binned quality scores. For example, NovaSeq (with RTA3) only produces 4 Q-scores: 2 is assigned to no-calls, 12 to calls <Q15, 23 to ~Q20 and 37 to >Q30. According to Illumina and in our hands, these binned quality scores did not affect the downstream analyses (i.e. variant calling).
+    Base quality scores (i.e. level of confidence for any one base call) are an integral part of many bioinformatics pipelines (i.e. alignment and variant calling). Quality scores are usually expressed on a Phred scale (:math:`Q=-10log_{10}P`, where P is the probability of an error in the base call). Base quality scores normally range somewhere between 2 and 40, where  Q40 represents an error probability of 1/10000.  More recently, Illumina started using binned quality scores. For example, NovaSeq (with RTA3) only produces 4 Q-scores: 2 is assigned to no-calls, 12 to calls <Q15, 23 to ~Q20 and 37 to >Q30. According to Illumina and in our hands, these binned quality scores did not affect the downstream analyses (i.e. variant calling).
 
 
 All of the preprocessing commands can be piped together as follows:
@@ -141,11 +141,11 @@ Paired-read merging         Metagenomic assembly, 16S and mOTUs profiling    BBM
 
 Filtering out host reads
 ^^^^^^^^^^^^^^^^^^^^^^^^
-    Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is perfomred using `BBMap <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
+    Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is performed using `BBMap <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
 
 
 .. note::
-    Host genome sequences are note provided in the test dataset, but can be downloaded from NCBI, Ensembl, UCSC. Be sure to keep track of the genome version you are using. Genomes for commonly analyzed organisms can also be downloaded from Illumina iGenomes_
+    Host genome sequences are not provided in the test dataset, but can be downloaded from NCBI, Ensembl, UCSC. Be sure to keep track of the genome version you are using. Genomes for commonly analyzed organisms can also be downloaded from Illumina iGenomes_
 
 .. _iGenomes: https://support.illumina.com/sequencing/sequencing_software/igenome.html
 
@@ -165,24 +165,24 @@ Filtering out host reads
         bbmap.sh -Xmx23g usejni=t threads=24 overwrite=t qin=33 minid=0.95 maxindel=3 \
         bwr=0.16 bw=12 quickmatch fast    minhits=2 \
         path=host_bbmap_ref qtrim=rl trimq=15 untrim in=in.s.fq.gz outu=out.s.fq.gz \
-        outm=out.s.human.matched.fq.gz 2>> out.rmHuman.log
+        outm=out.s.host.matched.fq.gz 2>> out.rmHost.log
 
 =============    ==========================================================
-``qin``              Set to 33 or 64 to specify input quality value ASCII offset. 33 is Sanger, 64 is old Solexa. Could be left unspecified (default=auto)
+``qin``              Set to 33 or 64 to specify input quality value ASCII offset. 33 is Sanger, 64 is old Solexa. Could be left unspecified (default=auto).
 ``minid``            Approximate minimum alignment identity to look for.
 ``maxindel``         Don't look for indels longer than this. Lower is faster.
 ``bwr``              If above zero, restrict alignment band to this fraction of read length.  Faster but less accurate.
 ``bw``               Set the bandwidth directly.
 ``qickmatch``        Generate cigar strings more quickly.
-``fast``             Sets other paramters to run faster, at reduced sensitivity
+``fast``             Sets other paramters to run faster, at reduced sensitivity.
 ``minhits``          Minimum number of seed hits required for candidate sites.
 ``path``             Specify the location to write the index.
 ``qtrim``            Quality-trim ends before mapping.
 ``trimq``            Trim regions with average quality below this.
 ``untrim``           Undo trimming after mapping.
-``in``               Primary reads input
+``in``               Primary reads input.
 ``outu``             Write only unmapped reads to this file.
-``outm``             Write only mapped reads to this file.
+``outm``             Write only mapped reads, that fail filters to this file.
 =============    ==========================================================
 
 
@@ -205,7 +205,7 @@ Normalization
 =============    ==========================================================
 ``-Xmx``             This will be passed to Java to set memory usage.
 ``threads``          Set to number of threads desired.
-``extra``            Additional files to use for input, but not for output
+``extra``            For the kmer table: Additional files to use for input, but not for output.
 ``in1``              Path to the forward reads.
 ``in2``              Path to the reverse reads.
 ``out1``             Normalized forward reads.

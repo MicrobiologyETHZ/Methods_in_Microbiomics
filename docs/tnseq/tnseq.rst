@@ -2,7 +2,7 @@
 TN-Seq Protocol
 ===================
 .. _Tim van Opijnen et al.: https://doi.org/10.1038/nmeth.1377
-As descibed in by `Tim van Opijnen et al.`_, Tn-seq is a method to determine quantitative genetic interactions on a genome-wide scale in microorganisms.
+As descibed by `Tim van Opijnen et al.`_, Tn-seq is a method to determine quantitative genetic interactions on a genome-wide scale in microorganisms.
 
 -----------------
 Sequence Mapping
