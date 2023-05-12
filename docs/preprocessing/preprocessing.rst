@@ -15,7 +15,7 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 
 .. note::
 
-    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/preprocessing.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. Also included are Illumina adapter sequences (adapters.fa) and PhiX genome (phix174_ill.ref.fa.gz).
+    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/preprocessing.yaml>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. Also included are Illumina adapter sequences (adapters.fa) and PhiX genome (phix174_ill.ref.fa.gz).
 
 
 .. mermaid::
@@ -44,12 +44,12 @@ Data quality control is an essential first step in any bioinformatics workflow. 
 **Options Explained**
 
 ==========    =========================================================================================================
-``-Xmx``        This will be passed to Java to set memory usage.
+``-Xmx``        This will be passed to Java to set memory usage. ``Xmx1G`` will set it to 1G.
 ``usejni``      Enable JNI-accelerated version of BBDuk.
-``ktrim``       Trims the adapter as well as all the bases to the right of the adapter sequence
-``k``           Length of the k-mer used for matching
-``mink``        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences
-``hdist``       Hamming distance for reference k-mers.
+``ktrim``       ``ktrim = r`` trims the adapter as well as all the bases to the right of the adapter sequence.
+``k``           Length of the k-mer used for matching.
+``mink``        Additionally matches shorter k-mers (with lengths between 23 and 11) to trim partial adapter sequences.
+``hdist``       Hamming distance for reference k-mers. The Hamming distance describes the number of bases by which two DNA sequences differ.
 ``outs``        Write singleton reads whose mate has failed filters to this file.
 ==========    =========================================================================================================
 
@@ -72,9 +72,7 @@ Data quality control is an essential first step in any bioinformatics workflow. 
         refstats=Sample1_phix.stats statscolumns=5 2>> contaminant.log
 
 
-**Options Explained**
-
-Here, we use a different kmer size
+Here, we use a different kmer size ``k=31`` to remove Spike-ins. This is the recommended length by `BBDuk <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/>`_ to remove all reads that have a 31-mer match to the PhiX genome.
 
 .. note::
 
@@ -95,11 +93,11 @@ Here, we use a different kmer size
 **Options Explained**
 
 ================    ==========================================================
-``minlength=45``     filters out reads that are shorter than 45 bp
-``qtrim=rl``         trims low quality bases on the right and left ends of the reads
-``trimq=14``         regions with average quality BELOW 14 will be trimmed
-``maq=20``           filters out reads with average quality BELOW 20
-``maxns=1``          filters out reads with more than 1 N
+``minlength=45``     Filters out reads that are shorter than 45 bp.
+``qtrim=rl``         Trims low quality bases on the right and left ends of the reads.
+``trimq=14``         Regions with average quality BELOW 14 will be trimmed.
+``maq=20``           Filters out reads with average quality BELOW 20.
+``maxns=1``          Filters out reads with more than 1 N.
 ================    ==========================================================
 
 .. note::
@@ -145,7 +143,7 @@ Filtering out host reads
 
 
 .. note::
-    Host genome sequences are not provided in the test dataset, but can be downloaded from NCBI, Ensembl, UCSC. Be sure to keep track of the genome version you are using. Genomes for commonly analyzed organisms can also be downloaded from Illumina iGenomes_
+    Host genome sequences are not provided in the test dataset, but can be downloaded from NCBI, Ensembl, UCSC. Be sure to keep track of the genome version you are using. Genomes for commonly analyzed organisms can also be downloaded from Illumina iGenomes_.
 
 .. _iGenomes: https://support.illumina.com/sequencing/sequencing_software/igenome.html
 
@@ -238,5 +236,5 @@ Pair-read Merging
 ``outu2``              File for reverse unmerged reads.
 ``minoverlap``         Minimum number of overlapping bases to allow merging.
 ``ihist``              Insert length histogram output file.
-``usejni``             Do overlapping in C code, which is faster.  Requires compiling the C code.
+``usejni``             Do overlapping in C code, which is faster. Requires compiling the C code.
 =================     ==========================================================

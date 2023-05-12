@@ -38,7 +38,10 @@ For example, for  :doc:`/preprocessing/preprocessing`, run:
    mkdir preprocessing_tutorial
    cd preprocessing_tutorial
 
-For each of the sections we have provided a link to a conda environment file and a test dataset that can be used for practice. Download these files and save them to the tutorial directory. Next, you can create and activate the conda environment and extract the test data:
+.. note::
+   For the next section, you have to install conda first. Installation instructions can be found `here <https://docs.conda.io/en/latest/miniconda.html>`_.
+
+For each of the sections we have provided a link to a conda environment file (i.e. a file that specifies which packages to install) and a test dataset that can be used for practice. Download these files and save them to the tutorial directory. Next, you can create and activate the conda environment and extract the test data:
 
 .. code-block::
 
@@ -54,7 +57,7 @@ For example, for  :doc:`/assembly/genome_assembly`, run:
    conda activate preprocessing
    tar -xvzf Sample1_isolate.tar.gz
 
-For  :doc:`/preprocessing/preprocessing`, run:
+For  :doc:`/preprocessing/preprocessing`, you need to install `mamba <https://mamba.readthedocs.io/en/latest/installation.html>`_. Here are the commands to create the conda environment and unpack the data:
 
 .. code-block::
 
