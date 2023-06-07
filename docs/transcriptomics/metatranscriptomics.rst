@@ -1,6 +1,9 @@
 ======================
 Metatranscriptomics
 ======================
+
+Protocol provided by Guillem Salazar.
+
 -----------------------------------------
 The datasets
 -----------------------------------------
