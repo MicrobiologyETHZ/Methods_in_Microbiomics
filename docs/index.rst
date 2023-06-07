@@ -156,6 +156,7 @@ Support
    :maxdepth: 1
 
    transcriptomics/transcriptomics.rst
+   transcriptomics/metatranscriptomics.rst
 
 
 .. toctree::
