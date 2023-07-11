@@ -1,152 +1,290 @@
 ======================
-Metatranscriptomics
+Gene catalogue profiling (Metatranscriptomics & Metagenomics)
 ======================
 
 Protocol provided by Guillem Salazar.
 
 -----------------------------------------
-The datasets
+Dataset
 -----------------------------------------
-RNA was extracted, processed and analyzed with a hybrid approach where both de-novo assembly of the data is used together with the use of the genome as reference.
-Out of this procedure, transcript abundance tables are produced where the number of transcripts is quantified for each gene in the sample. As the main goal of the present guide is to analyze the response of the native soil community, all genes from the inoculum were further excluded.
-Genes are finally assigned a metabolic function by using the KEGG database. All genes belonging to the same function are added up and thus the gene abundance table is then transformed into a functional abundance table. For example, the transcript abundance of all genes from different organisms that encode the pyruvate kinase (designated as K00873 in the KEGG database) are added up. In this way we quantify the abundance of each metabolic function in each sample (regardless of the microbe encoding for it).
-This functional abundance table and an additional table with the sample information are the two main ingredients for the following analysis.
+In this documentation we will combine metatranscriptomics with metagenomics by using a genome as a reference for the transcriptome.
+
+To analyze the data, we first need to remove the following sources of bias:
+
+* Differences in gene length between genes.
+* Differences in sequencing depth between samples.
+* Differences in genome size distribution between samples.
+* Compositionality: The number of inserts for a given gene in a given sample is in itself arbitrary and can only be interpreted relative to the rest of the genes in the sample.
+
+We normalize using the following steps:
+
+1. Divide the insert counts by the gene length for each gene in each sample.
+2. Compute the total insert count of 10 universal single-copy marker genes (MGs) in each sample.
+3. Compute the median across the 10 MGs in each sample.
+4. Divide the gene-length normalized abundances by this median in each sample.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Why do we divide by the 10 Marker Genes?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The 10 Marker Genes are:
+
+* Universal: present in "all" prokaryotes
+* Single-copy: always present once per cell (genome)
+* Long enough for a satisfactory profiling
+* Are housekeeping genes
+
+The marker genes serve as a gene catalogue for our analysis. A gene catalogue is a data structure that organizes genes and provides a reference for standardized analysis of the microbiomes across samples and studies. Further information can be found in :doc:`../assembly/metagenomic_workflows`.
+
+Therefore, their abundance should be well correlated and the median of their abundances should correlate with the sequencing depth.
+
+The median of their abundances is a good proxy for the amount of cells captured in a given metagenome. The per-cell normalization should account for differences in genome sizes between samples and the per-cell normalization is in fact a way for controlling for composition. The result has a biologically meaningful unit: *gene copies per total cell in the community*.
+
+The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
+The data can be downloaded :download:`here <../downloads/metatranscriptomics_tutorial.zip>`.
 
 
 -----------------------------------------
-Loading and formatting the data
+Performing normalization based on gene length and the abundance of the 10 MGs
 -----------------------------------------
-The next thing we need to do is to load the data, specifically:
 
-#.   The functional abundance table. We will load it and save it as the object kotab.
-#.   The table with the information on the samples. We will load it and save it as the object metadata.
-#.   And an additional table with the description of each function.We will load it and save it as the object kegg_annot.
+This script normalizes the data based on gene length and abundance of 10 marker genes. In this example we use the following marker genes:
+
+.. image:: ../images/metatranscriptomics_marker_genes.jpg
+
+.. note::
+    Running this code with the given data needs a significant amount of resources. We recommend running it on a server.
 
 .. code-block:: r
 
-    kotab<-fread("kotab_insertcounts.tsv",sep="\t",header=T,data.table = F)
+    library(data.table)
+    library(tidyverse)
+    library(R.utils)
 
-    metadata<-fread("metadata.tsv",sep="\t",header=T,data.table = F)
+    # Define the KOs corresponding to the 10 MGs
+    mgs<-c("K06942", "K01889", "K01887", "K01875", "K01883", "K01869", "K01873", "K01409", "K03106", "K03110")
 
-    kegg_annot<-fread("kegg-annotations.tsv",sep="\t",header=T,data.table = F) %>%
-        distinct(KO,Description)
+    # Load the gene catalog (insert counts)
+    gc_profile<-fread("gene_profile_tara.tsv.gz",sep="\t",header=T,data.table = F,tmpdir=".")
+    sample_info<-fread("sample_info_tara.tsv",sep="\t",header=T,data.table = F,tmpdir=".")
 
-Once the data is loaded, we need to proceed with some basic transformation of the data. Specifically, the functional abundance table needs to be converted into a numeric matrix after moving the sample identifier to the rownames. For that, we will create a new object (kotab_matrix):
+    # Assign the median gene length to the -1 (the category designing all reads not mapping to any gene)
+    if (length(which(gc_profile$length<0))>0){
+      gc_profile$length[which(gc_profile$length<0)]<-median(gc_profile$length[which(gc_profile$length>0)])
+    }
 
-.. code-block:: r
+    # Build a gene-length normalized profile
+    gc_profile_lengthnorm<-gc_profile[,1:4]
+    for (i in 5:ncol(gc_profile)){
+      cat("Normalizing by gene length: sample",colnames(gc_profile)[i],"\n")
+      tmp<-gc_profile[,i]/gc_profile$length %>%
+        as.data.frame()
+      colnames(tmp)<-colnames(gc_profile)[i]
+      gc_profile_lengthnorm<-gc_profile_lengthnorm %>%
+        bind_cols(tmp)
+    }
 
-    kotab_matrix<-kotab %>%
-        column_to_rownames(var="replicate_name") %>%
-        as.matrix()
+    # Build a MGs normalized profile
+    gc_profile_lengthnorm_mgnorm<-gc_profile_lengthnorm[,1:4]
+    for (i in 5:ncol(gc_profile_lengthnorm)){
+      cat("Normalizing by 10 MGs: sample",colnames(gc_profile_lengthnorm)[i],"\n")
+      mg_median<-gc_profile_lengthnorm %>%
+        select(KO,abundance=all_of(colnames(gc_profile_lengthnorm)[i])) %>%
+        filter(KO %in% mgs) %>%
+        group_by(KO) %>% summarise(abundance=sum(abundance)) %>%
+        ungroup() %>% summarise(mg_median=median(abundance)) %>%
+        pull()
+      tmp<-gc_profile_lengthnorm[,i]/mg_median
+      tmp<-tmp %>% as.data.frame()
+      colnames(tmp)<-colnames(gc_profile_lengthnorm)[i]
+      gc_profile_lengthnorm_mgnorm<-gc_profile_lengthnorm_mgnorm %>%
+        bind_cols(tmp)
+    }
+
+    # Save profiles and compress
+    fwrite(gc_profile_lengthnorm,"gene_profile_tara_lengthnorm.tsv",sep="\t")
+    gzip("gene_profile_tara_lengthnorm.tsv")
+    fwrite(gc_profile_lengthnorm_mgnorm,"gene_profile_tara_lengthnorm_percell.tsv",sep="\t")
+    gzip("gene_profile_tara_lengthnorm_percell.tsv")
 
 -----------------------------------------
-Ordination
+Showing the effect of the normalization
 -----------------------------------------
-The primary aim of ordination is to represent multiple objects in a reduced number of orthogonal (i.e., independent) axes. Ordination plots are particularly useful for visualizing the similarity among objects. For example, in the context of the current dataset, samples that are closer in ordination space have functional compositions that are more similar to one another than samples that are further apart in ordination space.
+Here, we visualize the effect of the normalization based on length and abundance of marker genes. Using this script we create the following plots:
 
-There are various ordination techniques that can be applied to multivariate microbiome data. Common methods include: Principal Components Analysis (PCA), Correspondence Analysis (CA), Principal Coordinates Analysis (PCoA), Factor Analysis (FA), and Nonmetric Multidimensional Scaling (NMDS). The distinction between these is not the goal of this guide.
-
-Principal components analysis (PCA) is one of the oldest ordination techniques, and probably one that you may already know. It provides graphs that show the Euclidean distance between sites. No other distances can be investigated with PCA. This ordination method is not ideal for analysis of information on species, gene or transcript abundances because of the limitations of the Euclidean distance with this type of data.
-
-While only euclidean distances may be used with PCA, any kind of dissimilarity measure is suitable for the Principal Coordinates Analysis (PCoA). Its use is similar to the use of PCA, however, it can handle non-euclidean distances as the one we need here.
-
-The first thing we need to do is to compute how similar each pair of sample is based on their functional compositions. We will compute the Bray-Curtis dissimilarity index. This will create a matrix (that we will store as kotab_bc) with a value between 0 and 1 for each pair of samples. The closer the value is to 0 the more similar are two samples, the closer it is to 1 the more different they are.
+.. image:: ../images/K03040_K03043_comparison.jpg
+.. image:: ../images/mgs_vs_seqdepth.jpg
+.. image:: ../images/mgs_pairwise_corr.jpg
 
 .. code-block:: r
 
-    kotab_bc<-vegdist(kotab_matrix)
+    library(data.table)
+    library(tidyverse)
+    library(patchwork)
+    library(GGally)
+    library(R.utils)
 
-This dissimilarity matrix can be visualized through the PCoA. We will run the PCoA analysis and plot all samples along the first two axes.
+    # Define the KOs corresponding to the 10 MGs
+    mgs<-c("K06942", "K01889", "K01887", "K01875", "K01883", "K01869", "K01873", "K01409", "K03106", "K03110")
 
-.. code-block:: r
+    # Load the raw count and gene length normalized profiles and the sample information
+    gc_profile<-fread("gene_profile_tara.tsv.gz",sep="\t",header=T,data.table = F,tmpdir=".")
+    gc_profile_lengthnorm<-fread("gene_profile_tara_lengthnorm.tsv.gz",sep="\t",header=T,data.table = F,tmpdir=".")
+    sample_info<-fread("sample_info_tara.tsv",sep="\t",header=T,data.table = F,tmpdir=".")
 
-    pcoa_kotab<-pcoa(kotab_bc)
+    # Compute the abundance of K03040 and K03043 with and without gene-length normalization
+    rp_ab<-gc_profile %>%
+      select(-reference,-length,-Description) %>%
+      filter(KO %in% c("K03040","K03043")) %>%
+      pivot_longer(-KO,names_to = "sample",values_to = "inserts") %>%
+      filter(sample %in% sample_info$sample_metag) %>%
+      group_by(KO,sample) %>% summarise(inserts=sum(inserts)) %>%
+      pivot_wider(names_from = "KO",values_from = "inserts")
 
-    toplot_kotab<-data.frame(pcoa_kotab$vectors) %>%
-      select(Axis.1:Axis.5) %>%
-      rownames_to_column(var="replicate_name") %>%
-      left_join(metadata,by="replicate_name")
+    rp_ab_lengthnorm<-gc_profile_lengthnorm %>%
+      select(-reference,-length,-Description) %>%
+      filter(KO %in% c("K03040","K03043")) %>%
+      pivot_longer(-KO,names_to = "sample",values_to = "inserts_lengthnorm") %>%
+      filter(sample %in% sample_info$sample_metag) %>%
+      group_by(KO,sample) %>% summarise(inserts_lengthnorm=sum(inserts_lengthnorm)) %>%
+      pivot_wider(names_from = "KO",values_from = "inserts_lengthnorm")
 
-    ggplot(data=toplot_kotab,aes(x=Axis.1,y=Axis.2,shape=variable)) +
-      geom_point(alpha=0.7,size=4) +
+    g1<-ggplot(data=rp_ab,aes(x=K03040,y=K03043)) +
+      geom_point(alpha=0.5) +
+      geom_abline(slope = (1342/329)) +
+      geom_abline(linetype=2) +
+      xlim(range(rp_ab$K03040,rp_ab$K03043)) +
+      ylim(range(rp_ab$K03040,rp_ab$K03043)) +
+      xlab("K03040: rpoA\n(DNA-directed RNA polymerase subunit alpha)") +
+      ylab("K03043: rpoB\n(DNA-directed RNA polymerase subunit beta)") +
+      labs(title="Insert counts",subtitle="Slope ~ 4 which corresponds to the ratio of gene lengths\n(K03040: 1,342 aa; K03043: 329 aa in E. coli K-12)") +
+      coord_fixed() +
       theme_bw() +
-      xlab(paste("Axis 1 ","(",round(100*pcoa_kotab$values$Relative_eig[1],1),"%)",sep="")) +
-      ylab(paste("Axis 2 ","(",round(100*pcoa_kotab$values$Relative_eig[2],1),"%)",sep=""))
+      theme(plot.subtitle = element_text(size=7))
+    g2<-ggplot(data=rp_ab_lengthnorm,aes(x=K03040,y=K03043)) +
+      geom_point(alpha=0.5) +
+      geom_abline(linetype=2) +
+      xlim(range(rp_ab_lengthnorm$K03040,rp_ab_lengthnorm$K03043)) +
+      ylim(range(rp_ab_lengthnorm$K03040,rp_ab_lengthnorm$K03043)) +
+      xlab("K03040: rpoA\n(DNA-directed RNA polymerase subunit alpha)") +
+      ylab("K03043: rpoB\n(DNA-directed RNA polymerase subunit beta)") +
+      labs(title="Gene-length normalized insert counts",subtitle="Slope ~ 1 once insert counts are corrected for differences\nin gene lengths") +
+      coord_fixed() +
+      theme_bw() +
+      theme(plot.subtitle = element_text(size=7))
+    g<-g1 | g2
+    ggsave("K03040_K03043_comparison.pdf",g,width=unit(10,"cm"),height=unit(4.5,"cm"))
+
+    # Compute the abundance of the 10MGs and correlate to sequencing depth
+    mgs_ab_lengthnorm<-gc_profile_lengthnorm %>%
+      select(-reference,-Description,-length) %>%
+      filter(KO %in% mgs) %>%
+      pivot_longer(-KO,names_to = "sample",values_to = "inserts_lengthnorm") %>%
+      group_by(KO,sample) %>% summarise(inserts_lengthnorm=sum(inserts_lengthnorm)) %>%
+      ungroup() %>% group_by(sample) %>% summarise(median_mgs=median(inserts_lengthnorm)) %>%
+      inner_join(sample_info,by=c("sample"="sample_metag"))
 
 
------------------------------------------
-Hypothesis testing
------------------------------------------
-While the ordination techniques above mentioned are very useful and are the logical first step to explore high-dimensional data, no statistically supported conclusions can be obtained from them. Ordination techniques often are supplemented by hypothesis testing techniques (i.e. statistical tests). The main hypothesis to be tested with this kind of data is wether the similarity between samples is organized in pre-defined groups. That is, if different clusters of samples exists based on their similarity.
-
-Permutational MANOVA (through the adonis2() function) is a technique analog to ANOVA but applicable to multidimensional data, that is, when our response variable is not a single variable but an array of many variables (as is our case in which every sample is characterized by the abundance of several functions). We can test, thus, if the difference in the functional composition of the metatranscriptomes is explained by the grouping of these samples in different categories.
-
-For example, you can test if the addition of an inoculum explains a significant portion of between-samples dissimilarity:
-
-.. code-block:: r
-
-    adonis2(kotab_bc~inoculant,data = metadata,permutations = 10000)
-
------------------------------------------
-Differential analysis
------------------------------------------
-So far we have analyzed in different ways how similar or different each pair of samples look like based on their transcript abundances for a set of metabolic functions. And we have done this by computing an index of similarity (the Bray-Curtis index) which provides a value between 0 and 1 informing on the similarity based on all functions.
-
-Another big family of possible analyses is Differential abundance, that is, the detection of which functions are differentially abundant in a set of samples compared to another set of samples. The statistics behind these methods is out of the scope of this guide. It is sufficient at this stage to know that you can test if a specific function is differentially abundant in the samples inoculated with a bacterium in comparison to the samples without inoculum. And this can be done sistematically for all functions and detect those with significant differences.
-
-This is precisely what you do with the following code:
-
-.. code-block:: r
-
-    dds<-DESeqDataSetFromMatrix(countData = t(round(kotab_matrix)),colData = metadata,design = ~ inoculant+substrate+inoculant:substrate)
-    dds <- DESeq(dds)
-    resultsNames(dds)
-    resLFC <- lfcShrink(dds, coef="inoculant_vs_none", type="apeglm")
-    res<-resLFC %>%
-      as.data.frame() %>%
-      arrange(desc(abs(log2FoldChange))) %>%
-      rownames_to_column("KO") %>%
-      left_join(distinct(select(kegg_annot,KO,Description)),by="KO") %>%
-      filter(abs(log2FoldChange)>=2 & padj<=0.05)
-
-An object called res will store the results of the statistical tests which are significant. Specifically we have tested for significant differences betweem the samples with and without inoculum, as this is the main effect detected above through PCoA and Permutational MANOVA. The main variables to consider here are:
-
-#.    KO the KO being tested
-#.    log2FoldChange the log2-transformed fold change: that is the log2-transformed ratio of the gene abundance in the samples with inoculum divided by the abundance in the samples without inoculum.
-#.    padj the adjusted P-value
-
-Thus the KOs with a log2FoldChange larger than 0 correspond to KOs overexpressed by the addition of the inoculum while the ones smaller than 0 correspond to KOs underexpressed by the addition of the inoculum.
-
------------------------------------------
-Visualizing the abundance of a specific KO
------------------------------------------
-With the following code you can visualize the abundance of a specific KO along the dataset. You just need to change the KO identifier in the line starting as ggplot(...). Try out one or several of the KOs annotated as ribosomal proteins:
-
-.. code-block:: r
-
-    toplot<-kotab_matrix %>%
-      as.data.frame() %>%
-      rownames_to_column("replicate_name") %>%
-      left_join(metadata,by="replicate_name")
-
-    ggplot(data=toplot,aes(x=substrate,y=K07040,color=inoculant,fill=inoculant)) +
-      geom_violin(alpha=0.5,draw_quantiles = 0.5,scale = "width") +
-      geom_jitter(position=position_jitterdodge()) +
+    g3<-ggplot(data=mgs_ab_lengthnorm,aes(x=sample_metag_nreads,y=median_mgs)) +
+      geom_point(alpha=0.5) +
+      #geom_smooth(method = "lm") +
+      #scale_x_log10() +
       #scale_y_log10() +
-      theme_minimal()
+      xlab("Sequencing depth (number of reads)") +
+      ylab("Median abundance of the 10 universal\nand single-copy marker genes") +
+      theme_bw() +
+      theme(legend.title = element_blank())
 
-In fact the percentage of transcripts dedicated by a cell to ribosomal proteins is a good proxy of its growth state. We can compute the percentage of transcripts dedicated by the entire native community to ribosomal proteins as a proxy for its growth state:
+    ggsave("mgs_vs_seqdepth.pdf",g3,width=unit(7,"cm"),height=unit(4,"cm"))
+
+    # Compute the abundance of the 10MGs and their autocorrelation
+    mgs_ab_lengthnorm<-gc_profile_lengthnorm %>%
+      select(-reference,-Description,-length) %>%
+      filter(KO %in% mgs) %>%
+      pivot_longer(-KO,names_to = "sample",values_to = "inserts_lengthnorm") %>%
+      group_by(KO,sample) %>% summarise(inserts_lengthnorm=sum(inserts_lengthnorm)) %>%
+      inner_join(sample_info,by=c("sample"="sample_metag")) %>%
+      select(KO,sample,inserts_lengthnorm) %>%
+      pivot_wider(names_from = "KO",values_from = "inserts_lengthnorm")
+
+    g4<-ggpairs(data=mgs_ab_lengthnorm %>% column_to_rownames("sample")) +
+      scale_x_log10() +
+      scale_y_log10()
+
+    ggsave("mgs_pairwise_corr.pdf",g4,width=unit(10,"cm"),height=unit(10,"cm"))
+
+
+
+-----------------------------------------
+Combining Metatranscriptomic and Metagenomic Data
+-----------------------------------------
+In this section we combine metatranscriptomic and metagenomic data and create the following plot:
+
+.. image:: ../images/K03704.jpg
 
 .. code-block:: r
 
-    rp_df<-kegg_annot %>%
-      distinct(KO,Description) %>%
-      filter(grepl("subunit ribosomal protein",Description) & KO %in% colnames(kotab_matrix))
+    library(data.table)
+    library(tidyverse)
+    library(patchwork)
+    library(GGally)
+    library(R.utils)
 
-    activity_df<-data.frame(total_transcripts=rowSums(kotab_matrix),
-                            rp_transcripts=rowSums(kotab_matrix[,which(colnames(kotab_matrix) %in% rp_df$KO)])) %>%
-      mutate(rp_perc_transcripts=100*rp_transcripts/total_transcripts) %>%
-      rownames_to_column("replicate_name") %>%
-      left_join(metadata,by="replicate_name")
+    # Load normalized profile
+    gc_profile<-fread("gene_profile_tara_lengthnorm_percell.tsv.gz",sep="\t",header=T,data.table = F,tmpdir=".")
+    sample_info<-fread("sample_info_tara.tsv",sep="\t",header=T,data.table = F,tmpdir=".")
 
-The data produced above is stored in a data frame called activity_df. You will find a variable named rp_perc_transcripts which is the percentage of transcripts dedicated to ribosomal proteins, our proxy for growth.
+    # Build a KO profile by adding up all genes with the same KO annotation
+    ko_profile<-gc_profile %>%
+      group_by(KO) %>% summarise(across(starts_with("TARA"),sum)) %>%
+      as.data.frame()
+
+    # Compute the gene abundance, transcript abundance and expression for the pairs of metaG-metaT samples
+    # The expression is just the ratio of transcript_abundance to gene_abundance
+    tmp_sample_info<-sample_info %>%
+      select(sample_metag,sample_metat) %>%
+      mutate(sample_pair=paste(sample_metag,sample_metat,sep="-"))
+    tmp_metag<-ko_profile %>%
+      select(KO,all_of(tmp_sample_info$sample_metag)) %>%
+      pivot_longer(-KO,names_to = "sample_metag",values_to = "gene_abundance")
+    tmp_metat<-ko_profile %>%
+      select(KO,all_of(tmp_sample_info$sample_metat)) %>%
+      pivot_longer(-KO,names_to = "sample_metat",values_to = "transcript_abundance")
+    final_profile<-tmp_sample_info %>%
+      left_join(tmp_metag,by="sample_metag") %>%
+      left_join(tmp_metat,by=c("KO","sample_metat")) %>%
+      mutate(expression=transcript_abundance/gene_abundance)
+
+    # Plot the gene abundance, expression and transcript abundance of K03704: cspA: cold shock protein
+    toplot<-final_profile %>%
+      filter(KO=="K03704") %>%
+      left_join(sample_info,by=c("sample_metag","sample_metat"))
+
+    g_metat<-ggplot(data=toplot,aes(y=transcript_abundance,x=`temperature [°C]`,color=depth_layer)) +
+      geom_point() +
+      geom_smooth(method = "gam",se = T) +
+      #scale_y_log10() +
+      #coord_flip() +
+      scale_color_manual(values=c("darkgreen","darkblue")) +
+      ylab("Transcript abundance") +
+      theme_bw() +
+      theme(legend.position = "none")
+    g_metag<-ggplot(data=toplot,aes(y=gene_abundance,x=`temperature [°C]`,color=depth_layer)) +
+      geom_point() +
+      geom_smooth(method = "gam",se = T) +
+      #scale_y_log10() +
+      #coord_flip() +
+      scale_color_manual(values=c("darkgreen","darkblue")) +
+      ylab("Gene abundance") +
+      theme_bw() +
+      theme(legend.position = "none")
+    g_exp<-ggplot(data=toplot,aes(y=expression,x=`temperature [°C]`,color=depth_layer)) +
+      geom_point() +
+      geom_smooth(method = "gam",se = T) +
+      #scale_y_log10() +
+      #coord_flip() +
+      scale_color_manual(values=c("darkgreen","darkblue")) +
+      ylab("Gene expression") +
+      theme_bw() +
+      theme(legend.position = "top",legend.title = element_blank())
+    g<-g_metag | g_exp | g_metat
+    ggsave("K03704.pdf",g)

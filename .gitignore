@@ -424,3 +424,7 @@ buildNumber.properties
 *data*
 *.xmind
 /other
+
+# large file
+docs/downloads/metatranscriptomics_tutorial.zip
+
