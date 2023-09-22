@@ -1,111 +1,206 @@
-======================
-Gene catalogue profiling (Metatranscriptomics & Metagenomics)
-======================
+=====================
+Metatranscriptomics
+=====================
 
 Protocol provided by Guillem Salazar.
 
------------------------------------------
+-----------------------
+Introduction
+-----------------------
+Metatranscriptomics is the analysis of all of the transcriptomes present in a sample and is an effective method to assess the acitvity of a microbial community. Unlike metagenomic data [make link to metag page], metatranscriptomics can help decipher the metabolic functions actively expressed by the community at any given time. 
+
+- Advantages: 
+
+  - Best way to get information about community activity
+
+- Disadvantages:
+
+  - sample preparation might be difficult and expsensive
+  - data analysis methods are not well established
+
+
+Metatrancriptomic experiments can be broadly summarised into 2 different types: experiments that include matching metagenomic samples, and those that do not. The analysis of these two datatypes are different. 
+
+-------------------------------------------------------------
+Metatranscriptomics & Metagenomics
+-------------------------------------------------------------
+
 Dataset
 -----------------------------------------
-In this documentation we will combine metatranscriptomics with metagenomics by using a genome as a reference for the transcriptome.
+In this documentation we will combine metatranscriptomics with metagenomics by using a genome as a reference for the transcriptome. In order to do this, metagenomic data was used as described in [Gene catalog creation] to create a gene catalog. The **metagenomic data** was then mapped back to the gene catalog to determine **gene abundance**. And the **metatranscriptomic data** from each sample was then mapped to the gene catalog to determine **transcript abundance**. @Lilith missiing how functional annotation is done (is the downstream analysis done at a gene or KO level?)
 
-To analyze the data, we first need to remove the following sources of bias:
+.. note:: 
 
-* Differences in gene length between genes.
-* Differences in sequencing depth between samples.
-* Differences in genome size distribution between samples.
-* Compositionality: The number of inserts for a given gene in a given sample is in itself arbitrary and can only be interpreted relative to the rest of the genes in the sample.
+    @Lilith Provide definition of gene abundance vs transcript abundance in this note. Explain that transcript abundance depends on both gene abundance and expression level. Link to the appropriate figure in the Cell paper. 
 
-We normalize using the following steps:
+.. note::
 
-1. Divide the insert counts by the gene length for each gene in each sample.
-2. Compute the total insert count of 10 universal single-copy marker genes (MGs) in each sample.
-3. Compute the median across the 10 MGs in each sample.
-4. Divide the gene-length normalized abundances by this median in each sample.
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Why do we divide by the 10 Marker Genes?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The 10 Marker Genes are:
-
-* Universal: present in "all" prokaryotes
-* Single-copy: always present once per cell (genome)
-* Long enough for a satisfactory profiling
-* Are housekeeping genes
-
-The marker genes serve as a gene catalogue for our analysis. A gene catalogue is a data structure that organizes genes and provides a reference for standardized analysis of the microbiomes across samples and studies. Further information can be found in :doc:`../assembly/metagenomic_workflows`.
-
-Therefore, their abundance should be well correlated and the median of their abundances should correlate with the sequencing depth.
-
-The median of their abundances is a good proxy for the amount of cells captured in a given metagenome. The per-cell normalization should account for differences in genome sizes between samples and the per-cell normalization is in fact a way for controlling for composition. The result has a biologically meaningful unit: *gene copies per total cell in the community*.
+   @Lilith explain what -1 fraction is and why we need it
 
 The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
 The data can be downloaded :download:`here <../downloads/metatranscriptomics_tutorial.zip>`.
 
+This will contain the following files: .... 
 
------------------------------------------
-Performing normalization based on gene length and the abundance of the 10 MGs
------------------------------------------
-
-This script normalizes the data based on gene length and abundance of 10 marker genes. In this example we use the following marker genes:
-
-.. image:: ../images/metatranscriptomics_marker_genes.jpg
 
 .. note::
-    Running this code with the given data needs a significant amount of resources. We recommend running it on a server.
+
+  The actual files are huge. @Lilith ask Guillem about resources needed to run this on realistic dataset
+
+
+
+Data Normalisation
+-------------------
+
+For both gene abundance and transcript abundance data we must remove the following sources of bias:
+
+* Differences in gene length between genes.
+* Differences in sequencing depth between samples.
+* Differences in genome size distribution between samples.
+* Compositionality: The number of inserts for a given gene in a given sample is in itself arbitrary and can only be interpreted relative to the rest of the genes in the sample. @Lilith provide reference that explains compositionality. 
+
+.. note:: 
+
+  @Lilith/Guillem Explain genome size differences between samples
+
+
+.. mermaid::
+
+   flowchart LR
+        id1( Normalisation) --> id2(gene<br/>length<br/>normalisation)
+        id2 --> id3(sequencing<br/>depth<br/>normalisation)
+        id3 --> id4(per cell/<br/>normalisation)
+        classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+        style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+        class id2,id3,id4 tool
+
+
+Setting up R environment and loading the data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We perform all of the normalisation stpes in R. To run this analysis you will need `tidyverse` and `data.table` libraries.
 
 .. code-block:: r
 
     library(data.table)
     library(tidyverse)
-    library(R.utils)
+    # To read compressed files data.table needs R.utils library
+    library(R.utils)  
 
-    # Define the KOs corresponding to the 10 MGs
-    mgs<-c("K06942", "K01889", "K01887", "K01875", "K01883", "K01869", "K01873", "K01409", "K03106", "K03110")
 
-    # Load the gene catalog (insert counts)
-    gc_profile<-fread("gene_profile_tara.tsv.gz",sep="\t",header=T,data.table = F,tmpdir=".")
-    sample_info<-fread("sample_info_tara.tsv",sep="\t",header=T,data.table = F,tmpdir=".")
+Next we are going to load gene and transcript abundances, both are in file `metat_metag_test_profile.csv.gz`. The file `metat_metag_test_meta.csv.gz` contains metadata about the samples (i.e. location, depth, and environmental conditions)
 
-    # Assign the median gene length to the -1 (the category designing all reads not mapping to any gene)
-    if (length(which(gc_profile$length<0))>0){
-      gc_profile$length[which(gc_profile$length<0)]<-median(gc_profile$length[which(gc_profile$length>0)])
+.. code-block:: r
+
+  # Load the gene and transcript abundances 
+
+    profile <- fread("metat_metag_test_profile.csv.gz",sep=",", 
+                     header=T,data.table = F,tmpdir=".")
+
+    sample_info <- fread("metat_metag_test_meta.csv.gz",sep=",",
+                         header=T, data.table = F, tmpdir=".")
+
+
+Gene length normalisation
+^^^^^^^^^^^^^^^^^^^^^^^^^
+First step in the normalisation process is to divide the insert counts by the gene length for each gene in each sample. Since the **unamapped (-1)** fraction does not have a length, we assign it the median gene length. 
+
+.. note::
+
+  @Lilith define what insert counts are in this note
+
+
+.. code-block:: r
+    
+
+    profile[1:4]%>% tail(1)
+
+    if (length(which(profile$length < 0)) > 0){
+      med_length = median(profile$length[which(profile$length > 0)])
+      profile$length[which(profile$length < 0)]<- med_length
     }
 
+    profile[1:4]%>% tail(1)
+
     # Build a gene-length normalized profile
-    gc_profile_lengthnorm<-gc_profile[,1:4]
-    for (i in 5:ncol(gc_profile)){
-      cat("Normalizing by gene length: sample",colnames(gc_profile)[i],"\n")
-      tmp<-gc_profile[,i]/gc_profile$length %>%
+    
+    profile_lengthnorm <- profile %>% 
+                          mutate_if(is.numeric, function(x){x / profile$length})
+
+    # Or:
+    # @Guillem, why for loop? Because of the data size?
+    profile_lengthnorm<-profile[,1:4]
+    for (i in 5:ncol(profile)){
+      cat("Normalizing by gene length: sample",colnames(profile)[i],"\n")
+      tmp<-profile[,i]/profile$length %>%
         as.data.frame()
-      colnames(tmp)<-colnames(gc_profile)[i]
-      gc_profile_lengthnorm<-gc_profile_lengthnorm %>%
+      colnames(tmp)<-colnames(profile)[i]
+      profile_lengthnorm<-profile_lengthnorm %>%
         bind_cols(tmp)
     }
 
+
+Sequencing depth, per cell normalisation and compositionality
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To account for differences in sequencing depth, as well as for diffrences in genome sizes between different samples, we normalize the gene and transcript abundance data by abundances of **10 marker genes**. 
+
+.. note:: 
+
+  What are marker genes (MGs)?
+
+    * Universal: present in "all" prokaryotes
+    * Single-copy: always present once per cell (genome)
+    * Are housekeeping genes
+
+  Because of these characteristics, their abundance correlates well with the sequencing depth. [@Lilith add references]. In addition, the median abundance of MGs is a good proxy for the number of cells captured in a given metagenomic/metatranscriptomic sample. The per-cell normalization should account for differences in genome sizes between samples and the per-cell normalization also controls for compositionality. The result of this normalisation is a biologically meaningful unit: *gene copies per total cell in the community*.
+
+@Lilith I'm not sure what you mean in this paragraph. The marker genes serve as a gene catalogue for our analysis. A gene catalogue is a data structure that organizes genes and provides a reference for standardized analysis of the microbiomes across samples and studies. Further information can be found in :doc:`../assembly/metagenomic_workflows`.
+
+
+To normalize by abundance of 10 MGs, we first compute their total insert count in each sample (i.e. sum the counts for each of the 10 KOs). We then compute the median of the 10 MGs in each sample. Finally, we divide the gene-length normalized abundances by this median for each sample.
+
+
+In this example we use the following marker genes:
+
+.. image:: ../images/metatranscriptomics_marker_genes.jpg
+
+
+.. code-block:: r
+
+    # Define the KOs corresponding to the 10 MGs
+    mgs <- c("K06942", "K01889", "K01887", "K01875", "K01883", 
+             "K01869", "K01873", "K01409", "K03106", "K03110")
+
+
     # Build a MGs normalized profile
-    gc_profile_lengthnorm_mgnorm<-gc_profile_lengthnorm[,1:4]
-    for (i in 5:ncol(gc_profile_lengthnorm)){
-      cat("Normalizing by 10 MGs: sample",colnames(gc_profile_lengthnorm)[i],"\n")
-      mg_median<-gc_profile_lengthnorm %>%
-        select(KO,abundance=all_of(colnames(gc_profile_lengthnorm)[i])) %>%
+
+
+    profile_lengthnorm_mgnorm<- profile_lengthnorm[,1:4]
+    for (i in 5:ncol(profile_lengthnorm)){
+      cat("Normalizing by 10 MGs: sample",colnames(profile_lengthnorm)[i],"\n")
+      mg_median<-profile_lengthnorm %>%
+        select(KO,abundance=all_of(colnames(profile_lengthnorm)[i])) %>%
         filter(KO %in% mgs) %>%
         group_by(KO) %>% summarise(abundance=sum(abundance)) %>%
         ungroup() %>% summarise(mg_median=median(abundance)) %>%
         pull()
-      tmp<-gc_profile_lengthnorm[,i]/mg_median
+      tmp<-profile_lengthnorm[,i]/mg_median
       tmp<-tmp %>% as.data.frame()
-      colnames(tmp)<-colnames(gc_profile_lengthnorm)[i]
-      gc_profile_lengthnorm_mgnorm<-gc_profile_lengthnorm_mgnorm %>%
+      colnames(tmp)<-colnames(profile_lengthnorm)[i]
+      profile_lengthnorm_mgnorm<-profile_lengthnorm_mgnorm %>%
         bind_cols(tmp)
     }
 
     # Save profiles and compress
-    fwrite(gc_profile_lengthnorm,"gene_profile_tara_lengthnorm.tsv",sep="\t")
+    fwrite(profile_lengthnorm,"gene_profile_tara_lengthnorm.tsv",sep="\t")
     gzip("gene_profile_tara_lengthnorm.tsv")
-    fwrite(gc_profile_lengthnorm_mgnorm,"gene_profile_tara_lengthnorm_percell.tsv",sep="\t")
+    fwrite(profile_lengthnorm_mgnorm,"gene_profile_tara_lengthnorm_percell.tsv",sep="\t")
     gzip("gene_profile_tara_lengthnorm_percell.tsv")
 
+
+
+@Anna This will need to be reworked since only using a subset of data. Or might want to provide thise pre-calculated.
 -----------------------------------------
 Showing the effect of the normalization
 -----------------------------------------
@@ -217,6 +312,8 @@ Here, we visualize the effect of the normalization based on length and abundance
 -----------------------------------------
 Combining Metatranscriptomic and Metagenomic Data
 -----------------------------------------
+
+
 In this section we combine metatranscriptomic and metagenomic data and create the following plot:
 
 .. image:: ../images/K03704.jpg
