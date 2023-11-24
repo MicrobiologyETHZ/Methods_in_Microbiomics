@@ -1,0 +1,8 @@
+sphinx
+sphinx-copybutton
+# python==3.8
+myst-parser
+sphinx_rtd_theme
+sphinx-comments
+sphinxcontrib-mermaid
+# nbsphinx==0.8.1
