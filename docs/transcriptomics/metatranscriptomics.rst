@@ -2,7 +2,7 @@
 Metatranscriptomics
 =====================
 
-Protocol provided by Guillem Salazar.
+Protocol adapted from Guillem Salazar.
 
 -----------------------
 Introduction
@@ -27,11 +27,7 @@ Metatranscriptomics & Metagenomics
 
 Dataset
 -----------------------------------------
-In this documentation we will combine metatranscriptomics with metagenomics by using a genome as a reference for the transcriptome. In order to do this, metagenomic data was used as described in :doc:`gene catalog creation <../assembly/metagenomic_workflows>` to create a gene catalog. The **metagenomic data** was then mapped back to the gene catalog to determine **gene abundance**. And the **metatranscriptomic data** from each sample was then mapped to the gene catalog to determine **transcript abundance**. Gene functional annotation into orthologous groups can then be performed using eggNOG.
-
-
-.. mermaid:: 
-
+Here we will combine metatranscriptomics with metagenomics by using a metagenomic data to normalize the transcript abundance. In order to do this, metagenomic data was processed as described in :doc:`gene catalog creation <../assembly/metagenomic_workflows>` to create a gene catalog. Gene functional annotation into orthologous groups was then be performed using KEGG database. The **metagenomic data** was then mapped back to the gene catalog to determine **gene abundance**. And the **metatranscriptomic data** from each sample was then mapped to the gene catalog to determine **transcript abundance**. To determine **gene expression**, we will look at the ratios of transcript abundance to gene abundance (after some normalisations of course).
 
 .. note:: 
 
@@ -39,12 +35,18 @@ In this documentation we will combine metatranscriptomics with metagenomics by u
 
 .. note::
 
+    @Lilith: this does not make sense, how can unannotated genes we bes for functional characterization? Please just explain what -1 fraction is. 
     Unannotated genes (-1 fraction) were used to generate de novo gene clusters for further functional characterization of the catalog.
 
 The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
-The data can be downloaded :download:`here <../downloads/metatranscriptomics_tutorial.zip>`.
+The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. For instructions on how to download and unpack the data :doc:`these instructions <../index.rst>`.
 
-This will contain the following files: .... 
+This will contain the following files: 
+
+  - MGS_K03040_K03043_tara.tsv.gz contains a sample of raw counts for metagenomic and metatranscriptomic samples 
+  - MGS_K03040_K03043_tara_lengthnorm.tsv.gz contains length normalised counts for metagenomic and metatranscriptomic samples 
+  - K03704_tara_lengthnorm_percell.tsv.gz contains length and percell normalised counts for K03704 for metagenomic and metatranscriptomic samples
+  - sample_info.csv contains some metadata about the samples
 
 Data Normalisation
 -------------------
@@ -54,11 +56,12 @@ For both gene abundance and transcript abundance data, we must remove the follow
 * Differences in gene length between genes.
 * Differences in sequencing depth between samples.
 * Differences in genome size distribution between samples.
-* Compositionality: The number of inserts for a given gene in a given sample is in itself arbitrary and can only be interpreted relative to the rest of the genes in the sample. @Lilith provide reference that explains compositionality. @Anna, I got this from Guillem's presentation and I cannot find any reference that also uses this term in this context.
+* Compositionality: The number of inserts for a given gene in a given sample can only be interpreted relative to the rest of the genes in the sample
+
 
 .. note:: 
 
-  @Lilith/Guillem Explain genome size differences between samples
+  @Lilith/Guillem explain genome size differences between samples
 
 
 .. mermaid::
@@ -72,6 +75,7 @@ For both gene abundance and transcript abundance data, we must remove the follow
         class id2,id3,id4 tool
 
 
+
 Setting up R environment and loading the data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -83,19 +87,20 @@ We perform all of the normalisation steps in R. To run this analysis you will ne
     library(tidyverse)
     # To read compressed files data.table needs R.utils library
     library(R.utils)  
+    library(patchwork)
+    library(GGally)
 
 
-Next we are going to load gene and transcript abundances: Both are in the file `metat_metag_test_profile.csv.gz`. The file `metat_metag_test_meta.csv.gz` contains metadata about the samples (i.e. location, depth, and environmental conditions).
+Next we are going to load gene and transcript abundances and metadata (i.e. temperature, location, depth, etc.)
 
 .. code-block:: r
 
-  # Load the gene and transcript abundances 
+    # Load the gene and transcript abundances 
 
-    profile <- fread("metat_metag_test_profile.csv.gz", sep = ",",
-                     header = T, data.table = F, tmpdir = ".")
-
-    sample_info <- fread("metat_metag_test_meta.csv.gz", sep = ",",
-                         header = T, data.table = F, tmpdir = ".")
+    profile <- fread("datasets/part1/MGS_K03040_K03043_tara.tsv.gz",sep="\t", 
+                 header=T,data.table = F,tmpdir=".")
+    sample_info <- fread("datasets/part1/sample_info.csv",sep=",",
+                header=T, data.table = F, tmpdir=".")
 
 
 Gene length normalisation
@@ -104,7 +109,7 @@ The first step in the normalisation process is to divide the insert counts by th
 
 .. note::
 
-  Inserts are genomic sequences that correspond to one or two reads. Therefore, the insert counts are counts of DNA molecules.
+  Insert counts. During short read sequencing, DNA is randomly sheared into **inserts** of known size distribution and sequenced. If paired-end sequencing is used, two DNA sequences (reads) are generated - one from each end of a DNA fragment). We count inserts, not reads.
 
 .. image:: ../images/insert_explanation.jpg
 
@@ -112,23 +117,18 @@ The first step in the normalisation process is to divide the insert counts by th
 
 .. code-block:: r
     
-
-    profile[1:4]%>% tail(1)
-
+    # Assignes median gene length to -1 fraction
+    # Example file does not contain -1 fraction, so this will have no effect for us
     if (length(which(profile$length < 0)) > 0){
       med_length = median(profile$length[which(profile$length > 0)])
       profile$length[which(profile$length < 0)] <- med_length
     }
 
-    profile[1:4] %>% tail(1)
 
-    # Build a gene-length normalized profile
-    
-    profile_lengthnorm <- profile %>% 
-                          mutate_if(is.numeric, function(x){x / profile$length})
+We now build a gene-length normalized profile
 
-    # Or:
-    # @Guillem, why for loop? Because of the data size?
+  .. code-block:: r
+
     profile_lengthnorm <- profile[, 1:4]
     for (i in 5:ncol(profile)){
       cat("Normalizing by gene length: sample", colnames(profile)[i], "\n")
@@ -153,7 +153,7 @@ To account for differences in sequencing depth, as well as for differences in ge
     * Single-copy: always present once per cell (genome)
     * Are housekeeping genes
 
-Because of these characteristics, their abundance should correlate well with the sequencing depth. In addition, the median abundance of MGs is a good proxy for the number of cells captured in a given metagenomic/metatranscriptomic sample. The per-cell normalization should account for differences in genome sizes between samples, and the per-cell normalization also controls for compositionality. The result of this normalisation is a biologically meaningful unit: *gene copies per total cell in the community*.
+Because of these characteristics, the abundance of marker genes correlates well with the sequencing depth. In addition, the median abundance of MGs is a good proxy for the number of cells captured in a given metagenomic/metatranscriptomic sample. The per-cell normalization accounts for differences in genome sizes between samples and also controls for compositionality. The result of this normalisation is a biologically meaningful unit: **gene copies per total cell in the community**.
 
 To normalize by abundance of 10 MGs, we first compute their total insert count in each sample (i.e. sum the counts for each of the 10 KOs). We then compute the median of the 10 MGs in each sample. Finally, we divide the gene-length normalized abundances by this median for each sample.
 
@@ -172,32 +172,25 @@ In this example we use the following marker genes:
 
     # Build a MGs normalized profile
 
-
     profile_lengthnorm_mgnorm <- profile_lengthnorm[, 1:4]
+
     for (i in 5:ncol(profile_lengthnorm)){
-      cat("Normalizing by 10 MGs: sample", colnames(profile_lengthnorm)[i], "\n")
-      mg_median <- profile_lengthnorm %>%
-        select(KO, abundance = all_of(colnames(profile_lengthnorm)[i])) %>%
+      cat("Normalizing by 10 MGs: sample",colnames(profile_lengthnorm)[i],"\n")
+      mg_median<-profile_lengthnorm %>%
+        select(KO,abundance=all_of(colnames(profile_lengthnorm)[i])) %>%
         filter(KO %in% mgs) %>%
-        group_by(KO) %>% summarise(abundance = sum(abundance)) %>%
-        ungroup() %>% summarise(mg_median = median(abundance)) %>%
+        group_by(KO) %>% summarise(abundance=sum(abundance)) %>%
+        ungroup() %>% summarise(mg_median=median(abundance)) %>%
         pull()
-      tmp <- profile_lengthnorm[, i] / mg_median
-      tmp <- tmp %>% as.data.frame()
-      colnames(tmp) <- colnames(profile_lengthnorm)[i]
-      profile_lengthnorm_mgnorm <- profile_lengthnorm_mgnorm %>%
+      tmp<-profile_lengthnorm[,i]/mg_median
+      tmp<-tmp %>% as.data.frame()
+      colnames(tmp)<-colnames(profile_lengthnorm)[i]
+      profile_lengthnorm_mgnorm<-profile_lengthnorm_mgnorm %>%
         bind_cols(tmp)
     }
 
-    # Save profiles and compress
-    fwrite(profile_lengthnorm, "gene_profile_tara_lengthnorm.tsv", sep = "\t")
-    gzip("gene_profile_tara_lengthnorm.tsv")
-    fwrite(profile_lengthnorm_mgnorm, "gene_profile_tara_lengthnorm_percell.tsv", sep = "\t")
-    gzip("gene_profile_tara_lengthnorm_percell.tsv")
 
 
-
-@Anna This will need to be reworked since only using a subset of data. Or might want to provide those pre-calculated.
 -----------------------------------------
 Showing the effect of the normalization
 -----------------------------------------
@@ -207,38 +200,28 @@ Here, we visualize the effect of the normalization based on length and abundance
 .. image:: ../images/mgs_vs_seqdepth.jpg
 .. image:: ../images/mgs_pairwise_corr.jpg
 
+We will first look at 2 KOs: K03040 and K03043. These incode for 2 subunits of RNA polymerase. We first subset the raw metagenomic counts for these 2 genes (`rp_ab`) and then do the same with lengthnormalised counts (`rp_ab_lengthnorm`), and finally visuallize the relationship.
+
 .. code-block:: r
-
-    library(data.table)
-    library(tidyverse)
-    library(patchwork)
-    library(GGally)
-    library(R.utils)
-
-    # Define the KOs corresponding to the 10 MGs
-    mgs <- c("K06942", "K01889", "K01887", "K01875", "K01883", "K01869", "K01873", "K01409", "K03106", "K03110")
-
-    # Load the raw count and gene length normalized profiles and the sample information
-    gc_profile <- fread("gene_profile_tara.tsv.gz", sep = "\t", header = T, data.table = F, tmpdir = ".")
-    gc_profile_lengthnorm <- fread("gene_profile_tara_lengthnorm.tsv.gz", sep = "\t", header = T, data.table = F, tmpdir = ".")
-    sample_info <- fread("sample_info_tara.tsv", sep = "\t", header = T, data.table = F, tmpdir = ".")
-
     # Compute the abundance of K03040 and K03043 with and without gene-length normalization
-    rp_ab <- gc_profile %>%
+
+    rp_ab <- profile %>%
       select(-reference, -length, -Description) %>%
       filter(KO %in% c("K03040", "K03043")) %>%
-      pivot_longer(-KO, names_to = "sample", values_to = "inserts") %>%
-      filter(sample %in% sample_info$sample_metag) %>%
-      group_by(KO, sample) %>% summarise(inserts = sum(inserts)) %>%
+      pivot_longer(-KO, names_to = "sample", values_to = "inserts") %>% 
+      filter(grepl('METAG', sample)) %>% 
+      group_by(KO, sample) %>% summarize(inserts = sum(inserts)) %>%
       pivot_wider(names_from = "KO", values_from = "inserts")
 
-    rp_ab_lengthnorm <- gc_profile_lengthnorm %>%
+    rp_ab_lengthnorm <- profile_lengthnorm %>%
       select(-reference, -length, -Description) %>%
       filter(KO %in% c("K03040", "K03043")) %>%
       pivot_longer(-KO, names_to = "sample", values_to = "inserts_lengthnorm") %>%
-      filter(sample %in% sample_info$sample_metag) %>%
+      filter(grepl('METAG', sample)) %>% 
       group_by(KO, sample) %>% summarise(inserts_lengthnorm = sum(inserts_lengthnorm)) %>%
       pivot_wider(names_from = "KO", values_from = "inserts_lengthnorm")
+
+  
 
     g1 <- ggplot(data = rp_ab, aes(x = K03040, y = K03043)) +
       geom_point(alpha = 0.5) +
@@ -252,6 +235,8 @@ Here, we visualize the effect of the normalization based on length and abundance
       coord_fixed() +
       theme_bw() +
       theme(plot.subtitle = element_text(size = 7))
+
+
     g2 <- ggplot(data = rp_ab_lengthnorm, aes(x = K03040, y = K03043)) +
       geom_point(alpha = 0.5) +
       geom_abline(linetype = 2) +
@@ -263,11 +248,16 @@ Here, we visualize the effect of the normalization based on length and abundance
       coord_fixed() +
       theme_bw() +
       theme(plot.subtitle = element_text(size = 7))
-    g <- g1 | g2
-    ggsave("K03040_K03043_comparison.pdf", g, width = unit(10, "cm"), height = unit(4.5, "cm"))
 
+    g1|g2
+
+
+Now we're going to look at correlation of marke gene abundance with sequencing depth and the correlation in abundance between different marker genes.
+
+
+.. code-block:: r
     # Compute the abundance of the 10MGs and correlate to sequencing depth
-    mgs_ab_lengthnorm <- gc_profile_lengthnorm %>%
+    mgs_ab_lengthnorm <- profile_lengthnorm %>%
       select(-reference, -Description, -length) %>%
       filter(KO %in% mgs) %>%
       pivot_longer(-KO, names_to = "sample", values_to = "inserts_lengthnorm") %>%
@@ -286,10 +276,12 @@ Here, we visualize the effect of the normalization based on length and abundance
       theme_bw() +
       theme(legend.title = element_blank())
 
-    ggsave("mgs_vs_seqdepth.pdf", g3, width = unit(7, "cm"), height = unit(4, "cm"))
+
+    g3
 
     # Compute the abundance of the 10MGs and their autocorrelation
-    mgs_ab_lengthnorm <- gc_profile_lengthnorm %>%
+
+    mgs_ab_lengthnorm <- profile_lengthnorm %>%
       select(-reference, -Description, -length) %>%
       filter(KO %in% mgs) %>%
       pivot_longer(-KO, names_to = "sample", values_to = "inserts_lengthnorm") %>%
@@ -302,13 +294,13 @@ Here, we visualize the effect of the normalization based on length and abundance
       scale_x_log10() +
       scale_y_log10()
 
-    ggsave("mgs_pairwise_corr.pdf", g4, width = unit(10, "cm"), height = unit(10, "cm"))
+    g4
 
 
 
------------------------------------------
+-------------------------------------------------
 Combining Metatranscriptomic and Metagenomic Data
------------------------------------------
+-------------------------------------------------
 
 
 In this section we combine metatranscriptomic and metagenomic data and create the following plot:
@@ -317,20 +309,17 @@ In this section we combine metatranscriptomic and metagenomic data and create th
 
 .. code-block:: r
 
-    library(data.table)
-    library(tidyverse)
-    library(patchwork)
-    library(GGally)
-    library(R.utils)
 
     # Load normalized profile
-    gc_profile <- fread("gene_profile_tara_lengthnorm_percell.tsv.gz", sep = "\t", header = T, data.table = F, tmpdir = ".")
-    sample_info <- fread("sample_info_tara.tsv", sep = "\t", header = T, data.table = F, tmpdir = ".")
+    gc_profile <- fread("datasets/part1/K03704_tara_lengthnorm_percell.tsv.gz", sep = "\t", header = T, data.table = F, tmpdir = ".")
+    sample_info <- fread("datasets/part1/sample_info.csv",sep=",",
+                header=T, data.table = F, tmpdir=".")
 
-    # Build a KO profile by adding up all genes with the same KO annotation
+
     ko_profile <- gc_profile %>%
       group_by(KO) %>% summarise(across(starts_with("TARA"), sum)) %>%
       as.data.frame()
+
 
     # Compute the gene abundance, transcript abundance and expression for the pairs of metaG-metaT samples
     # The expression is just the ratio of transcript_abundance to gene_abundance
@@ -348,32 +337,29 @@ In this section we combine metatranscriptomic and metagenomic data and create th
       left_join(tmp_metat, by = c("KO", "sample_metat")) %>%
       mutate(expression = transcript_abundance/gene_abundance)
 
-    # Plot the gene abundance, expression and transcript abundance of K03704: cspA: cold shock protein
     toplot <- final_profile %>%
       filter(KO == "K03704") %>%
       left_join(sample_info, by = c("sample_metag","sample_metat"))
 
-    g_metat <- ggplot(data = toplot, aes(y = transcript_abundance, x = `temperature [°C]`, color = depth_layer)) +
+    g_metat <- ggplot(data = toplot, aes(y = transcript_abundance, x = Temperature, color =  polar)) +
       geom_point() +
-      geom_smooth(method = "gam", se = T) +
-      #scale_y_log10() +
-      #coord_flip() +
-      scale_color_manual(values = c("darkgreen", "darkblue")) +
+      geom_smooth(method = "gam", se = T, formula = y ~ s(x, bs = "cs", k=5)) +
+      scale_color_manual(values = c("darkgreen", "darkblue"))+
       ylab("Transcript abundance") +
       theme_bw() +
       theme(legend.position = "none")
-    g_metag <- ggplot(data = toplot, aes(y = gene_abundance, x = `temperature [°C]`, color = depth_layer)) +
+    g_metag <- ggplot(data = toplot, aes(y = gene_abundance, x = Temperature, color = polar)) +
       geom_point() +
-      geom_smooth(method = "gam", se = T) +
+      geom_smooth(method = "gam", se = T, formula = y ~ s(x, bs = "cs", k=5)) +
       #scale_y_log10() +
       #coord_flip() +
       scale_color_manual(values = c("darkgreen", "darkblue")) +
       ylab("Gene abundance") +
       theme_bw() +
       theme(legend.position = "none")
-    g_exp <- ggplot(data = toplot, aes(y = expression, x = `temperature [°C]`, color = depth_layer)) +
+    g_exp <- ggplot(data = toplot, aes(y = expression, x = Temperature, color = polar)) +
       geom_point() +
-      geom_smooth(method = "gam", se = T) +
+      geom_smooth(method = "gam", se = T, formula = y ~ s(x, bs = "cs", k=5)) +
       #scale_y_log10() +
       #coord_flip() +
       scale_color_manual(values = c("darkgreen", "darkblue")) +
@@ -381,7 +367,7 @@ In this section we combine metatranscriptomic and metagenomic data and create th
       theme_bw() +
       theme(legend.position = "top", legend.title = element_blank())
     g <- g_metag | g_exp | g_metat
-    ggsave("K03704.pdf", g)
+    g
 
 
 -------------------------------------------------------------
