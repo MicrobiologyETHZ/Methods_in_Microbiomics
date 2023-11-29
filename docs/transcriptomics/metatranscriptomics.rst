@@ -27,7 +27,7 @@ Metatranscriptomics & Metagenomics
 
 Dataset
 -----------------------------------------
-Here we will combine metatranscriptomics with metagenomics by using a metagenomic data to normalize the transcript abundance. In order to do this, metagenomic data was processed as described in :doc:`gene catalog creation <../assembly/metagenomic_workflows>` to create a gene catalog. Gene functional annotation into orthologous groups was then be performed using KEGG database. The **metagenomic data** was then mapped back to the gene catalog to determine **gene abundance**. And the **metatranscriptomic data** from each sample was then mapped to the gene catalog to determine **transcript abundance**. To determine **gene expression**, we will look at the ratios of transcript abundance to gene abundance (after some normalisations of course).
+Here, we will combine metatranscriptomics with metagenomics by using metagenomic data to normalize the transcript abundance. In order to do this, metagenomic data was processed as described in :doc:`gene catalog creation <../assembly/metagenomic_workflows>` to create a gene catalog. Gene functional annotation into orthologous groups was then performed using the KEGG database. The **metagenomic data** was then mapped back to the gene catalog to determine **gene abundance**. And the **metatranscriptomic data** from each sample was then mapped to the gene catalog to determine **transcript abundance**. To determine **gene expression**, we will look at the ratios of transcript abundance to gene abundance (after some normalisations of course).
 
 .. note:: 
 
@@ -35,11 +35,10 @@ Here we will combine metatranscriptomics with metagenomics by using a metagenomi
 
 .. note::
 
-    @Lilith: this does not make sense, how can unannotated genes we bes for functional characterization? Please just explain what -1 fraction is. 
-    Unannotated genes (-1 fraction) were used to generate de novo gene clusters for further functional characterization of the catalog.
+    The -1 fraction are unannotated genes, which we must account for, for proper normalisation.
 
 The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
-The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. For instructions on how to download and unpack the data :doc:`these instructions <../index.rst>`.
+The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. For instructions on how to download and unpack the data follow :doc:`these instructions <../index.rst>`.
 
 This will contain the following files: 
 
@@ -109,7 +108,7 @@ The first step in the normalisation process is to divide the insert counts by th
 
 .. note::
 
-  Insert counts. During short read sequencing, DNA is randomly sheared into **inserts** of known size distribution and sequenced. If paired-end sequencing is used, two DNA sequences (reads) are generated - one from each end of a DNA fragment). We count inserts, not reads.
+  During short read sequencing, DNA is randomly sheared into **inserts** of known size distribution and sequenced. If paired-end sequencing is used, two DNA sequences (reads) are generated - one from each end of a DNA fragment. Here, we count inserts, not reads.
 
 .. image:: ../images/insert_explanation.jpg
 
@@ -200,7 +199,7 @@ Here, we visualize the effect of the normalization based on length and abundance
 .. image:: ../images/mgs_vs_seqdepth.jpg
 .. image:: ../images/mgs_pairwise_corr.jpg
 
-We will first look at 2 KOs: K03040 and K03043. These incode for 2 subunits of RNA polymerase. We first subset the raw metagenomic counts for these 2 genes (`rp_ab`) and then do the same with lengthnormalised counts (`rp_ab_lengthnorm`), and finally visuallize the relationship.
+We will first look at 2 KOs: K03040 and K03043. These encode for 2 subunits of RNA polymerase. We first subset the raw metagenomic counts for these 2 genes (`rp_ab`) and then do the same with length normalised counts (`rp_ab_lengthnorm`), and finally visualize the relationship.
 
 .. code-block:: r
     # Compute the abundance of K03040 and K03043 with and without gene-length normalization
@@ -252,7 +251,7 @@ We will first look at 2 KOs: K03040 and K03043. These incode for 2 subunits of R
     g1|g2
 
 
-Now we're going to look at correlation of marke gene abundance with sequencing depth and the correlation in abundance between different marker genes.
+Now, we're going to look at correlation of marker gene abundance with sequencing depth and the correlation in abundance between different marker genes.
 
 
 .. code-block:: r
@@ -373,7 +372,7 @@ In this section we combine metatranscriptomic and metagenomic data and create th
 -------------------------------------------------------------
 Metatranscriptomics without Metagenomics (Defined community)
 -------------------------------------------------------------
-Metatranscriptomic data arising from defined communities (i.e. community, whose composition is known) can be analysed in a way similar to traditional RNASeq with a few key differences. In this case, we first map the quality-controlled reads to the bacterial genomes, and then count number of reads mapping to each feature. The statistical analysis to identify differentially expressed features can be performed using DESeq2 [ref].
+Metatranscriptomic data arising from defined communities (i.e. community, whose composition is known) can be analysed in a way that's similar to traditional RNASeq with a few key differences. In this case, we first map the quality-controlled reads to the bacterial genomes, and then count number of reads mapping to each feature. The statistical analysis to identify differentially expressed features can be performed using DESeq2 [ref].
 
 .. mermaid::
 
@@ -399,13 +398,13 @@ Preprocessing the genomes
 1. First we create a `metagenome`, i.e. a concatenation of genome sequences for all of the organisms present in the community. We also need to create a combined annotation file (`gff`). This will be needed later on to count how many reads mapped to each gene.
 
 .. note:: 
-  Why competitive mapping is important. Properly accounts for sequences that potentially map to multiple targets/species (multimappers, count as fractions). If the sample was mapped to each species individually, these reads will be counted towards each genome, overestimating the counts
+  Why is competitive mapping important? It properly accounts for sequences that potentially map to multiple targets/species (multimappers, count as fractions). If the sample was mapped to each species individually, these reads will be counted towards each genome, overestimating the counts.
 
 .. code::
 
   cat species1.fasta species2.fasta > metagenome.fasta
 
-2. Build genome index. This is an essential step before any read alignment step regardless of aligner you choose. Here we use bowtie2 
+2. Here, we build the genome index using bowtie2. This is an essential step before any read alignment step regardless of aligner you choose.
 
 .. code:: 
 
@@ -413,24 +412,25 @@ Preprocessing the genomes
 
 Transcript profiling
 ^^^^^^^^^^^^^^^^^^^^
-3. (Optional) Depending on the library preparation strategy, metatranscriptomic samples can contain large amounts of rRNA. You can use `fastqc_screen` to assess amount of rRNA in your samples, and sortmerna[] to filter out 
+3. (Optional) Depending on the library preparation strategy, metatranscriptomic samples can contain large amounts of rRNA. You can use `fastqc_screen` to assess the amount of rRNA in your samples, and sortmerna[] to filter it out.
 
-3. Next we align reads from each sample to our indexed metagenome. 
+3. Next, we align reads from each sample to our indexed metagenome.
 
 .. code::
 
   bowtie2 ...
 
 
-.. note:: On aligners. Different alignment and counting tools can be used for this step. We have tested `BWA` + `sushiCounter`, `salmon` as well as `bowtie2` + `featureCounts`. In our hands, all of these pipelines produces very similar results. It is always best to test and see what works for your data! 
+.. note:: Different alignment and counting tools can be used for this step. We have tested `BWA` + `sushiCounter`, `salmon` as well as `bowtie2` + `featureCounts`. In our hands, all of these pipelines produce very similar results. It is always best to test and see what works for your data!
 
-4. Next we count number of inserts aligned to each feature of interest (i.e. gene). For this we use featureCounts and we use `--fraction` to assign multimapped reads ...
+4. Next, we count number of inserts aligned to each feature of interest (i.e. gene). For this we use featureCounts and we use `--fraction` to assign multimapped reads ...
 
 .. code:: 
   featureCounts ... 
+
 
 .. warning:: 
   Be careful when combining different aligners and counting methods - not all of them are perfectly compatible. For example, featureCounts cannot recognize multimapped reads in alignment files generated by BWA, and smth about STAR and featureCounts as well. 
 
 
-5. Statistical analysis. To effectively analyse metatranscriptomic data you need to account for variation in taxonomic composition across samples. Above we used matching metagenomic data for this purpose. While we cannot do this here, we can still perform taxon-specific scaling, since we know the taxonomic composition of the community. This is disected in detail in this paper [], which also provides template code for the analysis. This analysis ends up being equivalent to analysing the dataset as if it were a composition of N traditional RNAseq datasets, where N is the number of species in the community. 
+5. Statistical analysis. To effectively analyse metatranscriptomic data, you need to account for variation in taxonomic composition across samples. Above, we used matching metagenomic data for this purpose. While we cannot do this here, we can still perform taxon-specific scaling, since we know the taxonomic composition of the community. This is dissected in detail in this paper [], which also provides template code for the analysis. This analysis ends up being equivalent to analysing the dataset as if it were a composition of N traditional RNAseq datasets, where N is the number of species in the community.
