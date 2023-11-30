@@ -217,7 +217,7 @@ Normalization
 Pair-read Merging
 ^^^^^^^^^^^^^^^^^
 
-    Merging refers to merging two overlapping reads into one. This is recommended for amplicon data, mOTUs profiling and metagenomic assembly. We do not usually merge the reads for isolate genome assembly. This can be done using `BBMerge <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmerge-guide/>`_ .
+    Merging refers to merging two overlapping reads into one. This is recommended for amplicon data, mOTUs profiling and metagenomic assembly. We do not usually merge the reads for isolate genome assembly. This can be done using `BBMerge <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmerge-guide/>`_.
 
 **Example Command**
     .. code-block::

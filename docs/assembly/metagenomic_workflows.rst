@@ -61,7 +61,7 @@ Metagenomic Assembly
 ``-o``                    Specify output directory
 =====================     ==========================================================================================
 
-    **Computational Resources** needed for metagenomic assembly will vary significantly between datasets. In general, metagenomic assembly requires a lot of memory (usually > 100 Gb). You can use multiple threads (16-32) to speed up the assembly. Because test data set provided is very small, merging of the pair-end reads was not necessary (see :doc:`../preprocessing/preprocessing`). It is helpful when working with real data - don't forget to include the merged and singlton files with ``--pe1-m`` and ``--pe1-s`` options.
+    **Computational Resources** needed for metagenomic assembly will vary significantly between datasets. In general, metagenomic assembly requires a lot of memory (usually > 100 Gb). You can use multiple threads (16-32) to speed up the assembly. Because test data set provided is very small, merging of the pair-end reads was not necessary (see :doc:`../preprocessing/preprocessing`). It is helpful when working with real data - don't forget to include the merged and singleton files with ``--pe1-m`` and ``--pe1-s`` options.
 
 
 **Filtering**:
@@ -179,7 +179,7 @@ Assumes you are in the :code:`metag_assembly` directory.
 ``-o``           Output filename, required
 ``-c``           Sequence identity threshold, default 0.9
 ``-T``           Number of threads, default 1; with 0, all CPUs will be used
-``-M``           Memory limit (in MB) for the program, default 800; 0 for unlimitted
+``-M``           Memory limit (in MB) for the program, default 800; 0 for unlimited
 ``-G``           Use global sequence identity, default 1; if set to 0, then use local sequence identity, don't use -G 0 unless you use alignment coverage controls (e.g. options -aS)
 ``-aS``          Alignment coverage for the shorter sequence, default 0.0; if set to 0.9, the alignment must cover 90% of the sequence
 ``-g``           1 or 0, default 0; by cd-hit's default algorithm, a sequence is clustered to the first cluster that meets the threshold (fast cluster); if set to 1, the program will cluster it into the most similar cluster that meets the threshold (accurate but slow mode); either 1 or 0 won't change the representatives of final clusters
@@ -267,7 +267,7 @@ Make sure you are back in :code:`metag_test` directory. Note that test data do n
 
 .. note::
 
-    Gene catologs and collections of MAGs are often used to infer abundance of microorganisms in metagenomic samples, however none are comprehensive and will miss some members (or the majority) of the microbial community. It is important to estimate what percentage of the microbial community is represented in a gene catalog or a collection of MAGs. This is evaluated using mapping rates: number of mapped reads (after alignment and filtering, as described in :ref:`Gene Catalog Profiling`) divided by total number of quality-control reads.
+    Gene catalogs and collections of MAGs are often used to infer abundance of microorganisms in metagenomic samples, however none are comprehensive and will miss some members (or the majority) of the microbial community. It is important to estimate what percentage of the microbial community is represented in a gene catalog or a collection of MAGs. This is evaluated using mapping rates: number of mapped reads (after alignment and filtering, as described in :ref:`Gene Catalog Profiling`) divided by total number of quality-control reads.
 
 
 .. important::
@@ -283,7 +283,7 @@ MAGs
 
 The Holy Grail of metagenomics is to be able to assemble individual microbial genomes from complex community samples. However, short-read assemblers fail to reconstruct complete genomes. For that reason, binning approaches have been developed to facilitate creation of Metagenome Assembled Genomes (MAGs).
 
-MAG reconstruction algorithms have to decipher which of the scaffolds generated during  :ref:`Metagenomic Assembly` belong to the same organism (refered to as bin). While different binning approaches have been described, here we use MetaBAT2_ for MAG reconstruction. As shown in the figure below, MetaBAT2_ uses scaffolds' tetranucleotide frequencies and abundances to group scaffolds into bins.
+MAG reconstruction algorithms have to decipher which of the scaffolds generated during  :ref:`Metagenomic Assembly` belong to the same organism (referred to as bin). While different binning approaches have been described, here we use MetaBAT2_ for MAG reconstruction. As shown in the figure below, MetaBAT2_ uses scaffolds' tetranucleotide frequencies and abundances to group scaffolds into bins.
 
 .. _MetaBAT2: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6662567/
 
@@ -310,7 +310,7 @@ MAG Building
 
 This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`). Note that for MAG building we are using >= 1000 bp **scaffolds**.
 
-1. **All-to-all lignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA_. Here we use ``-a`` to allow mapping to secondary sites. Note that merged, singleton, forward and reverse reads are all aligned separately, and are later merged into a single :code:`bam` file.
+1. **All-to-all alignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA_. Here we use ``-a`` to allow mapping to secondary sites. Note that merged, singleton, forward and reverse reads are all aligned separately, and are later merged into a single :code:`bam` file.
 
 .. important::
 
@@ -397,7 +397,7 @@ Make sure you are in the :code:`metag_test` directory and have run metagenomic a
           done
 
 
-4. **Quality Control**. After MAG reconstruction, it is important to estimate how well the binning perform. CheckM_ places each bin on a reference phylogenetic tree and evaluates genome quality by looking at a set of clade-specific marker genes. CheckM_ outputs completeness (estimation of fraction of genome present), contamination (percetange of foreign scaffolds), and strain heterogeneity (high strain heterogeneity would suggest that contamination is due to presence of closely related strains in your sample).
+4. **Quality Control**. After MAG reconstruction, it is important to estimate how well the binning perform. CheckM_ places each bin on a reference phylogenetic tree and evaluates genome quality by looking at a set of clade-specific marker genes. CheckM_ outputs completeness (estimation of fraction of genome present), contamination (percentage of foreign scaffolds), and strain heterogeneity (high strain heterogeneity would suggest that contamination is due to presence of closely related strains in your sample).
 
 .. warning::
 

@@ -11,15 +11,15 @@ Metatranscriptomics is the analysis of all of the transcriptomes present in a sa
 
 - Advantages: 
 
-  - Best way to get information about community activity
+  - Best way to get information about community activity.
 
 - Disadvantages:
 
-  - Sample preparation might be difficult and expensive
-  - Data analysis methods are not well established
+  - Sample preparation might be difficult and expensive.
+  - Data analysis methods are not well established.
 
 
-Metatrancriptomic experiments can be broadly summarised into 2 different types: experiments that include matching metagenomic samples and those that do not. The analysis of these two datatypes are different.
+Metatranscriptomic experiments can be broadly summarised into 2 different types: experiments that include matching metagenomic samples and those that do not. The analysis of these two datatypes are different. You can find a tutorial of how to analyze metatranscriptomic data without metagenomics on our :doc:`metatranscriptomics` website.
 
 -------------------------------------------------------------
 Metatranscriptomics & Metagenomics
@@ -35,17 +35,17 @@ Here, we will combine metatranscriptomics with metagenomics by using metagenomic
 
 .. note::
 
-    The -1 fraction are unannotated genes, which we must account for, for proper normalisation.
+    The -1 fraction are unannotated genes, which we must account for, for proper normalisation. You can read more on this in the :doc:`Gene length normalisation` section.
 
 The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
 The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. For instructions on how to download and unpack the data follow :doc:`these instructions <../index.rst>`.
 
 This will contain the following files: 
 
-  - MGS_K03040_K03043_tara.tsv.gz contains a sample of raw counts for metagenomic and metatranscriptomic samples 
-  - MGS_K03040_K03043_tara_lengthnorm.tsv.gz contains length normalised counts for metagenomic and metatranscriptomic samples 
-  - K03704_tara_lengthnorm_percell.tsv.gz contains length and percell normalised counts for K03704 for metagenomic and metatranscriptomic samples
-  - sample_info.csv contains some metadata about the samples
+  - `MGS_K03040_K03043_tara.tsv.gz` contains a sample of raw counts for metagenomic and metatranscriptomic samples.
+  - `MGS_K03040_K03043_tara_lengthnorm.tsv.gz` contains length normalised counts for metagenomic and metatranscriptomic samples.
+  - `K03704_tara_lengthnorm_percell.tsv.gz` contains length and per-cell normalised counts for K03704 for metagenomic and metatranscriptomic samples.
+  - `sample_info.csv` contains some metadata about the samples.
 
 Data Normalisation
 -------------------
@@ -55,12 +55,12 @@ For both gene abundance and transcript abundance data, we must remove the follow
 * Differences in gene length between genes.
 * Differences in sequencing depth between samples.
 * Differences in genome size distribution between samples.
-* Compositionality: The number of inserts for a given gene in a given sample can only be interpreted relative to the rest of the genes in the sample
+* Compositionality: The number of inserts for a given gene in a given sample can only be interpreted relative to the rest of the genes in the sample.
 
 
 .. note:: 
 
-  @Lilith/Guillem explain genome size differences between samples
+  Genome size differences can lead to biases and challenges in accurately comparing gene expression levels between different samples. To account for the genome size differences we will normalize the gene and transcript abundance data by abundances of 10 marker genes. This is explained in further detail in the section :ref:`Sequencing depth, per cell normalisation and compositionality`.
 
 
 .. mermaid::
@@ -90,12 +90,11 @@ We perform all of the normalisation steps in R. To run this analysis you will ne
     library(GGally)
 
 
-Next we are going to load gene and transcript abundances and metadata (i.e. temperature, location, depth, etc.)
+Next we are going to load gene and transcript abundances and metadata (i.e. temperature, location, depth, etc.).
 
 .. code-block:: r
 
-    # Load the gene and transcript abundances 
-
+    # Load the gene and transcript abundances
     profile <- fread("datasets/part1/MGS_K03040_K03043_tara.tsv.gz",sep="\t", 
                  header=T,data.table = F,tmpdir=".")
     sample_info <- fread("datasets/part1/sample_info.csv",sep=",",
@@ -116,7 +115,7 @@ The first step in the normalisation process is to divide the insert counts by th
 
 .. code-block:: r
     
-    # Assignes median gene length to -1 fraction
+    # Assigns median gene length to -1 fraction
     # Example file does not contain -1 fraction, so this will have no effect for us
     if (length(which(profile$length < 0)) > 0){
       med_length = median(profile$length[which(profile$length > 0)])
@@ -142,7 +141,7 @@ We now build a gene-length normalized profile
 Sequencing depth, per cell normalisation and compositionality
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To account for differences in sequencing depth, as well as for differences in genome sizes between different samples, we normalize the gene and transcript abundance data by abundances of **10 marker genes**.
+To account for differences in sequencing depth, as well as for differences in genome sizes between different samples,
 
 .. note:: 
 
@@ -152,7 +151,7 @@ To account for differences in sequencing depth, as well as for differences in ge
     * Single-copy: always present once per cell (genome)
     * Are housekeeping genes
 
-Because of these characteristics, the abundance of marker genes correlates well with the sequencing depth. In addition, the median abundance of MGs is a good proxy for the number of cells captured in a given metagenomic/metatranscriptomic sample. The per-cell normalization accounts for differences in genome sizes between samples and also controls for compositionality. The result of this normalisation is a biologically meaningful unit: **gene copies per total cell in the community**.
+Because of these characteristics, the abundance of marker genes (MGs) correlates well with the sequencing depth. In addition, the median abundance of MGs is a good proxy for the number of cells captured in a given metagenomic/metatranscriptomic sample. The per-cell normalization accounts for differences in genome sizes between samples and also controls for compositionality. The result of this normalisation is a biologically meaningful unit: **gene copies per total cell in the community**.
 
 To normalize by abundance of 10 MGs, we first compute their total insert count in each sample (i.e. sum the counts for each of the 10 KOs). We then compute the median of the 10 MGs in each sample. Finally, we divide the gene-length normalized abundances by this median for each sample.
 
@@ -170,7 +169,6 @@ In this example we use the following marker genes:
 
 
     # Build a MGs normalized profile
-
     profile_lengthnorm_mgnorm <- profile_lengthnorm[, 1:4]
 
     for (i in 5:ncol(profile_lengthnorm)){

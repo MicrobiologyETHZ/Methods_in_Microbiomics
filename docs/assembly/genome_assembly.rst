@@ -33,7 +33,7 @@ Isolate genome assembly using short reads
 
 .. note::
 
-    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/isolate_assembly.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for genome assembly. (Note: The included files adapters.fa and phix174_ill.ref.fa.gz are not needed here.)
+    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/isolate_assembly.yaml>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for genome assembly. (Note: The included files adapters.fa and phix174_ill.ref.fa.gz are not needed here.)
 
 
 1. **Data Preprocessing**. Before proceeding to the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with bbnorm.sh and merging (see :doc:`../preprocessing/preprocessing` for more details). Besides the common preprocessing steps, we usually run mOTUs_ on the cleaned sequencing reads, to check for sample contamination or mis-labelling (both occur more frequently than you would expect). For more details please check the :doc:`/profiling/metagenomes` section.
@@ -139,7 +139,7 @@ Isolate genome assembly using short reads
 Alternative Approach
 -----------------------
 
-Alternatively, we had good results building short-read assemblies with Unicycler_. However, these are not significantly different from SPAdes assemblies described above (not surprising, since Unicycler runs SPAdes under the hood). In addition, Unicycler_ is not being actively developed, and does not support the lastes version of SPAdes. Please see Ryan Wick's `Genome Assembly Guide`_ for example command.
+Alternatively, we had good results building short-read assemblies with Unicycler_. However, these are not significantly different from SPAdes assemblies described above (not surprising, since Unicycler runs SPAdes under the hood). In addition, Unicycler_ is not being actively developed, and does not support the latest version of SPAdes. Please see Ryan Wick's `Genome Assembly Guide`_ for example command.
 
 
 .. _Unicycler: https://github.com/rrwick/Unicycler

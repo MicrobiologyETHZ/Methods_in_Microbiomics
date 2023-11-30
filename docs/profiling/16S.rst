@@ -8,7 +8,7 @@ Contact: Anna Sintsova and Hans-Joachim Ruscheweyh
 
 .. important::
 
-    We use DADA2_ pipeline for 16S Amplicon analysis. `DADA2 tutorial`_ provides a good introduction. If using Illumina data with binned quality scores, please checkout `this discussion`_
+    We use DADA2_ pipeline for 16S Amplicon analysis. `DADA2 tutorial`_ provides a good introduction. If using Illumina data with binned quality scores, please checkout `this discussion`_.
 
 .. _DADA2: https://doi.org/10.1038/nmeth.3869
 .. _DADA2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
