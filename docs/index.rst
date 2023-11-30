@@ -155,17 +155,9 @@ Support
    :hidden:
    :maxdepth: 1
 
-   transcriptomics/transcriptomics.rst
    transcriptomics/metatranscriptomics.rst
+   transcriptomics/metatranscriptomics_metagenomics.rst
 
-
-.. toctree::
-   :caption: Modelling
-   :name: modelling
-   :hidden:
-   :maxdepth: 1
-
-   modelling/modelling.rst
 
 .. toctree::
    :caption: Tn-Seq
