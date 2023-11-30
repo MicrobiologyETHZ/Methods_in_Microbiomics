@@ -21,10 +21,6 @@ Metatranscriptomics is the analysis of all of the transcriptomes present in a sa
 
 Metatranscriptomic experiments can be broadly summarised into 2 different types: experiments that include matching metagenomic samples and those that do not. The analysis of these two datatypes are different. You can find a tutorial of how to analyze metatranscriptomic data without metagenomics on our :doc:`metatranscriptomics` website.
 
--------------------------------------------------------------
-Metatranscriptomics & Metagenomics
--------------------------------------------------------------
-
 Dataset
 -----------------------------------------
 Here, we will combine metatranscriptomics with metagenomics by using metagenomic data to normalize the transcript abundance. In order to do this, metagenomic data was processed as described in :doc:`gene catalog creation <../assembly/metagenomic_workflows>` to create a gene catalog. Gene functional annotation into orthologous groups was then performed using the KEGG database. The **metagenomic data** was then mapped back to the gene catalog to determine **gene abundance**. And the **metatranscriptomic data** from each sample was then mapped to the gene catalog to determine **transcript abundance**. To determine **gene expression**, we will look at the ratios of transcript abundance to gene abundance (after some normalisations of course).
@@ -35,7 +31,7 @@ Here, we will combine metatranscriptomics with metagenomics by using metagenomic
 
 .. note::
 
-    The -1 fraction are unannotated genes, which we must account for, for proper normalisation. You can read more on this in the :doc:`Gene length normalisation` section.
+    The -1 fraction are unannotated genes, which we must account for, for proper normalisation. You can read more on this in the :ref:`Gene length normalisation` section.
 
 The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
 The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. For instructions on how to download and unpack the data follow :doc:`these instructions <../index.rst>`.
@@ -68,7 +64,7 @@ For both gene abundance and transcript abundance data, we must remove the follow
    flowchart LR
         id1( Normalisation) --> id2(gene<br/>length<br/>normalisation)
         id2 --> id3(sequencing<br/>depth<br/>normalisation)
-        id3 --> id4(per cell/<br/>normalisation)
+        id3 --> id4(per cell<br/>normalisation)
         classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
         class id2,id3,id4 tool
@@ -172,17 +168,17 @@ In this example we use the following marker genes:
     profile_lengthnorm_mgnorm <- profile_lengthnorm[, 1:4]
 
     for (i in 5:ncol(profile_lengthnorm)){
-      cat("Normalizing by 10 MGs: sample",colnames(profile_lengthnorm)[i],"\n")
-      mg_median<-profile_lengthnorm %>%
-        select(KO,abundance=all_of(colnames(profile_lengthnorm)[i])) %>%
+      cat("Normalizing by 10 MGs: sample", colnames(profile_lengthnorm)[i], "\n")
+      mg_median <- profile_lengthnorm %>%
+        select(KO, abundance = all_of(colnames(profile_lengthnorm)[i])) %>%
         filter(KO %in% mgs) %>%
-        group_by(KO) %>% summarise(abundance=sum(abundance)) %>%
-        ungroup() %>% summarise(mg_median=median(abundance)) %>%
+        group_by(KO) %>% summarise(abundance = sum(abundance)) %>%
+        ungroup() %>% summarise(mg_median = median(abundance)) %>%
         pull()
-      tmp<-profile_lengthnorm[,i]/mg_median
-      tmp<-tmp %>% as.data.frame()
-      colnames(tmp)<-colnames(profile_lengthnorm)[i]
-      profile_lengthnorm_mgnorm<-profile_lengthnorm_mgnorm %>%
+      tmp <- profile_lengthnorm[,i]/mg_median
+      tmp <- tmp %>% as.data.frame()
+      colnames(tmp) <- colnames(profile_lengthnorm)[i]
+      profile_lengthnorm_mgnorm <- profile_lengthnorm_mgnorm %>%
         bind_cols(tmp)
     }
 
@@ -200,8 +196,8 @@ Here, we visualize the effect of the normalization based on length and abundance
 We will first look at 2 KOs: K03040 and K03043. These encode for 2 subunits of RNA polymerase. We first subset the raw metagenomic counts for these 2 genes (`rp_ab`) and then do the same with length normalised counts (`rp_ab_lengthnorm`), and finally visualize the relationship.
 
 .. code-block:: r
-    # Compute the abundance of K03040 and K03043 with and without gene-length normalization
 
+    # Compute the abundance of K03040 and K03043 with and without gene-length normalization
     rp_ab <- profile %>%
       select(-reference, -length, -Description) %>%
       filter(KO %in% c("K03040", "K03043")) %>%
@@ -253,6 +249,7 @@ Now, we're going to look at correlation of marker gene abundance with sequencing
 
 
 .. code-block:: r
+
     # Compute the abundance of the 10MGs and correlate to sequencing depth
     mgs_ab_lengthnorm <- profile_lengthnorm %>%
       select(-reference, -Description, -length) %>%

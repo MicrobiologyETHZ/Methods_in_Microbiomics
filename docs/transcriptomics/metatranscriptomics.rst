@@ -1,5 +1,5 @@
 -------------------------------------------------------------
-Metatranscriptomics without Metagenomics (Defined community)
+Metatranscriptomics without Metagenomics (defined Community)
 -------------------------------------------------------------
 
 .. important::
@@ -20,6 +20,7 @@ Metatranscriptomic data arising from defined communities (i.e. community, whose 
           class id2,id3 tool
 
 .. mermaid::
+
   flowchart LR
         id1(RNAseq) --> id2(Genome<br/>alignment<br/>fa:fa-cog bowtie2)
         id2 --> id3(Insert<br/>counting<br/>fa:fa-cog featureCounts)
@@ -62,6 +63,7 @@ Transcript profiling
 4. Next, we count number of inserts aligned to each feature of interest (i.e. gene). For this we use featureCounts and we use `--fraction` to assign multi-mapped reads ...
 
 .. code::
+
   featureCounts ...
 
 
