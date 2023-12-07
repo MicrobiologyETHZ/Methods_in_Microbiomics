@@ -4,9 +4,6 @@ Metatranscriptomics with Metagenomics
 
 Protocol adapted from Guillem Salazar.
 
------------------------
-Introduction
------------------------
 Metatranscriptomics is the analysis of all of the transcriptomes present in a sample and is an effective method to assess the activity of a microbial community. Unlike :doc:`metagenomic data <../assembly/metagenomic_workflows>`, metatranscriptomics can help decipher the metabolic functions actively expressed by the community at any given time.
 
 - Advantages: 
@@ -34,7 +31,7 @@ Here, we will combine metatranscriptomics with metagenomics by using metagenomic
     The -1 fraction are unannotated genes, which we must account for, for proper normalisation. You can read more on this in the :ref:`Gene length normalisation` section.
 
 The dataset used in this tutorial is from the article `Gene Expression Changes and Community Turnover Differentially Shape the Global Ocean Metatranscriptome, Salazar et al <https://doi.org/10.1016/j.cell.2019.10.014>`_.
-The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. For instructions on how to download and unpack the data follow :doc:`these instructions <../index.rst>`.
+The data can be downloaded :download:`here <../downloads/metat_tutorial.tar.gz>`. These files are just a subset of the full dataset and are only meant to be used for this tutorial. To learn how to download and unpack the data follow :doc:`these instructions <../index>`.
 
 This will contain the following files: 
 

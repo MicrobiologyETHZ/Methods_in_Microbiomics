@@ -2,7 +2,7 @@
 Amplicon Sequencing
 =======================
 
-Protocol provided by **Sunagawa Lab**.
+Protocol provided by the Sunagawa group.
 
 Contact: Anna Sintsova and Hans-Joachim Ruscheweyh
 
@@ -14,22 +14,22 @@ Contact: Anna Sintsova and Hans-Joachim Ruscheweyh
 .. _DADA2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
 .. _this discussion: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
 
-    16S amplicon sequencing remains one of the most widely used methods for the analysis of microbiome community composition. Taxonomic composition, as well as alpha and beta diversity metrics, can provide novel biological insight and show association with environmental conditions or clinical variables. 16s rRNA gene is about 1500 bp long and encodes rRNA component of the small subunit of prokaryotic ribosome. The gene is composed of highly conserved and 9 variable regions. This allows us to use the conserved regions as primer binding sites, and variable regions for taxonomic classification.
+16S amplicon sequencing remains one of the most widely used methods for the analysis of microbiome community composition. Taxonomic composition, as well as alpha and beta diversity metrics, can provide novel biological insight and show association with environmental conditions or clinical variables. 16s rRNA gene is about 1500 bp long and encodes rRNA component of the small subunit of prokaryotic ribosome. The gene is composed of highly conserved and 9 variable regions. This allows us to use the conserved regions as primer binding sites, and variable regions for taxonomic classification.
 
-    .. note:
+.. note:
 
-        Most of 16S sequencing primers (see table below) can only be used for taxonomic classification of prokaryotes. For eukaryotic studies, 18S rRNA sequencing  can be used. Additionally, ITS (Internal Transcribed Spacer), part of the non-transcriptional region of the fungal rRNA gene, can be used for taxonomic classification of fungal species. The ITS sequences used for fungal identification usually include ITS1 and ITS2.
+    Most of 16S sequencing primers (see table below) can only be used for taxonomic classification of prokaryotes. For eukaryotic studies, 18S rRNA sequencing  can be used. Additionally, ITS (Internal Transcribed Spacer), part of the non-transcriptional region of the fungal rRNA gene, can be used for taxonomic classification of fungal species. The ITS sequences used for fungal identification usually include ITS1 and ITS2.
 
 
-    Although 16S is a cost-effective and powerful technique, a number of factors can influence the outcomes of the analysis, hindering comparisons between studies.
-    The outcomes can be influenced by:
+Although 16S is a cost-effective and powerful technique, a number of factors can influence the outcomes of the analysis, hindering comparisons between studies.
+The outcomes can be influenced by:
 
-    - sampling and sample storage strategy
-    - primer annealing efficiency
-    - which variable region is targeted
-    - library preparation and sequencing protocols
-    - bioinformatic processing pipelines (OTUs vs ASVs)
-    - database used for taxonomic annotation
+- sampling and sample storage strategy
+- primer annealing efficiency
+- which variable region is targeted
+- library preparation and sequencing protocols
+- bioinformatic processing pipelines (OTUs vs ASVs)
+- database used for taxonomic annotation
 
 
 16S and 18S Sequencing primers

@@ -2,6 +2,8 @@
 Data Preprocessing
 ===================
 
+Protocol provided by Hans-Joachim Ruscheweyh.
+
 -----------------------
 General Considerations
 -----------------------

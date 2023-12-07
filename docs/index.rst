@@ -18,7 +18,6 @@ with the focus on Microbiomics research.
 
     This documentation is currently under construction.
 
-.. _tutorials:
 
 ----------
 Tutorials
@@ -116,7 +115,6 @@ Support
    :maxdepth: 1
 
    preprocessing/preprocessing
-   preprocessing/example12
 
 .. toctree::
    :caption: Assembly
@@ -135,9 +133,7 @@ Support
 
    profiling/16S
    profiling/metagenomes
-..
-   profiling/variants
-   profiling/function
+   profiling/zAMP
 
 ..
    .. toctree::
@@ -166,3 +162,4 @@ Support
    :maxdepth: 1
 
    tnseq/tnseq.rst
+
