@@ -2,6 +2,8 @@
 Taxonomic Profiling of Metagenomes
 ==================================
 
+Protocol provided by Anna Sintsova.
+
 Taxonomic profiling of complex microbial communities is an essential first step in the investigation of relationship between community composition and environmental and/or health factors. The most common approach to community profiling is amplification and classification the 16S rRNA gene. Methods related to 16S rRNA analysis are discussed in detail in :doc:`../profiling/16S`. Recently shotgun metagenomic sequencing has started to replace the amplicon based approaches, as it provides higher resolution information about the microbial community, and resolves some of the biases associated with 16S approach. A number of software tools have been developed to taxonomically profile metagenomic samples. These tools have been benchmarked in `recent studies`_. Here we're going to talk about the use of :ref:`mOTUs` and :ref:`mTAGs` for taxonomic profiling.
 
 .. _recent studies: https://doi.org/10.1101/2021.07.12.451567
@@ -10,7 +12,7 @@ Taxonomic profiling of complex microbial communities is an essential first step 
 mOTUs
 --------
 
-    mOTUs_ determines the composition of metagenomic samples using 10 single copy phylogenetic marker genes and an extensive database consisting of reference genomes, metagenomes and metagenome assembled genomes from 23 different environments. Different use cases and applications are discussed in detail in a `recent publication`_ and on `mOTUs website`_. Here we provide a quick reference guide to basic mOTUs functionality.
+mOTUs_ determines the composition of metagenomic samples using 10 single copy phylogenetic marker genes and an extensive database consisting of reference genomes, metagenomes and metagenome assembled genomes from 23 different environments. Different use cases and applications are discussed in detail in a `recent publication`_ and on `mOTUs website`_. Here we provide a quick reference guide to basic mOTUs functionality.
 
 .. _mOTUs: https://github.com/motu-tool/mOTUs
 .. _recent publication: https://doi.org/10.1002/cpz1.218

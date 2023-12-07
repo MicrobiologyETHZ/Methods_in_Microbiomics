@@ -2,6 +2,8 @@
 Genome Assembly
 ================
 
+Protocol provided by Anna Sintsova.
+
 Over the recent years, bacterial whole genome sequencing has become an indispensable tool for microbiologists. While powerful, short read sequencing technologies only allow assembly of draft genomes (i.e. assembly consisting of multiple scaffolds). As illustrated below, during whole genome shotgun sequencing, DNA is randomly sheared into inserts of known size distribution and sequenced. If paired-end sequencing is used, two DNA sequences (reads) are generated - one from each end of a DNA fragment). The assemblers look for overlaps between sequencing reads to stitch them together into contigs. The contigs can then sometimes be linked together into longer scaffolds (for example with information from `mate-pair reads <https://www.illumina.com/science/technology/next-generation-sequencing/mate-pair-sequencing.html>`_).
 
 .. image:: /images/Genome_Assembly.png

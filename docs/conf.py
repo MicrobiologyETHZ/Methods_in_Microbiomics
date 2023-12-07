@@ -40,7 +40,10 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'annotation/bgc.rst', 'annotation/mvirs.rst',
+                    'modelling/modelling.rst', 'profiling/function.rst', 'profiling/variants.rst',
+                    'transcriptomics/metatranscriptomics_old_guide.rst', 'transcriptomics/transcriptomics.rst',
+                    'workflows/workflows.rst']
 
 
 # -- Options for HTML output -------------------------------------------------

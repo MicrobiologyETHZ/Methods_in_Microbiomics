@@ -115,9 +115,9 @@ An object called res will store the results of the statistical tests which are s
 
 Thus the KOs with a log2FoldChange larger than 0 correspond to KOs overexpressed by the addition of the inoculum while the ones smaller than 0 correspond to KOs underexpressed by the addition of the inoculum.
 
------------------------------------------
+-------------------------------------------
 Visualizing the abundance of a specific KO
------------------------------------------
+-------------------------------------------
 With the following code you can visualize the abundance of a specific KO along the dataset. You just need to change the KO identifier in the line starting as ggplot(...). Try out one or several of the KOs annotated as ribosomal proteins:
 
 .. code-block:: r

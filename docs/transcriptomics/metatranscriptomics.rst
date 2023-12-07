@@ -2,11 +2,12 @@
 Metatranscriptomics without Metagenomics (defined Community)
 -------------------------------------------------------------
 
+Protocol provided by Anna Sintsova.
+
 .. important::
 
     This documentation is currently under construction.
 
-.. _tutorials:
 
 Metatranscriptomic data arising from defined communities (i.e. community, whose composition is known) can be analysed in a way that's similar to traditional RNASeq with a few key differences. In this case, we first map the quality-controlled reads to the bacterial genomes, and then count number of reads mapping to each feature. The statistical analysis to identify differentially expressed features can be performed using `DESeq2 <https://bioconductor.org/packages/release/bioc/html/DESeq2.html>`_.
 
