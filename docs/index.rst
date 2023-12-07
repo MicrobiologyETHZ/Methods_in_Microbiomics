@@ -134,6 +134,7 @@ Support
    profiling/16S
    profiling/metagenomes
    profiling/zAMP
+   profiling/zDB
 
 ..
    .. toctree::
