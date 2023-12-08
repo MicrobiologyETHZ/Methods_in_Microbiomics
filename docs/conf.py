@@ -31,8 +31,7 @@ release = '0.0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['myst_parser', 'sphinx_comments', 'sphinx.ext.autosectionlabel',
-              'sphinxcontrib.mermaid', 'sphinx_copybutton'
-]
+              'sphinxcontrib.mermaid', 'sphinx_copybutton']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -41,7 +40,7 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'annotation/bgc.rst', 'annotation/mvirs.rst',
-                    'modelling/modelling.rst', 'profiling/function.rst', 'profiling/variants.rst',
+                    'modelling/modelling.rst', 'taxonomic_profiling/function.rst', 'taxonomic_profiling/variants.rst',
                     'transcriptomics/metatranscriptomics_old_guide.rst', 'transcriptomics/transcriptomics.rst',
                     'workflows/workflows.rst']
 

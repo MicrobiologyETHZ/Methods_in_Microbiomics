@@ -4,7 +4,7 @@ Metagenomic Assembly
 
 Protocol provided by Hans-Joachim Ruscheweyh.
 
-Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation. Sequencing of microbial DNA extracted directly from environmental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes as the first step to understanding the communities' functional potential. Furthermore, algorithmic improvements, as well as increased availability of computational resources, make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes (MAGs)). Methods for microbial community composition analysis are discussed in :doc:`../profiling/metagenomes`. Here we describe building :ref:`Metagenomic Assembly` as well as building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
+Technical advances in sequencing technologies in recent decades have allowed detailed investigation of complex microbial communities without the need for cultivation. Sequencing of microbial DNA extracted directly from environmental or host-associated samples have provided key information on microbial community composition. These studies have also allowed gene-level characterization of microbiomes as the first step to understanding the communities' functional potential. Furthermore, algorithmic improvements, as well as increased availability of computational resources, make it now possible to reconstruct whole genomes from metagenomic samples (metagenome-assembled genomes (MAGs)). Methods for microbial community composition analysis are discussed in :doc:`../taxonomic_profiling/metagenomes`. Here, we describe building :ref:`Metagenomic Assembly` as well as building :ref:`Gene Catalogs` and :ref:`MAGs` from metagenomic data.
 
 
 .. note::
@@ -312,7 +312,7 @@ MAG Building
 
 This workflow starts with size-filtered metaSPAdes assembled scaffolds (resulted from :ref:`Metagenomic Assembly`). Note that for MAG building we are using >= 1000 bp **scaffolds**.
 
-1. **All-to-all alignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA_. Here we use ``-a`` to allow mapping to secondary sites. Note that merged, singleton, forward and reverse reads are all aligned separately, and are later merged into a single :code:`bam` file.
+1. **All-to-all alignment**. In this step, quality controlled reads for each of the metagenomic samples are mapped to each of the metagenomic assemblies using BWA_. Here, we use ``-a`` to allow mapping to secondary sites. Note that merged, singleton, forward and reverse reads are all aligned separately, and are later merged into a single :code:`bam` file.
 
 .. important::
 
@@ -368,7 +368,7 @@ Make sure you are in the :code:`metag_test` directory and have run metagenomic a
     **Computational Resources**: Depending on the size of the dataset, this step would require significant computational resources.
 
 
-2. **Within- and between-sample abundance correlation for each contig**. MetaBAT2_ provides `jgi_summarize_bam_contig_depth` script that allows quantification of within- and between-sample abundances for each scaffold. Here we generate an abundance (depth) file for each metagenomic assembly by providing the alignment files generated using this assembly. This depth file will be used by MetaBAT2_ in the next step for scaffold binning.
+2. **Within- and between-sample abundance correlation for each contig**. MetaBAT2_ provides `jgi_summarize_bam_contig_depth` script that allows quantification of within- and between-sample abundances for each scaffold. Here, we generate an abundance (depth) file for each metagenomic assembly by providing the alignment files generated using this assembly. This depth file will be used by MetaBAT2_ in the next step for scaffold binning.
 
 **Depth calculation**:
 
