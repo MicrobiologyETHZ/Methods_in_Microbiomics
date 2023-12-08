@@ -57,9 +57,9 @@ In the `GitHub repository`_, you can have detailed instructions on how to instal
     conda install zdb -c bioconda # tool installation
     conda install singularity=3.8.4 -c conda-forge # singularity installation
 
-For the installation of docker, please see `the documentation`_.
+For the installation of docker, please see `the Docker documentation`_.
 
-.. _the documentation: https://docs.docker.com/get-docker/
+.. _the Docker documentation: https://docs.docker.com/get-docker/
 
 2. Download the database(s) needed for the annotation steps (optional).
 
@@ -72,7 +72,7 @@ Select the databases needed for your analysis. The RefSeq database must be downl
 3. Run the pipeline.
 
 - Add flags according to the annotation you want to get.
-- RefSeq homologues search significantly slows down the analysis.
+- RefSeq homologs search significantly slows down the analysis.
 - All the results will be stored in an SQL database.
 
 .. code-block:: bash
