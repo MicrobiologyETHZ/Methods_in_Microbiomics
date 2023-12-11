@@ -135,6 +135,14 @@ Support
    profiling/metagenomes
    profiling/zAMP
 
+.. toctree::
+   :caption: Profiling
+   :name: profiling
+   :hidden:
+   :maxdepth: 1
+
+   phylogenetic_trees/building_phylogenetic_trees
+
 ..
    .. toctree::
       :caption: Annotation
