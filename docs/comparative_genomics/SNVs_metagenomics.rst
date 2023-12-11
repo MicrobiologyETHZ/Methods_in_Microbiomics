@@ -4,11 +4,11 @@ SNV Analysis on metagenomic Data
 
 Protocol provided by Aiswarya Prasad.
 
-Single genomes and MAGs provide a single snapshot in time and space of a community of bacteria. They can also be thought
-of as an average representation of a group of very closely related microbes (strains) of a species found in that sample
-or pool of samples. Profiling single-nucleotide variants (SNVs) provides deeper insight at the population level into the
-community. With sequencing becoming cheaper and faster, it is now possible to sequence metagenomic samples deep enough
-to recover MAGs and use those to detect SNVs in those samples.
+Single genomes and metagenome-assembled genomes (MAGs) provide a single snapshot in time and space of a community of
+bacteria. They can also be thought of as an average representation of a group of very closely related microbes (strains)
+of a species found in that sample or pool of samples. Profiling single-nucleotide variants (SNVs) provides deeper
+insight at the population level into the community. With sequencing becoming cheaper and faster, it is now possible
+to sequence metagenomic samples deep enough to recover MAGs and use those to detect SNVs in those samples.
 
 SNV profiling is cheaper and more straightforward for simple microbial communities with few species or genera. A crude
 way of assessing the minimum depth (e.g., 10x) needed a priori is to consider the number of species/genomes you are
@@ -25,12 +25,6 @@ the low-abundance genomes of interest will have little to none. Therefore, it is
 than such a calculation suggests. In addition, if you have pooled samples, you must sequence deeper than you would
 sequence individual samples and would lose information about strain-level variation among individuals.
 
-Here, we describe an approach to analyze population-level diversity using `inStrain`_, which is documented in detail `here`_.
-
-.. _inStrain: https://doi.org/10.1038/s41587-020-00797-0
-
-.. _here: https://instrain.readthedocs.io/en/latest/index.html
-
 With bacteria, for example, there are often multiple genera within which there are populations of different species.
 While the boundaries specifying units of diversity in microbial communities are not easily defined to the possibility of
 horizontal gene transfer, bacterial genomes can still be categorized into units based their genome sequence. One popular
@@ -41,12 +35,19 @@ of genomes.
 
 .. _average nucleotide identity (ANI): https://doi.org/10.1038/s41467-018-07641-9
 
+In this protocol, we describe an approach to analyze population-level diversity using `inStrain`_, which is documented
+in detail `here`_.
+
+.. _inStrain: https://doi.org/10.1038/s41587-020-00797-0
+
+.. _here: https://instrain.readthedocs.io/en/latest/index.html
+
 ----------------------
 Aim
 ----------------------
 The goal of this analysis is to profile SNVs in a metagenomic sample in a database-independent manner, starting from bam
-files obtained by mappingtrimmed reads from each sample to a database of MAGs recovered from all the samples
-dereplicated into 95% (recommended) clusters.
+files obtained by mapping trimmed reads from each sample to a database of MAGs recovered from all the samples
+de-replicated into 95% (recommended) clusters.
 
 
 ----------------------
@@ -55,33 +56,33 @@ Overview
 We must complete a few steps to prepare the data for inStrain. Including recovering the set of MAGs from the samples of
 interest, dereplicating the MAGs and gene calling or annotation of the MAGs (e.g., using Prokka). In addition, it is
 helpful to create a metadata file containing information about the MAGs, such as which dereplicated group they belong
-to, their quality score etc. :doc:`../assembly/metagenomic_workflows` covers building metagenomic assembly, as well as
-building gene catalogs and MAGs from metagenomic data.
+to, their quality score etc. The tutorial :doc:`../assembly/metagenomic_workflows` covers building metagenomic assembly,
+as well as building gene catalogs and MAGs from metagenomic data.
 
-inStrain outlines the considerations to be made when preparing the input in `this tutorial`_. This is a very useful
-place to gain an understanding of some important concepts and the reasons behind choosing this approach. This tutorial
-includes examples of code that can be used to achieve this.
+inStrain outlines the considerations to be made when preparing the input in `their tutorial on establishing and
+evaluating genome databases`_. This is a very useful place to gain an understanding of some important concepts and
+the reasons behind choosing this approach. This tutorial includes examples of code that can be used to achieve this.
 
 The tutorials on the `inStrain documentation`_ page are also very helpful. This tutorial presents an alternate scenario
 parallel to Tutorial #2 in that page.
 
-.. _this tutorial: https://instrain.readthedocs.io/en/latest/important_concepts.html?highlight=drep#establishing-and-evaluating-genome-databases
+.. _their tutorial on establishing and evaluating genome databases: https://instrain.readthedocs.io/en/latest/important_concepts.html?highlight=drep#establishing-and-evaluating-genome-databases
 
 .. _inStrain documentation: https://instrain.readthedocs.io/en/latest/tutorial.html#tutorials
 
-Create a Database of Genomes (MAGs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create a Database of Metagenome-assembled Genomes (MAGs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In this step, we create a database of MAGs containing one MAG to represent each species to infer SNVs for. This can be
 done by choosing the highest quality MAG from each cluster of MAGs that are on average e.g. 95% similar to each other.
 The MAGs can be clustered using the tool `dRep`_. Once you have collected and renamed all medium and good quality (>50%
 completeness and <5% contamination - as a rule of thumb) generated MAGs , make a tab-separated file containing the
-columns named ...
+columns named:
 
 - :code:`Bin Id` - genome name with the extension
 - :code:`Completeness` - from checkM
 - :code:`Contamination` - from checkM
 
-You can do this using a script that parse the checkM output for the list of MAGs of at least medium
+You can do this using a script that parses the checkM output for the list of MAGs of at least medium
 quality.
 
 .. _dRep: https://drep.readthedocs.io/en/latest/index.html
