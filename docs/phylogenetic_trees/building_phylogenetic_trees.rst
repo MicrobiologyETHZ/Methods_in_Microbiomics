@@ -11,11 +11,11 @@ or detect `signatures of horizontal gene transfer`_. In the phylogenetic tree, l
 present-day biological entities, and internal nodes correspond to their ancestors prior to speciation, i.e.,
 prior to one lineage splitting into two divergent lineages.
 
-.. _the emergence of eukaryotic cells: www.doi.org/10.1038/s41586-023-06186-2
+.. _the emergence of eukaryotic cells: https://www.doi.org/10.1038/s41586-023-06186-2
 
-.. _taxonomic relationships for classification of novel taxa: www.doi.org/10.1038/nbt.4229
+.. _taxonomic relationships for classification of novel taxa: https://www.doi.org/10.1038/nbt.4229
 
-.. _signatures of horizontal gene transfer: www.doi.org/10.21203/rs.3.rs-3062985/v1
+.. _signatures of horizontal gene transfer: https://www.doi.org/10.21203/rs.3.rs-3062985/v1
 
 A key concept in phylogenetic tree construction is sequence homology, i.e., the sequences used to build the
 phylogenetic tree must share common ancestry. Divergent sequences sharing ancestry could stem from various
