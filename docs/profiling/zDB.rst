@@ -54,7 +54,8 @@ In the `GitHub repository`_, you can have detailed instructions on how to instal
 
 .. code-block:: bash
 
-    conda install zdb -c bioconda # tool installation
+    conda install nextflow=22.10 -c bioconda # install nextflow
+    conda install zdb -c bioconda # zDB installation
     conda install singularity=3.8.4 -c conda-forge # singularity installation
 
 For the installation of docker, please see `the Docker documentation`_.
