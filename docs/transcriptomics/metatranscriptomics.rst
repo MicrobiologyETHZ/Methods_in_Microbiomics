@@ -67,13 +67,17 @@ For both gene abundance and transcript abundance data, we must remove the follow
 .. mermaid::
 
    flowchart LR
+        id5(Gene count table) --> id1
+        id6(Transcript count table) --> id1
         id1( Normalisation) --> id2(gene<br/>length<br/>normalisation)
         id2 --> id3(sequencing<br/>depth<br/>normalisation)
         id3 --> id4(per cell/<br/>normalisation)
+        id4 --> id7(statistical analysis)
         classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
         style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
-        class id2,id3,id4 tool
-
+        class id2,id3,id4,id7 tool
+        style id5 fill:#F78A4A,stroke:#F8F7F7,stroke-width:1px
+        style id6 fill:#F78A4A,stroke:#F8F7F7,stroke-width:1px
 
 
 Setting up R environment and loading the data
@@ -375,6 +379,9 @@ Metatranscriptomics without Metagenomics (Defined community)
 -------------------------------------------------------------
 Metatranscriptomic data arising from defined communities (i.e. community, whose composition is known) can be analysed in a way similar to traditional RNASeq with a few key differences. In this case, we first map the quality-controlled reads to the bacterial genomes, and then count number of reads mapping to each feature. The statistical analysis to identify differentially expressed features can be performed using DESeq2 [ref].
 
+Preparing genome and annotation
+-------------------------------
+
 .. mermaid::
 
   flowchart LR
@@ -384,9 +391,16 @@ Metatranscriptomic data arising from defined communities (i.e. community, whose 
           style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
           class id2,id3 tool
 
+Once the metagenome is ready, you are read to proceed with transcript quantification workflow
+
+Transcript quantification
+-------------------------
+
+
 .. mermaid:: 
+
   flowchart LR
-        id1(RNAseq) --> id2(Genome<br/>alignment<br/>fa:fa-cog bowtie2)
+        id1(Data preprocessing) --> id2(Genome<br/>alignment<br/>fa:fa-cog bowtie2)
         id2 --> id3(Insert<br/>counting<br/>fa:fa-cog featureCounts)
         id3 --> id4(Statistical/<br/>analysis<br/>fa:fa-cog DESeq2)
         classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
@@ -412,7 +426,7 @@ Preprocessing the genomes
   bowtie2-build metagenome.fasta metagenome
 
 Transcript profiling
-^^^^^^^^^^^^^^^^^^^^
+====================
 3. (Optional) Depending on the library preparation strategy, metatranscriptomic samples can contain large amounts of rRNA. You can use `fastqc_screen` to assess amount of rRNA in your samples, and sortmerna[] to filter out 
 
 3. Next we align reads from each sample to our indexed metagenome. 
@@ -427,6 +441,7 @@ Transcript profiling
 4. Next we count number of inserts aligned to each feature of interest (i.e. gene). For this we use featureCounts and we use `--fraction` to assign multimapped reads ...
 
 .. code:: 
+
   featureCounts ... 
 
 .. warning:: 
