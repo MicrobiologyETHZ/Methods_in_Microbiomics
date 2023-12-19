@@ -11,11 +11,11 @@ However, it is a tedious and time-consuming process that requires specialized kn
 
 Target Audience
 ^^^^^^^^^^^^^^^
-`zDB`_ has been developed for both newbies in genomics, who don’t have the experience to handle bioinformatics tools, and trained bioinformaticians, who would like to invest in a reproducible tool. Therefore, don’t be scared and don’t hesitate to use it!
+`zDB`_ has been developed for both newbies in genomics, who don’t have the experience with bioinformatics tools, and trained bioinformaticians, who would like to invest in a reproducible tool. Therefore, don’t be scared and don’t hesitate to use it!
 
 zDB: Analysis Pipeline
 ^^^^^^^^^^^^^^^^^^^^^^
-The analysis pipeline built in zDB can support different types of analysis according to the user’s needs. Indeed, a core set of analyses is run by default, while optional analyses can be separately added.
+The analysis pipeline built in `zDB`_ can support different types of analysis according to the user’s needs. Indeed, a core set of analyses is run by default, while optional analyses can be separately added.
 
 Supported analyses:
 
@@ -36,8 +36,8 @@ For more info about the tools and parameters please refer to `the methods sectio
 Input Files for zDB
 ^^^^^^^^^^^^^^^^^^^
 
-- Input csv file containing the path to .gbk files.
-- The requirement of annotated genomes (.gbk files) implies that the user is responsible for the annotation of the genomes. Here are some examples of annotation tools you can use: bakta, prokka, PGAP.
+- Input csv file containing the path to `.gbk` files.
+- The requirement of annotated genomes (`.gbk` files) implies that the user is responsible for the annotation of the genomes. Here are some examples of annotation tools you can use: `bakta`, `prokka`, `PGAP`.
 - The input genomes (minimum 2) can be publicly available and/or newly sequenced ones.
 
 
