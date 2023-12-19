@@ -1,14 +1,11 @@
-=============================
-Bacterial Analysis using zDB
-=============================
+=======================================
+Comparative Genomics Analysis Using zDB
+=======================================
 
 Protocol provided by Alessia Carrara.
 
---------------------------------------
-Comparative genomics Analysis and zDB
---------------------------------------
 Comparative genomic analyses allow researchers to study and compare the genetic information of different organisms, providing valuable insights into their evolution, biology, and function.
-However, it is a tedious and time-consuming process that requires specialized knowledge since it relies on the integration of results obtained from multiple tools, further combined for visualization purposes. Therefore, to facilitate genome analysis and comparison, we developed zDB, an application that integrates an **analysis pipeline** and a **visualization platform**.
+However, it is a tedious and time-consuming process that requires specialized knowledge since it relies on the integration of results obtained from multiple tools, further combined for visualization purposes. Therefore, to facilitate genome analysis and comparison, we developed `zDB`_, an application that integrates an **analysis pipeline** and a **visualization platform**.
 
 .. image:: /images/zDB.png
 
@@ -40,7 +37,7 @@ Input Files for zDB
 ^^^^^^^^^^^^^^^^^^^
 
 - Input csv file containing the path to .gbk files.
-- The requirement of annotated genomes (.gbk files) implies that the user is responsible for the annotation of the genomes. Whether it’s freedom or confinement it is arbitrary. However, here are some examples of annotation tools you can use: bakta, prokka, PGAP.
+- The requirement of annotated genomes (.gbk files) implies that the user is responsible for the annotation of the genomes. Here are some examples of annotation tools you can use: bakta, prokka, PGAP.
 - The input genomes (minimum 2) can be publicly available and/or newly sequenced ones.
 
 
@@ -49,6 +46,7 @@ How to install and run zDB
 In the `GitHub repository`_, you can have detailed instructions on how to install and run zDB. Please refer to if you have any problem or you want to get more details. In the meantime, here below is a brief list of all the key steps:
 
 .. _GitHub repository: https://github.com/metagenlab/zDB#overview
+.. _zDB:  https://github.com/metagenlab/zDB#overview
 
 1. Install zDB and tools to run the analysis and/or web app in containers (recommended).
 
@@ -86,7 +84,7 @@ The terminal will output an IP address where a customized web-based interface bu
 
 Accessibility of the Output
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If you want to share your newly generated SQL database you can export it using zdb export command and transfer it to other machines.
+If you want to share your newly generated SQL database you can export it using `zdb export` command and transfer it to other machines.
 You may want to transfer it to i) a personal machine for personal usage, ii) a lab machine to host it on an intranet domain and make it accessible to other lab mates, or iii) host it on an internet domain to make it accessible to everyone.
 
 Useful Links to explore zDB by yourself!
