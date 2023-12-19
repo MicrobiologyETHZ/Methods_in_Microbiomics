@@ -1,5 +1,5 @@
 ==============================================================================================
-zAMP: Amplicon-based metagenomics pipeline for reproducible and scalable microbiota profiling
+zAMP: Amplicon-based Metagenomics Pipeline for reproducible and scalable Microbiota Profiling
 ==============================================================================================
 
 Protocol provided by Sedreh Nassirnia.
@@ -22,13 +22,13 @@ Implementation of zAMP
 zAMP, offers flexibility, allowing users to customize it depending on the research questions and sample type. To ensure reproducibility, zAMP integrated command-line tools and R packages as well as their dependencies through the Singularity container and allowed users to run and share microbiota profiling workflow.
 
 
-Input files
-^^^^^^^^^^^
+Input Files for zAMP
+^^^^^^^^^^^^^^^^^^^^
 The workflow accepts absolute paths to fastq files as input, paired-end sequencing reads from local storage, and raw reads from the Sequence Reads Archive (SRA), which will be downloaded with the SRA Toolkit.
 
 .. image:: /images/zAMP.png
 
-Some of the features
+Some of the Features
 ^^^^^^^^^^^^^^^^^^^^
 
 - **Read classification and taxonomy assignment**: After preprocessing steps like merging paired reads, zAMP classifies reads using the assignTaxonomy function across multiple taxonomic ranks, from Kingdom to Species. This is facilitated by integrated classifiers like the original RDP, RDP as integrated into QIIME, and Decipher IDTAXA, all requiring a reference taxonomic database.
