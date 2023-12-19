@@ -1,1 +1,2 @@
 # Methods in Microbiomics
+This is the Github repo of the [Methods in Microbiomics](https://methods-in-microbiomics.readthedocs.io/) website. The website contains a set of guidelines and best practices for robust and reproducible bioinformatics processing and data analysis with the focus on Microbiomics research. Its goal is improving documentation of bioinformatic methods and standard operation procedures in the NCCR Microbiomes.

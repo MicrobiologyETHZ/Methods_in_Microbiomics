@@ -18,7 +18,6 @@ with the focus on Microbiomics research.
 
     This documentation is currently under construction.
 
-.. _tutorials:
 
 ----------
 Tutorials
@@ -116,7 +115,6 @@ Support
    :maxdepth: 1
 
    preprocessing/preprocessing
-   preprocessing/example12
 
 .. toctree::
    :caption: Assembly
@@ -135,9 +133,7 @@ Support
 
    profiling/16S
    profiling/metagenomes
-..
-   profiling/variants
-   profiling/function
+   profiling/zAMP
 
 ..
    .. toctree::
@@ -155,17 +151,9 @@ Support
    :hidden:
    :maxdepth: 1
 
-   transcriptomics/transcriptomics.rst
    transcriptomics/metatranscriptomics.rst
+   transcriptomics/metatranscriptomics_metagenomics.rst
 
-
-.. toctree::
-   :caption: Modelling
-   :name: modelling
-   :hidden:
-   :maxdepth: 1
-
-   modelling/modelling.rst
 
 .. toctree::
    :caption: Tn-Seq
@@ -174,3 +162,4 @@ Support
    :maxdepth: 1
 
    tnseq/tnseq.rst
+

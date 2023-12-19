@@ -2,6 +2,8 @@
 Genome Assembly
 ================
 
+Protocol provided by Anna Sintsova.
+
 Over the recent years, bacterial whole genome sequencing has become an indispensable tool for microbiologists. While powerful, short read sequencing technologies only allow assembly of draft genomes (i.e. assembly consisting of multiple scaffolds). As illustrated below, during whole genome shotgun sequencing, DNA is randomly sheared into inserts of known size distribution and sequenced. If paired-end sequencing is used, two DNA sequences (reads) are generated - one from each end of a DNA fragment). The assemblers look for overlaps between sequencing reads to stitch them together into contigs. The contigs can then sometimes be linked together into longer scaffolds (for example with information from `mate-pair reads <https://www.illumina.com/science/technology/next-generation-sequencing/mate-pair-sequencing.html>`_).
 
 .. image:: /images/Genome_Assembly.png
@@ -33,7 +35,7 @@ Isolate genome assembly using short reads
 
 .. note::
 
-    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/isolate_assembly.yaml>`. See the :ref:`tutorials` section for intstructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for genome assembly. (Note: The included files adapters.fa and phix174_ill.ref.fa.gz are not needed here.)
+    Sample data for this section can be found :download:`here <../downloads/Sample1_isolate.tar.gz>`. The conda environment specifications are :download:`here <../downloads/isolate_assembly.yaml>`. See the :ref:`tutorials` section for instructions on how to unpack the data and create the conda environment. After unpacking the data, you should have a set of forward (Sample1_R1.fq.gz) and reverse (Sample1_R2.fq.gz) reads. These reads have already been through the :doc:`../preprocessing/preprocessing` workflow and can be used directly for genome assembly. (Note: The included files adapters.fa and phix174_ill.ref.fa.gz are not needed here.)
 
 
 1. **Data Preprocessing**. Before proceeding to the assembly, it is important to preprocess the raw sequencing data. Standard preprocessing protocols are described in :doc:`../preprocessing/preprocessing`. In addition to standard quality control and adapter trimming, we also suggest normalization with bbnorm.sh and merging (see :doc:`../preprocessing/preprocessing` for more details). Besides the common preprocessing steps, we usually run mOTUs_ on the cleaned sequencing reads, to check for sample contamination or mis-labelling (both occur more frequently than you would expect). For more details please check the :doc:`/profiling/metagenomes` section.
@@ -139,7 +141,7 @@ Isolate genome assembly using short reads
 Alternative Approach
 -----------------------
 
-Alternatively, we had good results building short-read assemblies with Unicycler_. However, these are not significantly different from SPAdes assemblies described above (not surprising, since Unicycler runs SPAdes under the hood). In addition, Unicycler_ is not being actively developed, and does not support the lastes version of SPAdes. Please see Ryan Wick's `Genome Assembly Guide`_ for example command.
+Alternatively, we had good results building short-read assemblies with Unicycler_. However, these are not significantly different from SPAdes assemblies described above (not surprising, since Unicycler runs SPAdes under the hood). In addition, Unicycler_ is not being actively developed, and does not support the latest version of SPAdes. Please see Ryan Wick's `Genome Assembly Guide`_ for example command.
 
 
 .. _Unicycler: https://github.com/rrwick/Unicycler
