@@ -20,10 +20,17 @@ Metatranscriptomic data arising from defined communities (i.e. community, whose 
           style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
           class id2,id3 tool
 
+Once the metagenome is ready, you are read to proceed with transcript quantification workflow
+
+Transcript quantification
+-------------------------
+
+
 .. mermaid::
 
+
   flowchart LR
-        id1(RNAseq) --> id2(Genome<br/>alignment<br/>fa:fa-cog bowtie2)
+        id1(Data preprocessing) --> id2(Genome<br/>alignment<br/>fa:fa-cog bowtie2)
         id2 --> id3(Insert<br/>counting<br/>fa:fa-cog featureCounts)
         id3 --> id4(Statistical/<br/>analysis<br/>fa:fa-cog DESeq2)
         classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
