@@ -13,11 +13,10 @@ Target Audience
 ^^^^^^^^^^^^^^^
 `zDB`_ has been developed for both newbies in genomics, who don’t have the experience with bioinformatics tools, and trained bioinformaticians, who would like to invest in a reproducible tool. Therefore, don’t be scared and don’t hesitate to use it!
 
-zDB: Analysis Pipeline
-^^^^^^^^^^^^^^^^^^^^^^
+zDB: Supported Analyses
+^^^^^^^^^^^^^^^^^^^^^^^
 The analysis pipeline built in `zDB`_ can support different types of analysis according to the user’s needs. Indeed, a core set of analyses is run by default, while optional analyses can be separately added.
 
-Supported analyses:
 
 - **Orthology inference**: identification of orthogroups by OrthoFinder (an orthogroup is the group of genes descended from a single gene in the last common ancestor (LCA) of a group of species).
 - **Phylogenetic reconstructions**: phylogeny built based on concatenated alignments of single copy orthologs with FastTree.

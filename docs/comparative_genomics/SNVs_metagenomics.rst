@@ -1,5 +1,5 @@
 =================================
-SNV Analysis on metagenomic Data
+SNV Analysis on Metagenomic Data
 =================================
 
 Protocol provided by Aiswarya Prasad.
@@ -25,13 +25,14 @@ the low-abundance genomes of interest will have little to none. Therefore, it is
 than this calculation suggests. In addition, if you have pooled samples, you must sequence deeper than you would
 sequence individual samples, and you would also lose information about strain-level variation between individuals.
 
-What are bacterial species?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-While the boundaries specifying units of diversity in microbial communities are not easily defined, bacterial genomes can still be categorized into units based on their genome sequence. One popular
-method to do this is to define clusters of genomes that share >95% `average nucleotide identity (ANI)`_. These clusters in most
-cases correspond to genomes of the same species. This approach is becoming more prevalent, especially due to cheaper
-sequencing methods that allow us to recover MAGs from complex samples, as well as tools that allow for pairwise comparisons
-of genomes.
+.. note:: 
+    **What are bacterial species?**
+
+    While the boundaries specifying units of diversity in microbial communities are not easily defined, bacterial genomes can still be categorized into units based on their genome sequence. One popular
+    method to do this is to define clusters of genomes that share >95% `average nucleotide identity (ANI)`_. These clusters in most
+    cases correspond to genomes of the same species. This approach is becoming more prevalent, especially due to cheaper
+    sequencing methods that allow us to recover MAGs from complex samples, as well as tools that allow for pairwise comparisons
+    of genomes.
 
 .. _average nucleotide identity (ANI): https://doi.org/10.1038/s41467-018-07641-9
 
@@ -138,7 +139,7 @@ unclear about how this is performed.
     bowtie2 -X 1000 -x mag_rep_database.fa -1 sample_R1_repaired.fastq.gz -2 sample_R2_repaired.fastq.gz | samtools view -bh - | samtools sort - > sample_bowtie.bam
     samtools flagstat sample_bowtie.bam > sample_bowtie_flagstat.tsv
 
-Make the `inStrain` Profile
+Make the inStrain Profile
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 Output and parameter information is well-documented in inStrain - run using db_mode if you wish to run `inStrain compare`
 later. This makes it much faster.

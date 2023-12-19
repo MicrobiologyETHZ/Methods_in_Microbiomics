@@ -6,8 +6,8 @@ Protocol provided by Sedreh Nassirnia.
 
 Microbiota profiling is a versatile and powerful tool with a wide range of applications in healthcare, research, environmental studies, agriculture, and industry. 16S amplicon sequencing  helps us to understand the composition and functionality of microbial communities across various contexts, and can identify specific microbial patterns or biomarkers. For more on 16S sequencing see :doc:`16S`.
 
-Applications:
-^^^^^^^^^^^^^
+Applications
+^^^^^^^^^^^^
  - **Disease diagnosis and prognosis**: By profiling the microbiome, researchers can identify microbial signatures that are associated with certain diseases. These biomarkers can be used to diagnose or predict the course of a disease, enhancing the understanding and management of health conditions.
  - **Treatment response prediction**: Certain microbial taxa within the microbiome can serve as indicators of how a patient might respond to a particular treatment. This aspect of microbiota profiling is particularly valuable in personalizing medical treatments and the development of new therapeutic strategies.
  - **Health and disease research**: Beyond clinical applications, microbiota profiling is instrumental in broadening the scientific understanding of the role of the microbiome in health and disease. This research can lead to new insights into disease mechanisms and the development of novel preventive strategies.
@@ -17,9 +17,9 @@ Applications:
 To effectively carry out microbiota profiling for these diverse purposes, we need standard protocols and tools that are compatible with many types of samples and able to provide accurate answers to the very diverse questions of the NCCR community.
 Therefore, we developed `zAMP`_, an in-house customized, standardized, and automated DADA2-based data analysis pipeline, which includes a wide variety of command-line tools and R packages.
 
-----------------------
+
 Implementation of zAMP
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 `zAMP`_ offers flexibility, allowing users to customize it depending on the research questions and sample type. To ensure reproducibility, zAMP integrates command-line tools and R packages as well as their dependencies through the Singularity container and allowed users to run and share microbiota profiling workflow.
 
