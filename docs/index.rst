@@ -130,7 +130,8 @@ Support
    taxonomic_profiling/16S
    taxonomic_profiling/metagenomes
    taxonomic_profiling/zAMP
-
+   taxonomic_profiling/zDB
+   
 .. toctree::
    :caption: Comparative Genomics
    :name: comparative_genomics
