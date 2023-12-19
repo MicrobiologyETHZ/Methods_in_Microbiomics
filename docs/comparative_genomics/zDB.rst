@@ -1,6 +1,6 @@
-=======================================
-Comparative Genomics Analysis Using zDB
-=======================================
+===================================
+zDB: Comparative Genomics Analysis
+===================================
 
 Protocol provided by Alessia Carrara.
 

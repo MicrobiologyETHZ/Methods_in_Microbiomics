@@ -130,8 +130,8 @@ Support
    taxonomic_profiling/16S
    taxonomic_profiling/metagenomes
    taxonomic_profiling/zAMP
-   taxonomic_profiling/zDB
    
+
 .. toctree::
    :caption: Comparative Genomics
    :name: comparative_genomics
@@ -139,6 +139,7 @@ Support
    :maxdepth: 1
 
    comparative_genomics/SNVs_metagenomics.rst
+   comparative_genomics/zDB
 
 .. toctree::
    :caption: Transcriptomics
