@@ -11,7 +11,7 @@ However, it is a tedious and time-consuming process that requires specialized kn
 
 Target Audience
 ^^^^^^^^^^^^^^^
-zDB has been developed for both newbies in genomics, who don’t have the experience to handle bioinformatics tools, and trained bioinformaticians, who would like to invest in a reproducible tool. Therefore, don’t be scared and don’t hesitate to use it!
+`zDB`_ has been developed for both newbies in genomics, who don’t have the experience to handle bioinformatics tools, and trained bioinformaticians, who would like to invest in a reproducible tool. Therefore, don’t be scared and don’t hesitate to use it!
 
 zDB: Analysis Pipeline
 ^^^^^^^^^^^^^^^^^^^^^^

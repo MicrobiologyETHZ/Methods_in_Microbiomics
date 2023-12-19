@@ -72,31 +72,27 @@ Data Preprocessing
 
 Download :download:`data preprocessing conda environment file </downloads/preprocessing.yaml>` and :download:`data preprocessing test dataset </downloads/Sample1_isolate.tar.gz>`
 
------------------------
-Assembly
------------------------
+---------------
+Genome Assembly
+---------------
 
 Best practices for :doc:`/assembly/genome_assembly` and :doc:`/assembly/metagenomic_workflows`.
 
 Download :download:`isolate assembly conda environment file </downloads/isolate_assembly.yaml>` and :download:`isolate assembly test dataset </downloads/Sample1_isolate.tar.gz>`
 
 
-----------
-Profiling
-----------
+-------------------
+Taxonomic Profiling
+-------------------
 
 Best practises for profiling of amplicon and metagenomic data
 
 
----------------
-Transcriptomics
----------------
+------------------------
+Transcriptomics Analysis
+------------------------
 Best practices for transcriptomic and metatranscriptomic data analysis
 
-
---------------
-Modelling
---------------
 
 Best practices in metagenomic data analysis
 
@@ -126,25 +122,22 @@ Support
    assembly/metagenomic_workflows
 
 .. toctree::
-   :caption: Profiling
-   :name: profiling
+   :caption: Taxonomic Profiling
+   :name: taxonomic_profiling
    :hidden:
    :maxdepth: 1
 
-   profiling/16S
-   profiling/metagenomes
-   profiling/zAMP
-   profiling/zDB
+   taxonomic_profiling/16S
+   taxonomic_profiling/metagenomes
+   taxonomic_profiling/zAMP
 
-..
-   .. toctree::
-      :caption: Annotation
-      :name: annotation
-      :hidden:
-      :maxdepth: 1
+.. toctree::
+   :caption: Comparative Genomics
+   :name: comparative_genomics
+   :hidden:
+   :maxdepth: 1
 
-      annotation/bgc.rst
-      annotation/mvirs.rst
+   comparative_genomics/SNVs_metagenomics.rst
 
 .. toctree::
    :caption: Transcriptomics
@@ -154,7 +147,6 @@ Support
 
    transcriptomics/metatranscriptomics.rst
    transcriptomics/metatranscriptomics_metagenomics.rst
-
 
 .. toctree::
    :caption: Tn-Seq

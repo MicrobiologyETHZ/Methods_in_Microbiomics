@@ -1,0 +1,342 @@
+=======================
+Amplicon Sequencing
+=======================
+
+Protocol provided by the Sunagawa group.
+
+Contact: Anna Sintsova and Hans-Joachim Ruscheweyh
+
+.. important::
+
+    We use DADA2_ pipeline for 16S Amplicon analysis. `DADA2 tutorial`_ provides a good introduction. If using Illumina data with binned quality scores, please checkout `this discussion`_.
+
+.. _DADA2: https://doi.org/10.1038/nmeth.3869
+.. _DADA2 tutorial: https://benjjneb.github.io/dada2/tutorial.html
+.. _this discussion: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
+
+16S amplicon sequencing remains one of the most widely used methods for the analysis of microbiome community composition. Taxonomic composition, as well as alpha and beta diversity metrics, can provide novel biological insight and show association with environmental conditions or clinical variables. 16s rRNA gene is about 1500 bp long and encodes rRNA component of the small subunit of prokaryotic ribosome. The gene is composed of highly conserved and 9 variable regions. This allows us to use the conserved regions as primer binding sites, and variable regions for taxonomic classification.
+
+.. note:
+
+    Most of 16S sequencing primers (see table below) can only be used for taxonomic classification of prokaryotes. For eukaryotic studies, 18S rRNA sequencing  can be used. Additionally, ITS (Internal Transcribed Spacer), part of the non-transcriptional region of the fungal rRNA gene, can be used for taxonomic classification of fungal species. The ITS sequences used for fungal identification usually include ITS1 and ITS2.
+
+
+Although 16S is a cost-effective and powerful technique, a number of factors can influence the outcomes of the analysis, hindering comparisons between studies.
+The outcomes can be influenced by:
+
+- sampling and sample storage strategy
+- primer annealing efficiency
+- which variable region is targeted
+- library preparation and sequencing protocols
+- bioinformatic processing pipelines (OTUs vs ASVs)
+- database used for taxonomic annotation
+
+
+16S and 18S Sequencing primers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Below you can find a table listing commonly used primers for 16S analysis.
+
+As described in `Walters et al`_, 515f-806r bacterial/archaeal primer pair, traditionally used by the `Earth Microbiome Project`_, has been shown to be biased against specific archeal and bacterial clades.  Parada et al. and Apprill et al. have modified the 515f/806r 16S rRNA gene primer pair to reduce these biases.
+
+.. _Walters et al: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5069754/
+.. _Earth Microbiome Project: https://earthmicrobiome.org/protocols-and-standards/16s/
+
+=========== =================== ======================== ============= ====== =====================
+V-Region    Primer Names        Primer Sequences         Specificity   Size   Reference
+V1-V3       27F/534R            | AGAGTTTGATYMTGGCTCAG/  | Bacteria &  507    `Walker et al.`_
+                                | ATTACCGCGGCTGCTGG      | Archaea
+V3-V4       341F/785R           | CCTACGGGNGGCWGCAG/     | Bacteria &  465     `Klindworth et al.`_
+                                | GACTACHVGGGTATCTAATCC  | Archaea
+V4          515F/806R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  291    `Caporaso et al.`_
+                                | GGACTACHVGGGTWTCTAAT   | Archaea
+V4          515F-modified/806R  | GTGYCAGCMGCCGCGGTAA/   | Bacteria &  291    `Parada et al.`_
+                                | GGACTACHVGGGTWTCTAAT   | Archaea
+V4          515F/806R-modified  | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  291    `Apprill et al.`_
+                                | GGACTACNVGGGTWTCTAAT   | Archaea
+V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `Parada et al.`_
+                                | CCGYCAATTYMTTTRAGTTT   | Archaea &
+                                                         | Eukaryotes
+=========== =================== ======================== ============= ====== =====================
+
+.. _Caporaso et al.: https://doi.org/10.1073/pnas.1000080107
+.. _Parada et al.: https://doi.org/10.1111/1462-2920.13023
+.. _Apprill et al.: https://doi.org/10.3354/ame01753
+.. _Walker et al.: https://doi.org/10.1186/s40168-015-0087-4
+.. _Klindworth et al.: https://doi.org/10.1093/nar/gks808
+
+
+16S Data Analysis
+^^^^^^^^^^^^^^^^^
+
+.. mermaid::
+
+   flowchart TD
+     subgraph quality [Quality Control]
+       direction LR
+       id2(1. adapter removal<br/>fa:fa-cog cutadapt) --> id3(2. trim reads <br/>fa:fa-cog dada2)
+     end
+     subgraph DADA2
+       direction LR
+       id4(3. learning errors<br/>fa:fa-cog dada2) --> id5(4. sample inference<br/>fa:fa-cog dada2)
+       id5 --> id6(5. read merging<br/>fa:fa-cog dada2)
+       id6 --> id7(6. chimera removal<br/>fa:fa-cog dada2)
+     end
+     subgraph tax [Taxonomic Annotation]
+     id8(7. assign taxonomy<br/>fa:fa-cog IDTAXA)
+     end
+     id1(16S Amplicon Analysis) --> quality --> DADA2 --> tax
+
+     classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
+     classDef sub fill:#eeeeee,stroke:#000000
+     style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+     class quality,DADA2,tax sub
+     class id2,id3,id4,id5,id6,id7,id8 tool
+
+
+
+1. **Removing adapters and splitting reads in forward/reverse orientation**. It is essential to remove adapter sequences for DADA2 pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While this rarely happens, this step saves some work in the downstream analysis. We also split forward and reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
+
+.. _cutadapt: https://cutadapt.readthedocs.io/en/stable/
+
+**Example command**:
+
+    .. code-block::
+
+        cutadapt -O 12 --discard-untrimmed -g {fwd_primer} -G {rev_primer} -o {output.r1tmp} -p {output.r2tmp} {input.r1} {input.r2} -j {threads} --pair-adapters --minimum-length 75
+            cutadapt -O 12 --times 5 -g {fwd_primer} -o {output.r1tmp2} -j {threads} {output.r1tmp}
+            cutadapt -O 12 --times 5 -g {rev_primer} -o {output.r2tmp2} -j {threads} {output.r2tmp}
+            cutadapt -o {output.r1} -p {output.r2} {output.r1tmp2} {output.r2tmp2} -j {threads} --minimum-length {minlength}
+
+
+
+2. **Filter and trim the reads**. We next trim low quality bases, this is important for DADA2 merging to work. This can be accomplished with DADA2 `filterAndTrim` function.
+
+
+.. important::
+
+   How much do I truncate?  It is recommended to look at the quality profile of your data, and, while ensuring that you have enough sequence that your forward/reverse reads still overlap enough to merge (leave at least 10 nt overlap for merging), truncate off as many of the nucleotides that come after quality crashes as you can. The quality of the reverse reads usually deteriorates faster, thus reverse reads usually need more trimming than the forward reads.
+
+**Example command**:
+
+   .. code-block::
+
+    library(dada2);
+    packageVersion("dada2")
+
+    filterAndTrim(fwd={infqgz1}, filt={outfqgz1}, rev={infqgz2}, filt.rev={outfqgz2}, matchIDs=TRUE, maxEE={maxee}, truncQ={truncq}, maxN=0, rm.phix=TRUE, compress=compress, verbose=TRUE, multithread={threads}, minLen={minlen}, truncLen = c({trunclen_r1}, {trunclen_r2}))
+
+
+
+3. **Learning Error Rates**. DADA2 algorithm needs to first estimate error rates from the data. This should be done separately for samples sequenced on different lanes.
+
+.. warning::
+
+   New Illumina sequencing data (e.g. NovaSeq) provides only binned quality scores (see :doc:`../preprocessing/preprocessing` for more details). This created a problem for DADA2 error learning step. This is an ongoing issue, and is discussed in detailed here_ and in `this tutorial`_. Below is our current solution to the problem, the best solution might be dataset specific.
+
+.. _here: https://github.com/benjjneb/dada2/issues/1307
+.. _this tutorial: https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates
+
+Here we define a modified error function that maintains monotonicity even with binned quality reads:
+
+    .. code-block::
+
+        loessErrfun_mod <- function (trans) {
+           qq <- as.numeric(colnames(trans))
+           est <- matrix(0, nrow = 0, ncol = length(qq))
+           for (nti in c("A", "C", "G", "T")) {
+             for (ntj in c("A", "C", "G", "T")) {
+               if (nti != ntj) {
+                 errs <- trans[paste0(nti, "2", ntj), ]
+                 tot <- colSums(trans[paste0(nti, "2", c("A","C", "G", "T")), ])
+                 rlogp <- log10((errs + 1)/tot)
+                 rlogp[is.infinite(rlogp)] <- NA
+                 df <- data.frame(q = qq, errs = errs, tot = tot,
+                               rlogp = rlogp)
+                 mod.lo <- loess(rlogp ~ q, df, weights = log10(tot),span = 2)
+                 pred <- predict(mod.lo, qq)
+                 maxrli <- max(which(!is.na(pred)))
+                 minrli <- min(which(!is.na(pred)))
+                 pred[seq_along(pred) > maxrli] <- pred[[maxrli]]
+                 pred[seq_along(pred) < minrli] <- pred[[minrli]]
+                 est <- rbind(est, 10^pred)
+                } }
+                }
+           MAX_ERROR_RATE <- 0.25
+           MIN_ERROR_RATE <- 1e-07
+           est[est > MAX_ERROR_RATE] <- MAX_ERROR_RATE
+           est[est < MIN_ERROR_RATE] <- MIN_ERROR_RATE
+           err <- rbind(1 - colSums(est[1:3, ]), est[1:3, ], est[4,
+                                                   ], 1 - colSums(est[4:6, ])
+           colSums(est[7:9, ]), est[9, ], est[10:12, ], 1 - colSums(est[10:1
+            , est[5:6, ], est[7:8, ], 1 -
+            2,
+           rownames(err) <- paste0(rep(c("A", "C", "G", "T"), each = 4),
+                                      "2", c("A", "C", "G", "T"))
+           colnames(err) <- colnames(trans)
+           return(err)
+            }
+
+
+The error rates can than be modeled as follows:
+
+        .. code-block::
+
+            samplefile <- "samplefile_r1_fw"
+            outfile <- "samplefile_r1_fw.errors.rds"
+            outfile.plot <- paste(outfile, '.pdf', sep = '')
+            threads <- 8
+            nbases <- 1e8
+            ]))
+            sample.files <- read.csv(samplefile, header=FALSE, sep='\t', stringsAsFactors = FA
+            LSE)[2]
+            s.f <- sample.files$V2
+            err <- learnErrors(s.f, nbases=nbases, multithread=threads, randomize=TRUE, verbos
+            e = 1, errorEstimationFunction = loessErrfun_mod)
+            saveRDS(err, file = outfile)
+            plot <- plotErrors(err,nominalQ=TRUE)
+            ggsave(outfile.plot, plot = plot)
+
+
+4. **Sample Inference**. This is the core function of DADA2. Each read, its abundance and its quality is tested to determine whether it is an actual, error-free ASV or a spurious sequence with errors. The error function from the previous step is reused. DADA2 is using the error model to infer unique ASVs in each sample. This is also done separately for samples from different lanes. You can read more about the core sample inference algorithm in the `DADA2 paper`_.
+
+.. _DADA2 paper: https://doi.org/10.1038/nmeth.3869
+
+**Example command**:
+
+    .. code-block::
+
+        library(dada2); packageVersion("dada2")
+
+        sample.files <- read.csv({samplefile}, header=FALSE, sep='\t', stringsAsFactors = FALSE)[2]
+        s.f <- sort(sample.files$V2)
+        sample.names <- sapply(strsplit(basename(s.f), "_R"), `[`, 1)
+        #if(!identical(sample.names.r1, sample.names.r2)) stop("Forward and reverse files do not match.")
+        names(s.f) <- sample.names
+        err <- readRDS({err.rds})
+        dd <- dada(s.f, err=err, pool='pseudo', multithread = threads, errorEstimationFunction = loessErrfun_mod)
+
+        seqtab <- makeSequenceTable(dd)
+        saveRDS(seqtab, file = {outfile.tab})
+        saveRDS(dd, file = {outfile.dd})
+
+
+
+5. **Read Merging**. Now reads can be merged into inserts. The forward subsample is merged in standard orientation. The reverse subsample is merged in inverse orientation. That way, all inserts will have the same orientation after this step.
+
+**Example command**:
+
+   .. code-block::
+
+        library(dada2); packageVersion("dada2")
+        sample.files.r1 <- read.csv({samplefile.r1}, header=FALSE, sep='\t', stringsAsFactors = FALSE)[2]
+        sample.files.r2 <- read.csv({samplefile.r2}, header=FALSE, sep='\t', stringsAsFactors = FALSE)[2]
+        s.f.r1 <- sort(sample.files.r1$V2)
+        s.f.r2 <- sort(sample.files.r2$V2)
+        sample.names.r1 <- sapply(strsplit(basename(s.f.r1), "_R1"), `[`, 1)
+        sample.names.r2 <- sapply(strsplit(basename(s.f.r2), "_R2"), `[`, 1)
+        if(!identical(sample.names.r1, sample.names.r2)) stop("Forward and reverse files do not match.")
+        names(s.f.r1) <- sample.names.r1
+        names(s.f.r2) <- sample.names.r2
+        dd.r1 <- readRDS({infile.r1})
+        dd.r2 <- readRDS({infile.r2})
+        mergers <- mergePairs(dd.r1, s.f.r1, dd.r2, s.f.r2, verbose = TRUE)
+        seqtab.m <- makeSequenceTable(mergers)
+        saveRDS(mergers, file = {outfile.dd.m})
+        saveRDS(seqtab.m, file = {outfile.seqtab.m})
+
+
+6. **Chimera Removal**. Chimeras/Bimeras are removed from each sample individually. Remember that each sample consists of 2 subsamples, forward and reverse.
+
+.. warning::
+    You should not be losing a lot of reads during the merging and chimera removal steps.
+
+**Example command**:
+
+    .. code-block::
+
+        library(dada2); packageVersion("dada2")
+        nobim.tab <- removeBimeraDenovo({wbim.tab}, method="pooled", multithread={threads}, verbose=TRUE)
+        saveRDS(nobim.tab, file = {nobim.file})
+
+
+.. note::
+    **Optional**: remove spurious ASVs. In the next step we merge the individual tables into one big ASV table. Most of the ASVs are spurious (appear in low counts and in only 1 sample). We remove all ASVs that appear < 5 times.
+
+7. **Taxonomic annotation**. Taxonomic annotation is performed using IDTAXA_ with the training set corresponding to the `SILVA database v.138`_ and a confidence threshold of 40.
+
+.. _IDTAXA: https://doi.org/10.1186/s40168-018-0521-5
+.. _SILVA database v.138: https://www.arb-silva.de/documentation/release-138/
+
+**Example command**:
+
+    .. code-block::
+
+        #!/usr/bin/env Rscript
+        suppressMessages(library(optparse))
+
+        # Define arguments
+        option_list = list(
+          make_option(c("-i", "--path_to_seqtab"), type="character", default=NULL,help="Path to the sequence table file (RDS file containing a matrix with sequences as columns and samples as rows)", metavar="character"),
+          make_option(c("-s", "--path_to_training_set"), type="character", default=NULL,help="Path to the SILVA training set (will be downloaded if it's not provided)", metavar="character"),
+          make_option(c("-c", "--threshold"), type="integer", default=40,help="IdTaxa threshold (default = 40)", metavar="integer"),
+          make_option(c("-t", "--threads"), type="integer", default=1,help="Number of threads (default = 1)", metavar="integer"),
+          make_option(c("-o", "--out_path"), type="character", default=NULL,help="Path to the output file (table with taxonomy as a tab-delimitted file)", metavar="character")
+        );
+
+        description<-paste("The program loads an RDS file containing a sequence table and assigns the taxonomy of ASVs/OTUs using IDTAXA\n\n")
+
+
+        opt_parser = OptionParser(option_list=option_list,description = description);
+        opt = parse_args(opt_parser);
+
+        if (is.null(opt$path_to_seqtab) | is.null(opt$out_path)){
+          print_help(opt_parser)
+          stop("At least one argument must be supplied for -i and -o", call.=FALSE)
+        }
+
+
+        library(DECIPHER)
+        library(data.table)
+        library(tidyverse)
+
+        path_to_seqtab<-opt$path_to_seqtab
+        path_to_training_set<-opt$path_to_training_set
+        threads<-opt$threads
+        out_path<-opt$out_path
+        threshold<-opt$threshold
+
+        # Check if the training set exists or download it and load it
+        if (is.null(path_to_training_set)){
+          cat("Training set not provided. It will be downloaded\n")
+          system(paste("wget --content-disposition -P ./ http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData",sep=""))
+          path_to_training_set<-"SILVA_SSU_r138_2019.RData"
+        } else{
+          cat("Training set already exists. Using local copy\n")
+        }
+        load(path_to_training_set)
+
+        # Read the RDS file
+        seqtab<-readRDS(path_to_seqtab)
+        seqs_fasta<-DNAStringSet(x=as.character(colnames(seqtab)))
+        names(seqs_fasta)<-as.character(colnames(seqtab))
+
+
+        # Run IDTAXA and parse
+        annot <- IdTaxa(seqs_fasta, trainingSet=trainingSet, strand="top", processors=threads,threshold=threshold)
+
+        annot_df<-sapply(annot,function(x){as.data.frame(x) %>% mutate(annot=paste(rank,taxon,round(confidence,2),sep=";")) %>% summarise(tax=paste(annot,collapse="|"))}) %>%
+          unlist() %>%
+          as.data.frame() %>%
+          rename(tax=".") %>%
+          rownames_to_column(var="seq") %>%
+          mutate(seq=gsub(".tax$","",seq))
+
+        seqtab_annot<-t(seqtab) %>%
+          as.data.frame() %>%
+          rownames_to_column(var="seq") %>%
+          left_join(annot_df,by="seq") %>%
+          select(seq,tax,everything())
+
+        # Save file
+        fwrite(seqtab_annot,file=out_path,sep="\t")
