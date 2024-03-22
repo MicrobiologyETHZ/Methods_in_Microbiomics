@@ -58,8 +58,6 @@ For both gene abundance and transcript abundance data, we must remove the follow
 
 .. mermaid::
 
-   .. mermaid::
-
    flowchart LR
         id5(Gene count table) --> id1
         id6(Transcript count table) --> id1
