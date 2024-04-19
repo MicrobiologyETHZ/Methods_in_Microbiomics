@@ -141,13 +141,15 @@ Paired-read merging         Metagenomic assembly, 16S and mOTUs profiling    BBM
 
 Filtering out host reads
 ^^^^^^^^^^^^^^^^^^^^^^^^
-    Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is performed using `BBMap <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
+Samples containing host DNA can be filtered by mapping the reads to the host genome. This step is performed using `BBMap <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbmap-guide/>`_ aligner.
 
 
 .. note::
-    Host genome sequences are not provided in the test dataset, but can be downloaded from NCBI, Ensembl, UCSC. Be sure to keep track of the genome version you are using. Genomes for commonly analyzed organisms can also be downloaded from Illumina iGenomes_.
+    As described in `this post`_, simply mapping reads to host genome, might lead to false positives, i.e. reads that are bacterial in origin, but nevertheless mapped to host genome. Removal of these reads might have a negative effect on the quality of the assemblies. In case of human host, this can be avoided by using `this masked genome`_. The masking procedure is described in the post linked above. However, this is not available for other host genomes. Unmasked references can be downloaded from NCBI, Ensembl, UCSC. Be sure to keep track of the genome version you are using. Genomes for commonly analyzed organisms can also be downloaded from Illumina iGenomes_.
 
 .. _iGenomes: https://support.illumina.com/sequencing/sequencing_software/igenome.html
+.. _this post: https://www.seqanswers.com/forum/bioinformatics/bioinformatics-aa/37175-introducing-removehuman-human-contaminant-removal
+.. _this masked genome: https://drive.google.com/file/d/0B3llHR93L14wd0pSSnFULUlhcUk/edit?resourcekey=0-PsIKmg2q4EvTGWGOUjsKGQ
 
     **Example Command**
 
@@ -184,6 +186,10 @@ Filtering out host reads
 ``outu``             Write only unmapped reads to this file.
 ``outm``             Write only mapped reads, that fail filters to this file.
 =============    ==========================================================
+
+.. important:: 
+
+    This command will **NOT** remove all of the host sequences from your sample. The main puropose of the host removal as described here, is to improve metagenome assemblies, not to eliminate all of the host sequences, i.e. if you're working with humand data, **some human reads might still be present** in your samples. 
 
 
 Normalization
