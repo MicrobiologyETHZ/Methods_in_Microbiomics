@@ -46,9 +46,9 @@ For each of the sections we have provided a link to a conda environment file (i.
 
    conda env create -f <environment name>.yaml
    conda activate <environment name>
-   tar -xvzf Sample1_isolate.tar.gz
+   tar -xvpf Sample1_isolate.tar.gz
 
-For  :doc:`/preprocessing/preprocessing`, you need to install `mamba <https://mamba.readthedocs.io/en/latest/installation.html>`_. Here are the commands to create the conda environment and unpack the data:
+For  :doc:`/assembly/genome_assembly`, you need to install `mamba <https://mamba.readthedocs.io/en/latest/installation.html>`_. Here are the commands to create the conda environment and unpack the data:
 
 .. code-block::
 
