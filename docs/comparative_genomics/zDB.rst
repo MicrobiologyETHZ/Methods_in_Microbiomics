@@ -24,8 +24,20 @@ The analysis pipeline built in `zDB`_ can support different types of analysis ac
 - **COG annotation**: label orthologs with the 25 functional categories provided by the COG database (Clusters of Orthologous Groups of proteins) and previously identified based on shared evolutionary origins and functional roles of genes.
 - **KEGG orthologs annotation and pathway completion analysis**: label orthologs with molecular interaction pathways and networks provided by the KEGG database (Kyoto Encyclopedia of Genes and Genomes). Obtain insights about the completeness of the identified pathways.
 - **PFAM domains annotation**: assign protein domains to orthologs
+- **AMR annotation**: annotate genomes with Antimicrobial Resistance genes using AMRFinderPlus.
+- **Virulence factors**: annotate genomes with virulence factors from the VFDB.
+- **Genomic islands**: identify genomic islands in the genomes.
 - **Swissprot homologs search**: look for homologous proteins for each ortholog in the Swiss-Prot database which contains manually curated protein sequences and provides a high level of annotation.
 - **RefSeq homologs search**: look for homologous proteins for each ortholog in a comprehensive collection of curated and annotated sequences of a wide range of organisms.
+
+The webinterface then allows exploring the data, notably:
+
+- **Blast**: blast any sequence against your set of genomes.
+- **Venn diagrams**: Display venn diagrams of annotations shared or unique to given sets of genomes.
+- **Tabular comparisons**: Extract lists of annotations present in a given set of genomes and absent from another, or display a table of presence/absence of annotations in a set of genomes.
+- **Heatmaps**: Display a heatmap of the presence of annotations in the genomes.
+- **Accumulation/rarefaction plots**: Plots of accumulation/rarefaction of annotations in the set of genomes (pan/core genome)
+- **GWAS**: Significant associations between a phenotype and any annotation can be determined.
 
 For more info about the tools and parameters please refer to `the methods section of the zDB documentation`_ or the materials and methods section of the `manuscript`_.
 
