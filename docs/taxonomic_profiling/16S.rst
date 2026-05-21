@@ -70,6 +70,7 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 ^^^^^^^^^^^^^^^^^
 
 .. mermaid::
+    flowchart TD
       subgraph quality [Quality Control]
         direction LR
         id2("1. adapter removal<br/>⚙️ cutadapt") --> id3("2. trim reads<br/>⚙️ dada2")
