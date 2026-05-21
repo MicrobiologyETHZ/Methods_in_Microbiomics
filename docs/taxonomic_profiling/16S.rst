@@ -70,6 +70,7 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 ^^^^^^^^^^^^^^^^^
 
 .. mermaid::
+
     flowchart TD
       subgraph quality [Quality Control]
         direction LR
@@ -95,11 +96,8 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
       classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px,color:#000;
       classDef sub fill:#eeeeee,stroke:#000000;
 
-      style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
-
       class quality,DADA2,tax sub
       class id2,id3,id4,id5,id6,id7,id8 tool
-
 
 
 1. **Removing adapters and splitting reads in forward/reverse orientation**. It is essential to remove adapter sequences for DADA2 pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While this rarely happens, this step saves some work in the downstream analysis. We also split forward and reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
