@@ -70,34 +70,6 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
 ^^^^^^^^^^^^^^^^^
 
 .. mermaid::
-
-   flowchart TD
-     subgraph quality [Quality Control]
-       direction LR
-       id2(1. adapter removal<br/>fa:fa-cog cutadapt) --> id3(2. trim reads <br/>fa:fa-cog dada2)
-     end
-     subgraph DADA2
-       direction LR
-       id4(3. learning errors<br/>fa:fa-cog dada2) --> id5(4. sample inference<br/>fa:fa-cog dada2)
-       id5 --> id6(5. read merging<br/>fa:fa-cog dada2)
-       id6 --> id7(6. chimera removal<br/>fa:fa-cog dada2)
-     end
-     subgraph tax [Taxonomic Annotation]
-     id8(7. assign taxonomy<br/>fa:fa-cog IDTAXA)
-     end
-     id1(16S Amplicon Analysis) --> quality --> DADA2 --> tax
-
-     classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px;
-     classDef sub fill:#eeeeee,stroke:#000000
-     style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
-     class quality,DADA2,tax sub
-     class id2,id3,id4,id5,id6,id7,id8 tool
-
-.. mermaid::
-    flowchart TD
-      %% Main entry point
-      id1(16S Amplicon Analysis) --> quality
-
       subgraph quality [Quality Control]
         direction LR
         id2("1. adapter removal<br/>⚙️ cutadapt") --> id3("2. trim reads<br/>⚙️ dada2")
