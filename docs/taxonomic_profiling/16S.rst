@@ -93,6 +93,40 @@ V4-V5       515F/926R           | GTGCCAGCMGCCGCGGTAA/   | Bacteria &  411    `P
      class quality,DADA2,tax sub
      class id2,id3,id4,id5,id6,id7,id8 tool
 
+.. mermaid::
+    flowchart TD
+      %% Main entry point
+      id1(16S Amplicon Analysis) --> quality
+
+      subgraph quality [Quality Control]
+        direction LR
+        id2("1. adapter removal<br/>⚙️ cutadapt") --> id3("2. trim reads<br/>⚙️ dada2")
+      end
+
+      quality --> DADA2
+
+      subgraph DADA2 [DADA2 Pipeline]
+        direction LR
+        id4("3. learning errors<br/>⚙️ dada2") --> id5("4. sample inference<br/>⚙️ dada2")
+        id5 --> id6("5. read merging<br/>⚙️ dada2")
+        id6 --> id7("6. chimera removal<br/>⚙️ dada2")
+      end
+
+      DADA2 --> tax
+
+      subgraph tax [Taxonomic Annotation]
+        id8("7. assign taxonomy<br/>⚙️ IDTAXA")
+      end
+
+      %% Class and Styles Definition
+      classDef tool fill:#96D2E7,stroke:#F8F7F7,stroke-width:1px,color:#000;
+      classDef sub fill:#eeeeee,stroke:#000000;
+
+      style id1 fill:#5A729A,stroke:#F8F7F7,stroke-width:1px,color:#fff
+
+      class quality,DADA2,tax sub
+      class id2,id3,id4,id5,id6,id7,id8 tool
+
 
 
 1. **Removing adapters and splitting reads in forward/reverse orientation**. It is essential to remove adapter sequences for DADA2 pipeline to work properly. For this purpose we use cutadapt_. We run cutadapt_ multiple times to remove adapters that were added to the sequence multiple times. While this rarely happens, this step saves some work in the downstream analysis. We also split forward and reverse inserts (e.g. 515-926 inserts from 926-515 inserts), as the sequencing protocol produces both orientations.
