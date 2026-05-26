@@ -42,7 +42,7 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'annotation/bgc.rst', 'annotation/mvirs.rst',
                     'modelling/modelling.rst', 'taxonomic_profiling/function.rst', 'taxonomic_profiling/variants.rst',
                     'transcriptomics/metatranscriptomics_old_guide.rst', 'transcriptomics/transcriptomics.rst',
-                    'workflows/workflows.rst']
+                    'transcriptomics/metatranscriptomics_defined_community.rst', 'workflows/workflows.rst']
 
 
 # -- Options for HTML output -------------------------------------------------
