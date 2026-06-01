@@ -395,9 +395,9 @@ Why normalize?
 
 Before we perform PCA and other exploratory analyses, we need to normalize our count data to account for:
 
-1.  **Gene length bias:** Longer genes generate more reads even at equal expression
-2.  **Library size differences:** Samples with more total reads have higher counts
-3.  **Compositionality:** In (meta)transcriptomics, counts are relative (can't measure "absolute" expression)
+  1.  **Gene length bias:** Longer genes generate more reads even at equal expression
+  2.  **Library size differences:** Samples with more total reads have higher counts
+  3.  **Compositionality:** In (meta)transcriptomics, counts are relative (can't measure "absolute" expression)
 
 **Important distinction:** 
   - **For visualization/PCA:** We'll use TPM → log2 or CLR transformation 
@@ -406,9 +406,15 @@ Before we perform PCA and other exploratory analyses, we need to normalize our c
 Method 1: TPM (Transcripts Per Million)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**TPM normalization:** 1. Divide counts by gene length (in kb) → reads per kilobase (RPK) 2. Sum all RPK values in the sample → "per million" scaling factor 3. Divide each RPK by this scaling factor and multiply by 10\^6
+**TPM normalization:** 
+  1. Divide counts by gene length (in kb) → reads per kilobase (RPK) 
+  2. Sum all RPK values in the sample → "per million" scaling factor
+  3. Divide each RPK by this scaling factor and multiply by 10\^6
 
-**Result:** TPM values are comparable: - Within samples (gene-to-gene) - Between samples (same gene across conditions) - Sum to \~1 million per sample
+**Result:** TPM values are comparable: 
+  - Within samples (gene-to-gene) 
+  - Between samples (same gene across conditions) 
+  - Sum to \~1 million per sample
 
 .. code-block:: r
 
@@ -494,7 +500,7 @@ CLR transformation is **compositionally-aware** - important for (meta)transcript
 
 \- Preserves relative relationships
 
-\- Better for PCA of compositional data (?)
+\- Better for PCA of compositional data 
 
 **How it works:**
 
@@ -754,11 +760,10 @@ Setup:
     theme_set(theme_bw(base_size = 12))
 
 
-**Expected data structure:** - `count_data`: columns for locus_tag/ID,
-genome, and one column per sample with raw counts - `sample_data`:
-sample_id, condition/treatment variables (e.g., Treatment) -
-`annotations`: functional annotations for genes (optional, for
-interpretation)
+**Expected data structure:** 
+  - `count_data`: columns for locus_tag/ID, genome, and one column per sample with raw counts 
+  - `sample_data`: sample_id, condition/treatment variables (e.g., Treatment) 
+  - `annotations`: functional annotations for genes (optional, for interpretation)
 
 Helper Functions
 ^^^^^^^^^^^^^^^^
@@ -1348,17 +1353,17 @@ ORA Analysis
 
 Interpretation Tips
 ^^^^^^^^^^^^^^^^^^^
-**Enrichment ratio:** \>1 means pathway is over-represented - Ratio = 2:
-pathway has 2× more DE genes than expected by chance - Ratio \< 1:
-pathway is under-represented
+**Enrichment ratio:** \>1 means pathway is over-represented 
+   - Ratio = 2: pathway has 2× more DE genes than expected by chance 
+   - Ratio \< 1: pathway is under-represented
 
-**P-value:** probability of seeing this enrichment by chance - Use
-adjusted p-value (padj) to control for multiple testing - Typical
-cutoff: padj \< 0.05
+**P-value:** probability of seeing this enrichment by chance 
+   - Use adjusted p-value (padj) to control for multiple testing 
+   - Typical cutoff: padj \< 0.05
 
-**Count:** Number of DE genes in the pathway - Small counts may not be
-biologically meaningful even if significant - Consider requiring minimum
-count (e.g., ≥3 genes)
+**Count:** Number of DE genes in the pathway 
+   - Small counts may not be biologically meaningful even if significant 
+   - Consider requiring minimum count (e.g., ≥3 genes)
 
 Functional Analysis using STRING-db
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
