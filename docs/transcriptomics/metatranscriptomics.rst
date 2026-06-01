@@ -55,9 +55,9 @@ For the analysis, we will need :download:`these three datasets <../downloads/met
 ``METAT_DE_results.RData``              Differential expression results (alternative, currently unused)
 =================================   ===================================================================
 
-You can download the lecture slides :download:`here <../downloads/METAT_lecture_slides.pdf>`
+You can download the lecture slides :download:`here <../downloads/METAT_lecture_slides.pdf>`.
 
-Part 1: Exploratory Data Analysis
+Exploratory Data Analysis
 ---------------------------------
 
 Goals
@@ -70,7 +70,7 @@ Goals
 
 4.  Use PCA and correlation heatmaps for quality control
 
-1.1 Library composition overview
+Library composition overview
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In metatranscriptomics, understanding the compositional structure of your data is critical. Unlike single-organism RNAseq, changes in microbial community composition can confound gene expression patterns. Before we look at differential expression, we want to visualize:
@@ -180,6 +180,7 @@ We need to aggregate gene-level counts to **strain-level counts**. This requires
 -   Aggregation: we use `group_by` combined with `mutate`. `mutate` adds a new column to the existing data frame while respecting the grouping. This calculates the totals while keeping the structure intact
 
 .. code-block:: r
+    
     # Join counts with genome IDs
     raw_counts_with_strain <- raw_counts %>%
       left_join(functional_annotation %>% select(locus_tag, genome), by = "locus_tag")
@@ -195,6 +196,7 @@ We need to aggregate gene-level counts to **strain-level counts**. This requires
     raw_counts_long %>% head()
 
 .. code-block:: r
+
     raw_counts_processed <- raw_counts_long %>%
       # 1. Calculate Sample Total (Library Size)
       group_by(sample_id) %>%
@@ -227,6 +229,7 @@ We need to aggregate gene-level counts to **strain-level counts**. This requires
 -   Visualize transcriptome composition. **Important**: the transcriptome composition does not directly represent taxonomic composition. Why?
 
 .. code-block:: r
+
     new_order <- sample_data %>% arrange(Treatment)%>% pull(sample_id)
     oligo_metat_composition$sample_id <- factor(
       oligo_metat_composition$sample_id,
@@ -280,7 +283,7 @@ We need to aggregate gene-level counts to **strain-level counts**. This requires
 
 To estimate taxonomic composition, we could normalize by genome length, or (better) use other tools /sequencing methods (i.e. 16S, mOTUs on transcriptomic data).
 
-1.2 Sequencing Depth and Sample Quality Assessment
+Sequencing Depth and Sample Quality Assessment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In metatranscriptomics, total library size isn't enough - we need adequate coverage **per strain** to detect differential expression. A sample with 10M total reads might have:
@@ -396,7 +399,9 @@ Before we perform PCA and other exploratory analyses, we need to normalize our c
 2.  **Library size differences:** Samples with more total reads have higher counts
 3.  **Compositionality:** In (meta)transcriptomics, counts are relative (can't measure "absolute" expression)
 
-**Important distinction:** - **For visualization/PCA:** We'll use TPM → log2 or CLR transformation - **For differential expression:** DESeq2 does its own normalization (median-of-ratios with taxon-specific scaling)
+**Important distinction:** 
+  - **For visualization/PCA:** We'll use TPM → log2 or CLR transformation 
+  - **For differential expression:** DESeq2 does its own normalization (median-of-ratios with taxon-specific scaling)
 
 Method 1: TPM (Transcripts Per Million)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1166,9 +1171,6 @@ topGO
         # load annotations and de_results
         # load("METAT_DE_results.RData")
         load("METAT_DE_results_I48GO.RData")
-        # Create masks for upgregulated /downregulated genes
-
-        de_results <- de_results %>%    .. code-block:: r
 
         # Create masks for upgregulated /downregulated genes
 
