@@ -1142,3 +1142,309 @@ Key Takeaways
 
 5.  You can visualize your results (volcano plots, MA plots, heatmaps) to
     understand global patterns
+
+
+Functional Enrichment Analysis
+------------------------------
+Functional enrichment identifies biological pathways that are
+over-represented among differentially expressed genes compared to what
+we'd expect by chance.
+
+**Key concept:** If 5% of all genes are in "Iron metabolism" pathway,
+but 20% of our DE genes are in that pathway, it's likely enriched.
+
+topGO
+^^^^^
+
+.. code-block:: r
+
+        rm(list=ls())
+        library(GO.db)
+        library(topGO)
+        library(tidyverse)
+        library(dplyr)
+        # load annotations and de_results
+        # load("METAT_DE_results.RData")
+        load("METAT_DE_results_I48GO.RData")
+        # Create masks for upgregulated /downregulated genes
+
+        de_results <- de_results %>%    .. code-block:: r
+
+        # Create masks for upgregulated /downregulated genes
+
+        de_results <- de_results %>%
+                mutate(padj_up = ifelse(log2FoldChange < 1, 1, padj),
+                        padj_down = ifelse(log2FoldChange > -1, 1, padj))
+
+Look for enrichment in upregulated genes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Let's look at GO terms enriched in downregulated genes:
+
+.. code-block:: r
+
+    gene_list <- de_results$padj_down
+    names(gene_list) <- de_results$ID
+
+    topDiffGenes <- function(allScore) {
+    return(allScore < 0.01)
+    }
+
+    sampleGOdata <- new("topGOdata",
+                        description = "Simple session",
+                        ontology = "BP",
+                        allGenes = gene_list,
+                        geneSel = topDiffGenes,
+                        nodeSize = 10,
+                        annot = topGO::annFUN.gene2GO,
+                        gene2GO = geneID2GO)
+
+
+    result <- runTest(sampleGOdata,
+                            algorithm = "weight01", statistic = "fisher")
+
+
+    all_res <- GenTable(sampleGOdata, weight01Fisher=result, topNodes = 20)
+
+    all_res
+
+
+Functional enrichment with clusterProfiler
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Everything is done for each strain separately, for this exercise we will be working with **I48**. As homework, you can look at the other strains in the community.
+
+.. code-block:: r
+
+    library(enrichplot)
+    library(clusterProfiler)
+    library(KEGGREST)
+
+    # Load KEGG pathway annotations
+
+    # Process all NA values correctly
+    kegg_annotations <- annotations %>%
+    mutate(KEGG_Pathway = case_when(
+        KEGG_Pathway  == "-" ~ NA_character_,
+        KEGG_Pathway  == "nan" ~ NA_character_,
+        KEGG_Pathway  == "" ~ NA_character_,
+        TRUE ~ KEGG_Pathway
+    ))
+
+
+    # Get list of all genes with pathway annotations for I48
+    annotated_genes <- kegg_annotations %>% filter(!is.na(KEGG_Pathway)) %>%
+                        filter(genome == 'I48')
+
+    all_annotated_genes <- unique(annotated_genes$locus_tag)
+    length(all_annotated_genes)
+
+    # Process into long format (one row per locus_tag-pathway pair)
+    term2gene <- annotated_genes %>%
+    # Separate comma-separated pathways into multiple rows
+    separate_rows(KEGG_Pathway, sep = ",") %>%
+    # Remove any whitespace
+    mutate(KEGG_Pathway = str_trim(KEGG_Pathway)) %>%
+    filter(str_starts(KEGG_Pathway, "ko")) %>%
+    as.data.frame() %>%
+    # Select only needed columns (pathway, locus_tag)
+    dplyr::select(pathway = KEGG_Pathway, locus_tag = locus_tag) %>%
+    # Remove any remaining NAs or empty strings
+    filter(pathway != "", !is.na(pathway))
+
+    # View the result
+    head(term2gene, 20)
+
+Prepare DE Gene Lists
+^^^^^^^^^^^^^^^^^^^^^
+- Load DE results
+- For ORA, need lists of up and down regulated genes
+- For GSEA, need a list of all genes, ranked (for example by log2FoldChange)
+
+.. code-block:: r
+
+    # Get significant DE genes from your results
+    de_results <- de_results %>% left_join(kegg_annotations %>%
+                dplyr::select(locus_tag, genome), by = c('ID' = 'locus_tag')) %>%
+                filter(genome == 'I48')
+    down_genes <- de_results %>% filter(log2FoldChange < -1,  padj < 0.05) %>%
+                pull(ID)
+    up_genes <- de_results %>% filter(log2FoldChange > 1, padj < 0.05) %>%
+                pull(ID)
+
+    all_genes <- de_results$ID
+
+    de_results_clean <- na.omit(de_results)
+    gsea_gene_list <- de_results_clean$log2FoldChange
+    names(gsea_gene_list) <- de_results_clean$ID
+    gsea_gene_list <- sort(gsea_gene_list, decreasing = TRUE)
+
+GSEA Analysis
+~~~~~~~~~~~~~
+
+.. code-block:: r
+
+    custom_gsea_results <- GSEA(
+    geneList = gsea_gene_list,           # Your sorted and named vector of all genes
+    TERM2GENE = term2gene,      # Your custom Gene Set to Gene mapping
+    minGSSize = 10,                # Minimum size of a gene set to be tested
+    pvalueCutoff = 0.1,
+    pAdjustMethod = "BH"
+    )
+
+    head(custom_gsea_results)
+    keggGet('ko01110')[[1]]$NAME
+
+    gseaplot2(custom_gsea_results,
+            geneSet = custom_gsea_results$ID[1],
+            title = custom_gsea_results$Description[1])
+
+ORA Analysis
+~~~~~~~~~~~~
+
+.. code-block:: r
+
+    kegg_ora_results <- enricher(
+    gene = down_genes,
+    universe = all_genes,
+    pvalueCutoff = 0.05,
+    qvalueCutoff = 0.05,
+    TERM2GENE = term2gene,
+    )
+
+    kegg_ora_results %>% head()
+
+    dotplot(kegg_ora_results, showCategory = 15) +
+    ggtitle("KEGG Over-Representation Analysis")
+
+
+    barplot(kegg_ora_results, showCategory = 15) +
+    ggtitle("Enriched Pathways")
+
+    #cnetplot(custom_gsea_results,
+    #        categorySize = "pvalue",
+    #         foldChange = NULL,  # can add fold changes if desired
+    #         showCategory = 10,
+    #        )
+
+    # Save enrichment results
+    write.csv(kegg_ora_results,
+            file.path(output_dir, "pathway_enrichment_manual.csv"),
+            row.names = FALSE)
+
+    write.csv(enrichment_cp@result,
+            file.path(output_dir, "pathway_enrichment_clusterProfiler.csv"),
+            row.names = FALSE)
+
+    # Save gene lists with pathway annotations
+    de_with_pathways <- de_genes %>%
+    data.frame(locus_tag = .) %>%
+    left_join(kegg_annotations, by = "locus_tag")
+
+    write.csv(de_with_pathways,
+            file.path(output_dir, "DE_genes_with_pathways.csv"),
+            row.names = FALSE)
+
+Interpretation Tips
+^^^^^^^^^^^^^^^^^^^
+**Enrichment ratio:** \>1 means pathway is over-represented - Ratio = 2:
+pathway has 2× more DE genes than expected by chance - Ratio \< 1:
+pathway is under-represented
+
+**P-value:** probability of seeing this enrichment by chance - Use
+adjusted p-value (padj) to control for multiple testing - Typical
+cutoff: padj \< 0.05
+
+**Count:** Number of DE genes in the pathway - Small counts may not be
+biologically meaningful even if significant - Consider requiring minimum
+count (e.g., ≥3 genes)
+
+Functional Analysis using STRING-db
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: r
+
+    # Load required libraries
+    library(httr)
+    library(readr)
+    library(dplyr)
+    library(stringr)
+    library(htmltools)
+
+    link_to_string_r <- function(gene_names, species, method = 'get_network', output_format = 'tsv') {
+
+    # 1. Species ID Mapping (Equivalent to Python's common_species dict)
+    common_species <- list(
+        'yeast' = 4932,
+        'ecoli' = 511145, # Example for E. coli K-12
+        'human' = 9606   # Example for human
+    )
+
+    # Handle species name to ID conversion
+    if (is.character(species)) {
+        if (species %in% names(common_species)) {
+        species <- common_species[[species]]
+        } else {
+        stop(paste0("Error: '", species, "' is undefined or not in the common_species list."))
+        }
+    }
+
+    # 2. API Setup (URL and Method)
+    string_api_url <- "https://version-12-0.string-db.org/api"
+
+    # Determine the request URL based on format and method
+    request_url <- paste(string_api_url, output_format, method, sep = "/")
+
+    # 3. Handle gene list length
+    if (length(gene_names) > 800) {
+        message("Error: Input gene list exceeds 800 identifiers. STRING recommends smaller batches.")
+        # Return NULL or handle as appropriate for your workflow
+        return(NULL)
+    }
+    # 4. Define Parameters
+    # NOTE: In R, use line breaks (\n) for `identifiers` in httr::POST.
+    params <- list(
+        "identifiers" = paste(gene_names, collapse = "\n"),
+        "species" = as.character(species),
+        "network_flavor" = "confidence",
+        "caller_identity" = "metat_ws"
+    )
+
+    # 5. Send POST Request
+    # httr::POST handles data submission and returns a response object
+    response <- POST(
+        url = request_url,
+        body = params,
+        encode = "form"
+    )
+
+    # 6. Process Output (Equivalent to reading the network.text)
+
+    if (method == 'get_link') {
+        # If getting a link, read the text content directly
+        network_url <- content(response, "text", encoding = "UTF-8")
+        parts <- unlist(strsplit(network_url, split = "\n"))
+        url_part <- parts[2]
+        clean_url <- trimws(url_part)
+        html_link_tag <- paste0('<a href="', clean_url, '" target="_blank">', clean_url, '</a>')
+        return(tagList(HTML(html_link_tag)))
+
+    } else if (method == 'get_network') {
+        # If getting network data (e.g., in TSV format)
+        # Check for HTTP errors
+        stop_for_status(response, task = "get data from STRING API")
+        # Read the content directly as a TSV table
+        string_data <- content(response, "text", encoding = "UTF-8") %>%
+        read_tsv(col_names = TRUE, show_col_types = FALSE)
+        return(string_data)
+    } else {
+        stop("Error: Method must be 'get_link' or 'get_network'")
+    }
+    }
+
+    link_to_string_r(
+    gene_names = down_genes,
+    species = 1796613, # STRING taxid for I48
+    method = 'get_link',
+    output_format = 'tsv'
+    )
+
