@@ -102,6 +102,11 @@ Parts A–C run real bioinformatics tools. Instead of installing them, you'll us
 MMseqs2, the clustering tool in Part B, needs more than 8 GB of memory even for small inputs. The Codespace asks for 4 cores and 16 GB by default; don't downgrade it. Free GitHub accounts include a monthly Codespaces allowance, and **stopping the Codespace when you take a break** saves it.
 :::
 
+::: {.callout-note}
+## Coming back later?
+Your Codespace keeps your files when it stops. To pick up where you left off, click the same button and choose **Resume**, or open it from [github.com/codespaces](https://github.com/codespaces). Codespaces you haven't used for 30 days are deleted.
+:::
+
 **Check your work as you go.** At the end of each part, run `./check a` (or `b`, `c`) in the terminal. It compares your results with the reference run.
 
 ```{ojs}
