@@ -1,0 +1,67 @@
+---
+title: "E. Going to real projects"
+subtitle: "What changes when you leave the teaching data behind"
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 10 min** reading</span>
+:::
+
+The workshop ran in seconds on three tiny metagenomes. A real study has tens to hundreds of samples, each with millions of reads. The steps stay the same; what changes is how you run them.
+
+## Before you start: do you need your own catalog?
+
+Building a catalog is worth it when your environment isn't well covered by existing ones. For many environments, large integrated catalogs exist. Mapping your reads to one of them (Part C only) saves a lot of compute, and makes your results comparable with other studies:
+
+- **Global ocean:** OM-RGC.v2 ([Salazar et al. 2019](https://doi.org/10.1016/j.cell.2019.10.014)), the catalog behind Part D
+- **Human gut:** the Unified Human Gastrointestinal Protein catalog, built from the UHGG genomes ([Almeida et al. 2021](https://doi.org/10.1038/s41587-020-0603-3))
+- **Many environments:** the Global Microbial Gene Catalog, GMGC ([Coelho et al. 2022](https://doi.org/10.1038/s41586-021-04233-4))
+
+Check the **mapping rate** (Part C) of your samples to an existing catalog first. If it's low, much of your community is missing, and building your own is justified.
+
+## Running the steps on a cluster
+
+| Step | Scales with | Notes |
+|---|---|---|
+| Assembly (metaSPAdes) | each sample | The most memory-hungry step; often more than 100 GB per sample for real data. Run one job per sample. |
+| Gene calling (Prodigal) | each sample | Single-threaded and light. Run one job per sample, or many in parallel. |
+| Clustering (MMseqs2) | all genes together | One job over the pooled genes of all samples. Needs plenty of memory even for small inputs (more than 8 GB in this workshop). |
+| Mapping (BWA) | each sample × catalog | One job per sample; multithreaded. Index the catalog once. |
+| Filtering and counting | each sample | Light; one job per sample. |
+
+On a Slurm cluster, per-sample steps fit naturally into a **job array**. A template for gene calling, with one task per line of `samples.txt`:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=prodigal
+#SBATCH --array=1-100            # one task per sample
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
+#SBATCH --time=04:00:00
+
+s=$(sed -n "${SLURM_ARRAY_TASK_ID}p" samples.txt)
+prodigal -p meta -c -q \
+  -i scaffolds/$s.scaffolds.min500.fasta \
+  -a genes/$s.faa -d genes/$s.fna -f gff -o genes/$s.gff
+```
+
+Resource requests here are a starting point. Check what your jobs actually used (e.g. with `seff <jobid>`) and adjust.
+
+::: {.callout-tip}
+## Use a workflow manager
+Once you have more than a handful of samples, describe the steps in a workflow manager such as [Snakemake](https://snakemake.readthedocs.io/) or [Nextflow](https://www.nextflow.io/). It runs the per-sample jobs for you, reruns only what changed, and records exactly what was run.
+:::
+
+## mCATs: the whole workflow in one tool
+
+Our lab is releasing **mCATs**, a tool that builds and profiles gene catalogs: Parts B and C of this lesson in a few commands, with exactly the clustering settings you used, and with proportional assignment of multi-mapping inserts. This section will link to it when it's public.
+
+## Reproducibility checklist
+
+- [ ] Record the version of every tool, especially **MMseqs2**: another release can cluster the same genes differently.
+- [ ] Keep the exact commands and parameters, ideally in a workflow file under version control.
+- [ ] Keep sample metadata (sequencing depth, environment) next to the count tables.
+- [ ] Report the mapping rate of every sample.
+- [ ] Deposit raw reads in a public archive ([ENA](https://www.ebi.ac.uk/ena/browser/home) or SRA) with good metadata.
+
+[← D. Downstream analysis](04-downstream.qmd){.btn .btn-outline-secondary} [Back to overview](index.qmd){.btn .btn-primary}

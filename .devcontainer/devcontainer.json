@@ -1,0 +1,29 @@
+{
+  "name": "Methods in Microbiomics: gene catalogs",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/mamba-org/devcontainer-features/micromamba:1": {}
+  },
+  "onCreateCommand": "micromamba env create -y -f .devcontainer/environment.yml && echo 'micromamba activate gene-catalogs' >> ~/.bashrc",
+  "postCreateCommand": "bash workshop/gene-catalogs/setup.sh",
+  "postAttachCommand": "cat workshop/gene-catalogs/WELCOME.txt",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "REditorSupport.r"
+      ],
+      "settings": {
+        "terminal.integrated.cwd": "${containerWorkspaceFolder}/workshop/gene-catalogs"
+      }
+    },
+    "codespaces": {
+      "openFiles": [
+        "workshop/gene-catalogs/README.md"
+      ]
+    }
+  }
+}

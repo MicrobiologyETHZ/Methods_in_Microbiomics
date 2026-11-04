@@ -1,0 +1,27 @@
+---
+title: "Methods in Microbiomics"
+subtitle: "Hands-on lessons for analysing microbiome sequencing data"
+toc: false
+---
+
+Lessons and best practices for robust, reproducible analysis of microbiome sequencing data, written by people who use these methods daily in the [Sunagawa group](https://micro.biol.ethz.ch/research/sunagawa.html) and the NCCR Microbiomes.
+
+Every lesson is something you **do**, not just read:
+
+- **Command-line steps** run in a ready-made cloud computer (GitHub Codespaces). The tools and data are already installed, so there's nothing to set up on your laptop.
+- **Analysis steps** run in R **directly in this page**. Edit the code, run it, and check yourself with exercises.
+- Each lesson ends with what changes when you go from the teaching data to a real project.
+
+## Learning paths
+
+::: {.path-card}
+### I have shotgun metagenomes
+**Gene catalogs: build, quantify, analyse.** Find the genes in your samples, measure how abundant they are per cell, and relate them to the environment.
+
+[Start the lesson →](lessons/gene-catalogs/index.qmd)
+:::
+
+::: {.callout-note}
+## This is a preview of the new site
+Methods in Microbiomics is moving to this new format one lesson at a time. The current site, with all protocols, is still at [methods-in-microbiomics.readthedocs.io](https://methods-in-microbiomics.readthedocs.io/).
+:::

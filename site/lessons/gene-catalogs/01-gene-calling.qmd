@@ -1,0 +1,199 @@
+---
+title: "A. Gene calling"
+subtitle: "Find the protein-coding genes in metagenomic assemblies"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - readr
+    - ggplot2
+resources:
+  - data/genes.csv
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 25 min**</span>
+<span>💻 **Runs in:** your Codespace terminal (`workshop/gene-catalogs/`)</span>
+<span>🔧 **Tool:** [Prodigal](https://github.com/hyattpd/Prodigal)</span>
+:::
+
+## What you'll learn
+
+- How to predict genes in metagenomic assemblies, and why metagenomes need a special mode.
+- What Prodigal's output files contain.
+- Why genes at the edges of contigs are a problem, and how we handle them.
+
+## The data
+
+The workshop has three small metagenomes (`metag1`–`metag3`). Their reads have already been quality-controlled and assembled with metaSPAdes, and scaffolds shorter than 500 bp were removed. You'll find:
+
+```text
+data/scaffolds/metag1.scaffolds.min500.fasta   assembled scaffolds, one file per sample
+data/reads/metag1.1.fq.gz, metag1.2.fq.gz       forward and reverse reads (used in Part C)
+```
+
+::: {.callout-note collapse="true"}
+## How were the assemblies made?
+With the commands from the [metagenomic assembly protocol](https://methods-in-microbiomics.readthedocs.io/en/latest/assembly/metagenomic_workflows.html):
+
+```{.bash .notest}
+metaspades.py -t 4 -m 12 --only-assembler \
+  --pe1-1 reads/metag1.1.fq.gz --pe1-2 reads/metag1.2.fq.gz -o asm/metag1
+python scaffold_filter.py metag1 scaffolds asm/metag1/scaffolds.fasta asm/metag1 META
+```
+
+The full recipe is in `data-prep/gene-catalogs/prepare.sh` in the repository.
+:::
+
+Take a look at the first scaffold names in the terminal:
+
+```bash
+grep ">" data/scaffolds/metag1.scaffolds.min500.fasta | head -3
+grep -c ">" data/scaffolds/*.fasta
+```
+
+The scaffold filter has renamed the scaffolds to `<sample>-scaffold_<n>`. Because the sample name is part of every scaffold name, gene names will stay unique when we pool all samples in Part B.
+
+## Predict genes with Prodigal
+
+[Prodigal](https://github.com/hyattpd/Prodigal) finds protein-coding genes by learning what genes look like in the input (codon usage, start codons, ribosome binding sites). Its default mode trains on a single genome. A metagenomic assembly contains many genomes, and most scaffolds are too short to train on, so we use the **metagenomic mode** (`-p meta`): pre-trained models from many reference genomes.
+
+```bash
+mkdir -p genes
+for s in metag1 metag2 metag3; do
+  prodigal -p meta -c -q \
+    -i data/scaffolds/$s.scaffolds.min500.fasta \
+    -a genes/$s.faa -d genes/$s.fna -f gff -o genes/$s.gff
+done
+ls genes
+```
+
+| Option | Meaning |
+|---|---|
+| `-p meta` | Metagenomic mode: use pre-trained gene models instead of training on the input |
+| `-c` | Closed ends: don't allow genes to run off the edges of a scaffold |
+| `-q` | Quiet: don't print progress |
+| `-i` | Input FASTA file |
+| `-a` | Write protein translations (amino acids) to this file |
+| `-d` | Write gene nucleotide sequences to this file |
+| `-f gff` / `-o` | Write gene coordinates in GFF format to this file |
+
+## Look at the output
+
+Prodigal writes three files per sample. The **GFF** file lists where each gene is:
+
+{{< include data/_excerpts/gff.md >}}
+
+The **protein** file (`.faa`) has one sequence per gene. The header holds the coordinates, the strand, and extra information:
+
+{{< include data/_excerpts/faa.md >}}
+
+The header fields are separated by `#`: gene name, start, end, strand (`1` forward, `-1` reverse), then attributes. Gene names are `<scaffold>_<n>`, so `metag1-scaffold_1_1` is the first gene on scaffold 1 of metag1. The `.fna` file has the same genes as nucleotide sequences.
+
+Count the genes per sample:
+
+```bash
+grep -c ">" genes/*.faa
+```
+
+::: {.callout-tip collapse="true"}
+## Expected output
+```text
+genes/metag1.faa:798
+genes/metag2.faa:899
+genes/metag3.faa:807
+```
+:::
+
+## Explore the genes
+
+The table `genes.csv` contains the information from all `.faa` headers of the reference run. Explore it here in the browser:
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+genes <- read_csv("data/genes.csv", show_col_types = FALSE)
+```
+
+```{webr}
+genes
+
+ggplot(genes, aes(length_nt)) +
+  geom_histogram(bins = 50) +
+  labs(x = "Gene length (nt)", y = "Number of genes")
+```
+
+### Exercise: start codons
+
+Most bacterial genes start with ATG, but not all. Count how many genes use each start codon (`start_type`). What fraction start with ATG?
+
+```{webr}
+#| exercise: ex_start
+genes %>%
+  count(______) %>%
+  mutate(fraction = n / sum(n))
+```
+
+::: {.hint exercise="ex_start"}
+`count()` takes the name of the column to count.
+:::
+
+::: {.solution exercise="ex_start"}
+```r
+genes %>%
+  count(start_type) %>%
+  mutate(fraction = n / sum(n))
+```
+About 85% start with ATG, about 11% with GTG and 5% with TTG, typical for bacteria.
+:::
+
+## Genes at the edges: the `partial` field
+
+Metagenomic assemblies are fragmented, so many genes are cut off by the end of a scaffold. Prodigal reports this in the `partial` attribute: `00` means complete, `10` means the gene runs off the left edge, `01` the right edge.
+
+```{webr}
+genes %>% count(partial)
+```
+
+All genes are complete because we used `-c`, which makes Prodigal drop genes that would run off an edge.
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("Using -c removes genes cut off at scaffold edges. What's the trade-off?", [
+  {text: "There's no trade-off: partial genes are always wrong", correct: false, why: "Partial genes are usually real genes; we just don't have all of them."},
+  {text: "We lose some real genes, especially on short scaffolds, but every gene in the catalog is complete", correct: true, why: "Complete genes cluster more reliably in Part B, and gene length normalisation in Part D assumes full-length genes. The price is missing genes in highly fragmented assemblies."},
+  {text: "Prodigal runs faster", correct: false, why: "Speed is not the reason; it's about the quality of the catalog."}
+])
+```
+
+```{ojs}
+//| echo: false
+quiz("Why do we run Prodigal with -p meta on metagenomic assemblies?", [
+  {text: "It's faster", correct: false, why: "Speed isn't the point."},
+  {text: "A metagenome contains many genomes, and its scaffolds are too short to train a single-genome model on", correct: true, why: "In meta mode, Prodigal uses pre-trained models from many reference genomes and picks the best one for each scaffold."},
+  {text: "It finds RNA genes too", correct: false, why: "Prodigal only predicts protein-coding genes in both modes."}
+])
+```
+
+## Check your work
+
+In the terminal:
+
+```bash
+./check a
+```
+
+## Key points
+
+- Use Prodigal's **metagenomic mode** (`-p meta`) for assemblies with many genomes.
+- Sample-prefixed scaffold names keep gene names unique when samples are pooled.
+- `-c` keeps only complete genes, so the catalog contains no partial genes.
+
+[← Overview](index.qmd){.btn .btn-outline-secondary} [B. Clustering →](02-clustering.qmd){.btn .btn-primary}

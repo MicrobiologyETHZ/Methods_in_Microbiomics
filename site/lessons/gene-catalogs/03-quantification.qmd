@@ -1,0 +1,267 @@
+---
+title: "C. Quantification"
+subtitle: "Map reads to the catalog and count inserts per gene"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - readr
+    - ggplot2
+resources:
+  - data/alignments_metag1_sample.csv
+  - data/mapping_stats.tsv
+  - data/gene_counts.tsv
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 40 min**</span>
+<span>💻 **Runs in:** your Codespace terminal, plus R in this page</span>
+<span>🔧 **Tools:** [BWA](https://github.com/lh3/bwa), [samtools](https://www.htslib.org/), R</span>
+:::
+
+## What you'll learn
+
+- How to map each sample's reads to the gene catalog.
+- How to keep only confident alignments, using alignment length and identity.
+- How to count **inserts** per gene, and what to do with inserts that match several genes.
+- How to judge how much of a community the catalog captures.
+
+![Profiling a gene catalog: reads from each sample are mapped back to the catalog and counted per gene.](images/Gene-Catalog-Profiling.png){fig-alt="Diagram showing reads from several samples mapped to a gene catalog, giving a table of counts per gene and sample."}
+
+## Map the reads
+
+First index the catalog, then map each sample's reads. The forward (`.1`) and reverse (`.2`) reads are mapped **separately** and only paired up after filtering, so that a good alignment of one mate still counts when the other mate doesn't align.
+
+```bash
+mkdir -p alignments
+bwa index catalog/catalog.fna
+
+for s in metag1 metag2 metag3; do
+  for r in 1 2; do
+    bwa mem -a -t 4 catalog/catalog.fna data/reads/$s.$r.fq.gz \
+      | samtools view -F 4 -b - > alignments/$s.r$r.bam
+  done
+done
+```
+
+| Option | Meaning |
+|---|---|
+| `bwa mem -a` | Report **all** alignments of a read, not just the best. Extra alignments are flagged as secondary. We need them to know when a read matches more than one gene. |
+| `-t 4` | Number of threads |
+| `samtools view -F 4` | Drop reads that didn't align (flag 4 = unmapped) |
+| `-b` | Write BAM (compressed) output |
+
+::: {.callout-note}
+## Reads or inserts?
+A read pair comes from one DNA fragment, the **insert**. We count inserts, not reads: if both mates of a pair hit a gene, that's one observation, not two. In the BAM files both mates share the same read name, which is how we pair them later.
+:::
+
+## Pull out what we need
+
+For filtering we need, for each alignment, the read name, the SAM flag, the gene, the **CIGAR** string (how the read aligns) and the **NM** tag (number of mismatches and indels):
+
+```bash
+for s in metag1 metag2 metag3; do
+  for r in 1 2; do
+    samtools view alignments/$s.r$r.bam \
+      | awk -v OFS='\t' '{ nm = "NA"; for (i = 12; i <= NF; i++) if ($i ~ /^NM:i:/) nm = substr($i, 6);
+                           print $1, $2, $3, $6, nm }' \
+      > alignments/$s.r$r.tsv
+  done
+done
+head -6 alignments/metag1.r1.tsv
+```
+
+{{< include data/_excerpts/alignments.md >}}
+
+Most reads align over their full length (`151M`: 151 matching positions). But look at `32M119S`: only 32 bases align, and the other 119 are **soft-clipped** (`S`), not part of the alignment. Is that read really from this gene?
+
+## Filter: keep only confident alignments
+
+We keep an alignment only if:
+
+- at least **45 bases** are aligned, and
+- the alignment is at least **95% identical**.
+
+The aligned length comes from the CIGAR string: add up the matches (`M`), insertions (`I`) and deletions (`D`), and ignore clipped bases (`S`, `H`). Identity is the fraction of aligned positions that aren't edits: `(aligned length − NM) / aligned length`.
+
+Let's work on a sample from metag1: all alignments of 3,000 inserts, from both mates.
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+alignments <- read_csv("data/alignments_metag1_sample.csv", show_col_types = FALSE)
+```
+
+```{webr}
+alignments
+```
+
+### Exercise: aligned length from a CIGAR string
+
+Complete the function so it returns the number of aligned positions in a CIGAR string. Test it: `"32M119S"` should give 32, and `"20M2I100M3D26M"` should give 151.
+
+```{webr}
+#| exercise: ex_cigar
+aligned_length <- function(cigar) {
+  # split "32M119S" into c("32M", "119S")
+  ops <- regmatches(cigar, gregexpr("[0-9]+[MIDNSHP=X]", cigar))[[1]]
+  n <- as.integer(sub("[A-Z=]$", "", ops))   # the numbers: 32, 119
+  op <- sub("^[0-9]+", "", ops)               # the letters: "M", "S"
+  sum(n[op %in% ______])
+}
+
+aligned_length("32M119S")
+aligned_length("20M2I100M3D26M")
+```
+
+::: {.hint exercise="ex_cigar"}
+Which operations are part of the alignment? Matches/mismatches `M`, insertions `I` and deletions `D` (`=` and `X` are the explicit forms of `M`). Write them as a character vector: `c("M", ...)`.
+:::
+
+::: {.solution exercise="ex_cigar"}
+```r
+aligned_length <- function(cigar) {
+  ops <- regmatches(cigar, gregexpr("[0-9]+[MIDNSHP=X]", cigar))[[1]]
+  n <- as.integer(sub("[A-Z=]$", "", ops))
+  op <- sub("^[0-9]+", "", ops)
+  sum(n[op %in% c("M", "I", "D", "=", "X")])
+}
+
+aligned_length("32M119S")
+aligned_length("20M2I100M3D26M")
+```
+:::
+
+```{webr}
+#| exercise: ex_cigar
+#| check: true
+if (exists("aligned_length") &&
+    aligned_length("32M119S") == 32 && aligned_length("20M2I100M3D26M") == 151 &&
+    aligned_length("10S50M") == 50) {
+  list(correct = TRUE, type = "success", message = "Correct: clipped bases are not counted, insertions and deletions are.")
+} else {
+  list(correct = FALSE, type = "error", message = "Not quite. Check: 32M119S → 32, 20M2I100M3D26M → 151, 10S50M → 50.")
+}
+```
+
+Now apply it to every alignment and see how many pass:
+
+```{webr}
+aligned_length <- function(cigar) {
+  ops <- regmatches(cigar, gregexpr("[0-9]+[MIDNSHP=X]", cigar))[[1]]
+  n <- as.integer(sub("[A-Z=]$", "", ops))
+  op <- sub("^[0-9]+", "", ops)
+  sum(n[op %in% c("M", "I", "D", "=", "X")])
+}
+
+alignments <- alignments %>%
+  mutate(aln_length = vapply(cigar, aligned_length, numeric(1)),
+         identity = (aln_length - nm) / aln_length,
+         passed = aln_length >= 45 & identity >= 0.95)
+
+alignments %>% count(passed) %>% mutate(fraction = n / sum(n))
+
+ggplot(alignments, aes(aln_length, identity, colour = passed)) +
+  geom_jitter(alpha = 0.4, width = 0.5, height = 0.002) +
+  geom_vline(xintercept = 45, linetype = 2) +
+  geom_hline(yintercept = 0.95, linetype = 2) +
+  labs(x = "Aligned length (bp)", y = "Identity")
+```
+
+Most alignments are full-length and identical, which is expected: the catalog was built from these very samples. The alignments that fail are mostly **short**, where a read only partly overlaps a gene, for example at the gene's end.
+
+## Count inserts per gene
+
+After filtering, every insert has zero, one or more passing alignments, from either mate. An insert is **unique** if all its passing alignments hit **the same gene**.
+
+```{webr}
+inserts <- alignments %>%
+  filter(passed) %>%
+  group_by(insert) %>%
+  summarise(n_genes = n_distinct(gene), gene = first(gene), .groups = "drop")
+
+inserts %>% count(n_genes)
+```
+
+Most inserts hit one gene. Some hit two or more: **multi-mapping inserts**, typically from near-identical regions shared by different genes.
+
+::: {.callout-note}
+## What about multi-mapping inserts?
+In this lesson we count **unique inserts only** and set multi-mapping ones aside. That's simple, but it undercounts genes that share sequence with others. A better approach distributes each multi-mapping insert among its genes **in proportion to how many unique inserts each gene has**. Our lab's tool **mCATs**, coming soon, does exactly this. We'll add a section on it here once it's public.
+:::
+
+### Exercise: count unique inserts per gene
+
+Using `inserts`, keep the unique ones and count how many each gene gets. Which gene has the most?
+
+```{webr}
+#| exercise: ex_count
+inserts %>%
+  filter(______) %>%
+  count(gene, sort = TRUE)
+```
+
+::: {.hint exercise="ex_count"}
+Unique inserts are those with `n_genes == 1`.
+:::
+
+::: {.solution exercise="ex_count"}
+```r
+inserts %>%
+  filter(n_genes == 1) %>%
+  count(gene, sort = TRUE)
+```
+:::
+
+## Run it for all samples
+
+The workshop has a script with exactly these steps (filtering, pairing mates, unique counting) for every sample:
+
+```bash
+Rscript solutions/count_genes.R alignments data/reads counts
+head counts/gene_counts.tsv
+```
+
+It writes `counts/gene_counts.tsv` (inserts per gene and sample) and `counts/mapping_stats.tsv`:
+
+```{webr}
+read_tsv("data/mapping_stats.tsv", show_col_types = FALSE)
+```
+
+The **mapping rate** is the fraction of all inserts that have at least one passing alignment. It tells you how much of the community your catalog represents.
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("Here the mapping rate is above 96%. In a real study, mapping to a published catalog, you find 40%. What does that most likely mean?", [
+  {text: "The sequencing failed", correct: false, why: "A sequencing problem would show up in quality control, not mainly as a low mapping rate."},
+  {text: "Much of your community isn't in the catalog", correct: true, why: "Reads from organisms or genes missing from the catalog can't map. Our toy rate is so high because the catalog was built from these same three samples."},
+  {text: "The filtering thresholds are too strict", correct: false, why: "45 bp and 95% identity remove only a few percent of alignments, as you saw above."}
+])
+```
+
+## Check your work
+
+```bash
+./check c
+```
+
+## Key points
+
+- Map forward and reverse reads separately with `bwa mem -a`, and pair them up after filtering.
+- Keep alignments with **≥45 aligned bases** and **≥95% identity**, computed from the CIGAR string and NM tag.
+- Count **inserts**, not reads. Here we count only unique inserts; proportional assignment of multi-mappers is coming with mCATs.
+- The **mapping rate** tells you how much of the community the catalog captures.
+
+The counts are raw: they still depend on gene length and sequencing depth. Part D shows how to normalise them, on a real dataset.
+
+[← B. Clustering](02-clustering.qmd){.btn .btn-outline-secondary} [D. Downstream analysis →](04-downstream.qmd){.btn .btn-primary}

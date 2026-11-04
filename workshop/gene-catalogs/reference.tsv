@@ -1,0 +1,11 @@
+part	metric	value
+a	metag1_genes	798
+a	metag2_genes	899
+a	metag3_genes	807
+b	genes_clustered	2504
+b	clusters	1059
+b	catalog_sequences	1059
+c	metag1_unique_inserts	16663
+c	metag2_unique_inserts	30931
+c	metag3_unique_inserts	20072
+c	genes_detected	1037

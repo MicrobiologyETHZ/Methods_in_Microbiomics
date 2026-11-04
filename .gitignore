@@ -296,7 +296,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-/site
+# /site (mkdocs) removed: the Quarto site lives in site/
 
 # mypy
 .mypy_cache/
@@ -421,10 +421,19 @@ buildNumber.properties
 
 # added by Anna for general purposes :)
 
-*data*
 *.xmind
 /other
 
 # large file
 docs/downloads/metatranscriptomics_tutorial.zip
 
+
+# new site (Quarto) and workshop outputs
+site/_site/
+site/.quarto/
+site/_freeze/
+workshop/gene-catalogs/data/reads/
+workshop/gene-catalogs/genes/
+workshop/gene-catalogs/catalog/
+workshop/gene-catalogs/alignments/
+workshop/gene-catalogs/counts/

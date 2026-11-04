@@ -1,0 +1,4 @@
+sample	total_inserts	mapped_inserts	unique_inserts	multi_inserts	mapping_rate
+metag1	20000	19497	16663	2834	0.9748
+metag2	36000	34812	30931	3881	0.967
+metag3	24000	23147	20072	3075	0.9645

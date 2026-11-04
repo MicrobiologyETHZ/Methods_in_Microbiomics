@@ -1,0 +1,10 @@
+.lesson-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding: .75rem 1rem;
+  border-left: 4px solid #2780e3; background: rgba(39,128,227,.06); margin-bottom: 1.5rem; }
+.lesson-meta span { white-space: nowrap; }
+.path-card { border: 1px solid rgba(127,127,127,.3); border-radius: .5rem; padding: 1rem 1.25rem; margin: 1rem 0; }
+.path-card h3 { margin-top: 0; }
+.quiz { border: 1px dashed rgba(127,127,127,.5); border-radius: .5rem; padding: .75rem 1rem; margin: 1rem 0; }
+.quiz-feedback { font-weight: 500; margin-top: .25rem; }
+.codespace-button { display: inline-block; padding: .5rem 1rem; border-radius: .4rem;
+  background: #24292f; color: #fff !important; text-decoration: none; font-weight: 600; }
+.codespace-button:hover { background: #3b434b; }

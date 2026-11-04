@@ -1,0 +1,46 @@
+#!/usr/bin/env Rscript
+# Check your results against the reference run.
+# Usage: ./check a      (or b, c, or several: ./check a b c)
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0 || !all(args %in% c("a", "b", "c"))) {
+  cat("Usage: ./check a|b|c   (one or more parts)\n")
+  quit(status = 2)
+}
+
+here <- dirname(normalizePath(sub("--file=", "", grep("--file=", commandArgs(), value = TRUE))))
+source(file.path(here, "solutions", "metrics.R"))
+reference <- read.delim(file.path(here, "reference.tsv"))
+yours <- lesson_metrics(here)
+
+hints <- c(
+  a = "Run prodigal for each sample with -p meta -c and write the proteins to genes/<sample>.faa.",
+  b = "Cluster genes.fna.gz with exactly the mmseqs commands on the page, then build catalog/catalog.fna.",
+  c = "Map both read files of every sample, filter (>= 45 bp aligned, >= 95% identity) and count unique inserts into counts/gene_counts.tsv."
+)
+labels <- c(a = "Part A: gene calling", b = "Part B: clustering", c = "Part C: quantification")
+
+all_ok <- TRUE
+for (part in args) {
+  cat("\n", labels[part], "\n", sep = "")
+  ref <- reference[reference$part == part, ]
+  got <- yours[yours$part == part, ]
+  part_ok <- TRUE
+  for (i in seq_len(nrow(ref))) {
+    m <- ref$metric[i]
+    expected <- ref$value[i]
+    value <- got$value[got$metric == m]
+    if (is.na(value)) {
+      cat(sprintf("  ❌ %-28s file not found yet\n", m))
+      part_ok <- FALSE
+    } else if (abs(value - expected) <= 0.01 * expected) {
+      cat(sprintf("  ✅ %-28s %s\n", m, format(value, big.mark = ",")))
+    } else {
+      cat(sprintf("  ❌ %-28s %s (expected %s)\n", m, format(value, big.mark = ","),
+                  format(expected, big.mark = ",")))
+      part_ok <- FALSE
+    }
+  }
+  if (!part_ok) cat("  Hint: ", hints[part], "\n", sep = "")
+  all_ok <- all_ok && part_ok
+}
+quit(status = if (all_ok) 0 else 1)

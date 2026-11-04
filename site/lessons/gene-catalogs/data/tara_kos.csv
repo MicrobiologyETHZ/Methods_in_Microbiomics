@@ -1,0 +1,13 @@
+KO,Description
+K01409,"KAE1, tsaD, QRI7; N6-L-threonylcarbamoyladenine synthase"
+K01869,"LARS, leuS; leucyl-tRNA synthetase"
+K01873,"VARS, valS; valyl-tRNA synthetase"
+K01875,"SARS, serS; seryl-tRNA synthetase"
+K01883,"CARS, cysS; cysteinyl-tRNA synthetase"
+K01887,"RARS, argS; arginyl-tRNA synthetase"
+K01889,"FARSA, pheS; phenylalanyl-tRNA synthetase alpha chain"
+K03040,rpoA; DNA-directed RNA polymerase subunit alpha
+K03043,rpoB; DNA-directed RNA polymerase subunit beta
+K03106,"SRP54, ffh; signal recognition particle subunit SRP54"
+K03110,ftsY; fused signal recognition particle receptor
+K06942,ychF; ribosome-binding ATPase

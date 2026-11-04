@@ -1,0 +1,324 @@
+---
+title: "B. Clustering"
+subtitle: "Turn the genes of all samples into one non-redundant catalog"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - readr
+    - ggplot2
+resources:
+  - data/sweep.csv
+  - data/genes.cluster.tsv
+  - data/clusters.tsv
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 30 min**</span>
+<span>💻 **Runs in:** your Codespace terminal, plus R in this page</span>
+<span>🔧 **Tool:** [MMseqs2](https://github.com/soedinglab/MMseqs2) Release 18-8cc5c</span>
+:::
+
+## What you'll learn
+
+- Why genes from different samples must be clustered before counting.
+- How greedy clustering works, and what the 95% identity / 90% coverage thresholds mean.
+- How to run MMseqs2 to build the catalog, and how to read its output.
+
+## Why cluster?
+
+The same organism is often present in several samples, so the same gene gets predicted again in each assembly. Small differences between assemblies (sequencing errors, a different strain) make the copies **nearly**, but not exactly, identical. If we kept them all, reads from one gene would be split between several catalog entries.
+
+Clustering groups genes that are at least **95% identical over at least 90% of their length**, and keeps one **representative** per cluster. 95% nucleotide identity is a common working boundary between species, so a cluster roughly corresponds to one gene of one species.
+
+## How the clusters are formed
+
+We use MMseqs2 in **greedy** mode, the same strategy as CD-HIT, which it replaces in our workflow:
+
+1. Sort all genes from longest to shortest.
+2. The longest gene not yet in a cluster becomes a **representative**.
+3. Every unclustered gene that is ≥95% identical to it over ≥90% of **its own** length joins its cluster.
+4. Repeat until every gene is in a cluster.
+
+Each cluster is built around one gene: every member matches the representative, but two members need not match each other. So clusters **can't grow in chains**, as they can with single linkage.
+
+Step through the example. Eight genes, sorted by length; lines show pairs that pass both thresholds, and grey dashed lines show pairs that don't.
+
+```{ojs}
+//| echo: false
+toyGenes = [
+  {id: "g1", length: 1500}, {id: "g2", length: 1450}, {id: "g3", length: 1400}, {id: "g4", length: 1200},
+  {id: "g5", length: 900}, {id: "g6", length: 880}, {id: "g7", length: 600}, {id: "g8", length: 300}
+]
+// identity, and alignment coverage of the shorter gene
+toyPairs = [
+  {a: "g1", b: "g2", identity: 0.97, coverage: 0.97},
+  {a: "g2", b: "g3", identity: 0.96, coverage: 0.98},
+  {a: "g1", b: "g3", identity: 0.93, coverage: 0.95},
+  {a: "g4", b: "g8", identity: 0.99, coverage: 1.00},
+  {a: "g5", b: "g6", identity: 0.98, coverage: 0.95},
+  {a: "g6", b: "g7", identity: 0.97, coverage: 0.85},
+  {a: "g5", b: "g7", identity: 0.80, coverage: 0.90}
+]
+passes = (p) => p.identity >= 0.95 && p.coverage >= 0.9
+pairFor = (x, y) => toyPairs.find(p => (p.a === x && p.b === y) || (p.a === y && p.b === x))
+
+greedySteps = {
+  const assigned = new Map();
+  const steps = [{text: "Start: genes are sorted from longest to shortest. Nothing is clustered yet.", assigned: new Map()}];
+  for (const g of toyGenes) {
+    if (assigned.has(g.id)) continue;
+    assigned.set(g.id, g.id);
+    const joined = [];
+    for (const m of toyGenes) {
+      if (assigned.has(m.id)) continue;
+      const p = pairFor(g.id, m.id);
+      if (p && passes(p)) { assigned.set(m.id, g.id); joined.push(m.id); }
+    }
+    steps.push({
+      text: `${g.id} is the longest unclustered gene, so it becomes a representative. ` +
+            (joined.length ? `${joined.join(", ")} join${joined.length === 1 ? "s" : ""} it.` : "No other unclustered gene matches it."),
+      assigned: new Map(assigned)
+    });
+  }
+  return steps;
+}
+
+singleLinkage = {
+  const parent = new Map(toyGenes.map(g => [g.id, g.id]));
+  const find = (x) => parent.get(x) === x ? x : find(parent.get(x));
+  for (const p of toyPairs) if (passes(p)) parent.set(find(p.b), find(p.a));
+  return new Map(toyGenes.map(g => [g.id, find(g.id)]));
+}
+
+viewof method = Inputs.radio(["Greedy (MMseqs2 --cluster-mode 2)", "Single linkage (for comparison)"], {value: "Greedy (MMseqs2 --cluster-mode 2)", label: "Method"})
+viewof step = Inputs.range([0, greedySteps.length - 1], {value: 0, step: 1, label: "Greedy step"})
+```
+
+```{ojs}
+//| echo: false
+current = method.startsWith("Greedy") ? greedySteps[step].assigned : singleLinkage
+clusterIds = [...new Set(toyGenes.map(g => current.get(g.id)).filter(d => d))]
+palette = d3.schemeTableau10
+colourOf = (id) => current.has(id) ? palette[clusterIds.indexOf(current.get(id)) % 10] : "#ccc"
+positions = new Map(toyGenes.map((g, i) => [g.id, {x: 60 + i * 85, y: 70}]))
+
+html`<div>
+<svg width="720" height="150" style="max-width:100%">
+  ${toyPairs.map(p => {
+    const a = positions.get(p.a), b = positions.get(p.b);
+    const ok = passes(p);
+    const mid = (a.x + b.x) / 2, lift = 25 + Math.abs(b.x - a.x) / 6;
+    return svg`<path d="M${a.x},${a.y - 18} Q${mid},${a.y - 18 - lift} ${b.x},${b.y - 18}" fill="none"
+      stroke="${ok ? "#555" : "#bbb"}" stroke-dasharray="${ok ? "" : "4 3"}"/>
+      <text x="${mid}" y="${a.y - 22 - lift / 2}" font-size="10" text-anchor="middle" fill="#777">${Math.round(p.identity * 100)}% / ${Math.round(p.coverage * 100)}%</text>`;
+  })}
+  ${toyGenes.map(g => {
+    const pos = positions.get(g.id);
+    const isRep = current.get(g.id) === g.id && method.startsWith("Greedy");
+    return svg`<rect x="${pos.x - 30}" y="${pos.y - 15}" width="60" height="30" rx="5"
+      fill="${colourOf(g.id)}" stroke="${isRep ? "#000" : "none"}" stroke-width="2.5"/>
+      <text x="${pos.x}" y="${pos.y + 4}" text-anchor="middle" font-size="13" fill="#fff" font-weight="600">${g.id}</text>
+      <text x="${pos.x}" y="${pos.y + 32}" text-anchor="middle" font-size="10" fill="#777">${g.length} bp</text>`;
+  })}
+</svg>
+<p>${method.startsWith("Greedy") ? greedySteps[step].text : "Single linkage puts any two genes that pass the thresholds in the same cluster, so g1, g2 and g3 end up together through g2, even though g1 and g3 are only 93% identical."}</p>
+<p><strong>${clusterIds.length} clusters</strong> so far. Representatives have a black outline. Labels: identity / coverage of the shorter gene.</p>
+</div>`
+```
+
+::: {.callout-note}
+## Follow along
+At the last greedy step, g3 forms its own cluster: it matches g2 (96%), but g2 is already in g1's cluster, and g3 is only 93% identical to the representative g1. Single linkage would chain them together. Also notice g8: a short gene that matches part of g4 over 100% of its own length, so it joins g4's cluster.
+:::
+
+## Build the catalog with MMseqs2
+
+First pool the genes of all samples. Only the nucleotide sequences are clustered; the proteins are carried along.
+
+```bash
+mkdir -p catalog
+cat genes/*.fna | gzip > catalog/genes.fna.gz
+cat genes/*.faa | gzip > catalog/genes.faa.gz
+cd catalog
+```
+
+### 1. Build the database
+
+```bash
+mmseqs createdb genes.fna.gz genes.db --dbtype 2 --shuffle 0
+```
+
+### 2. Cluster
+
+```bash
+mmseqs cluster genes.db genes.cluster tmp \
+    --kmer-per-seq-scale 0 \
+    --kmer-per-seq 1000 \
+    -s 4 \
+    --max-seq-len 80000 \
+    --remove-tmp-files 0 \
+    --cluster-mode 2 \
+    --min-seq-id 0.95 \
+    --threads 4 \
+    --cov-mode 1 \
+    -c 0.9 \
+    --spaced-kmer-mode 0 \
+    --alignment-mode 3 \
+    --cluster-reassign 1
+```
+
+### 3. Write the cluster table
+
+```bash
+mmseqs createtsv genes.db genes.db genes.cluster genes.cluster.tsv
+mmseqs version > mmseqs.version
+cd ..
+```
+
+| Flag | Meaning |
+|---|---|
+| `--dbtype 2` | The input is nucleotide sequence. |
+| `--shuffle 0` | Keep the input order, so a run can be reproduced. |
+| `--cluster-mode 2` | Greedy clustering, longest gene first (as in CD-HIT). |
+| `--min-seq-id 0.95` | A member is at least 95% identical to its representative. |
+| `--cov-mode 1`, `-c 0.9` | The alignment covers at least 90% of the member, which is the shorter of the two sequences. |
+| `--cluster-reassign 1` | Check every member again against its final representative. |
+| `--alignment-mode 3` | Compute the full alignment, so identity and coverage are exact. |
+| `--kmer-per-seq 1000`, `--kmer-per-seq-scale 0` | Use a fixed 1,000 k-mers per sequence in the prefilter. |
+| `-s 4` | Prefilter sensitivity. |
+| `--spaced-kmer-mode 0` | Use contiguous k-mers. |
+| `--max-seq-len 80000` | Allow very long genes. |
+| `--remove-tmp-files 0` | Keep MMseqs2's temporary files (you can delete `catalog/tmp` afterwards). |
+
+::: {.callout-important}
+## MMseqs2 needs memory
+Even for these small inputs, MMseqs2's nucleotide prefilter needs more than 8 GB of RAM. On a smaller machine it stops with `Cannot fit databases into …`. That's why the Codespace uses a 16 GB machine.
+:::
+
+::: {.callout-warning}
+## Record the MMseqs2 version
+We use **MMseqs2 Release 18-8cc5c**: `mmseqs version` prints `18.8cc5c`. Another release may cluster the same genes slightly differently, which changes the catalog. Always record the version (as we did in `mmseqs.version`) so a catalog can be reproduced.
+:::
+
+## What do the thresholds change?
+
+Our settings are fixed at 95% identity and 90% coverage, so that every catalog is built the same way. To see what they do, we clustered the same genes over a grid of thresholds, keeping all other flags as above:
+
+```{ojs}
+//| echo: false
+sweep = FileAttachment("data/sweep.csv").csv({typed: true})
+viewof sweepId = Inputs.select([...new Set(sweep.map(d => d.min_seq_id))], {value: 0.95, label: "--min-seq-id", format: d => d.toFixed(2)})
+viewof sweepCov = Inputs.select([...new Set(sweep.map(d => d.coverage))], {value: 0.9, label: "-c (coverage)", format: d => d.toFixed(2)})
+sweepPick = sweep.find(d => d.min_seq_id === sweepId && d.coverage === sweepCov)
+html`<p><strong>${sweepPick.clusters.toLocaleString()} clusters</strong> from ${sweepPick.genes.toLocaleString()} genes at ${sweepId.toFixed(2)} identity and ${sweepCov.toFixed(2)} coverage.</p>`
+Plot.plot({
+  x: {label: "--min-seq-id"}, y: {label: "Clusters in the catalog", grid: true},
+  color: {legend: true, label: "-c (coverage)", type: "ordinal", scheme: "viridis"},
+  marks: [
+    Plot.line(sweep, {x: "min_seq_id", y: "clusters", stroke: "coverage"}),
+    Plot.dot(sweep, {x: "min_seq_id", y: "clusters", stroke: "coverage"}),
+    Plot.ruleX([sweepId], {strokeDasharray: "4 3"})
+  ],
+  height: 280
+})
+```
+
+In these three samples, catalog size barely changes between 80% and 99% identity, because the samples share the same strains and their genes are almost identical. Only at 100% does it jump: tiny differences between assemblies (sequencing errors, assembly edges) now keep copies apart. In a real study with many related but distinct species, the identity threshold matters much more.
+
+## Read the cluster table
+
+`genes.cluster.tsv` has one `representative<TAB>member` line per gene. Every representative is also listed as a member of its own cluster:
+
+{{< include data/_excerpts/cluster_tsv.md >}}
+
+Here, `metag1-scaffold_2_16` is a representative, and the same gene was also found in metag2 and metag3.
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+clusters <- read_tsv("data/genes.cluster.tsv", col_names = c("representative", "member"),
+                     show_col_types = FALSE)
+```
+
+```{webr}
+clusters
+
+cat(nrow(clusters), "genes in", n_distinct(clusters$representative), "clusters\n")
+```
+
+### Exercise: how many samples does each cluster span?
+
+The sample is the first part of each gene name (`metag1-scaffold_2_16` comes from `metag1`). For each cluster, count how many **different samples** its members come from, then tabulate.
+
+```{webr}
+#| exercise: ex_span
+clusters %>%
+  mutate(sample = sub("-scaffold.*", "", member)) %>%
+  group_by(representative) %>%
+  summarise(n_samples = ______) %>%
+  count(n_samples)
+```
+
+::: {.hint exercise="ex_span"}
+`n_distinct()` counts the different values in a column.
+:::
+
+::: {.solution exercise="ex_span"}
+```r
+clusters %>%
+  mutate(sample = sub("-scaffold.*", "", member)) %>%
+  group_by(representative) %>%
+  summarise(n_samples = n_distinct(sample)) %>%
+  count(n_samples)
+```
+Most clusters contain genes from two or three samples: the three metagenomes share the same organisms. Some clusters have more members than there are samples: they contain several near-identical genes from the same assembly, for example multi-copy genes, or one gene assembled on separate scaffolds from closely related strains.
+:::
+
+## Name the clusters and write the catalog
+
+We name clusters by descending representative length, so `catalog_000000001` is the cluster with the longest representative, and write the representatives' sequences under those names. The workshop includes a script for this:
+
+```bash
+Rscript solutions/name_clusters.R catalog/genes.cluster.tsv catalog/genes.fna.gz catalog/clusters.tsv
+cut -f 2 catalog/clusters.tsv | tail -n +2 > catalog/representatives.txt
+seqtk subseq catalog/genes.fna.gz catalog/representatives.txt > catalog/representatives.fna
+seqtk subseq catalog/genes.faa.gz catalog/representatives.txt > catalog/representatives.faa
+for ext in fna faa; do
+  awk 'NR==FNR { if (FNR > 1) name[$2] = $1; next }
+       /^>/ { id = substr($1, 2); print ">" name[id]; next } { print }' \
+      catalog/clusters.tsv catalog/representatives.$ext > catalog/catalog.$ext
+done
+head -4 catalog/clusters.tsv
+```
+
+{{< include data/_excerpts/clusters.md >}}
+
+`catalog/catalog.fna` is your gene catalog. `catalog/catalog.faa` has the matching proteins, ready for functional annotation (e.g. KEGG or eggNOG).
+
+```{webr}
+catalog <- read_tsv("data/clusters.tsv", show_col_types = FALSE)
+
+ggplot(catalog, aes(size)) +
+  geom_bar() +
+  labs(x = "Genes per cluster", y = "Number of clusters")
+```
+
+## Check your work
+
+```bash
+./check b
+```
+
+## Key points
+
+- Cluster genes from all samples so that each gene is counted once.
+- Greedy, longest-first clustering: every member is ≥95% identical to its representative over ≥90% of its own length; no chaining.
+- Use the exact flags and **record the MMseqs2 version**: catalogs are only reproducible with the same release.
+
+[← A. Gene calling](01-gene-calling.qmd){.btn .btn-outline-secondary} [C. Quantification →](03-quantification.qmd){.btn .btn-primary}

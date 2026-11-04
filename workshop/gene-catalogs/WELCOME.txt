@@ -1,0 +1,7 @@
+
+  Methods in Microbiomics: Gene catalogs workshop
+  ------------------------------------------------
+  You are in workshop/gene-catalogs. Follow the lesson pages and run the commands here.
+  Check your progress at any time with:   ./check a   (or b, c)
+  Stuck? The reference solutions are in solutions/.
+

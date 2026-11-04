@@ -1,0 +1,47 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Methods in Microbiomics"
+  site-url: https://microbiologyethz.github.io/Methods_in_Microbiomics/
+  repo-url: https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics
+  repo-branch: next
+  repo-subdir: site
+  repo-actions: [edit, issue]
+  search: true
+  page-navigation: true
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - text: Lessons
+        menu:
+          - href: lessons/gene-catalogs/index.qmd
+            text: Gene catalogs
+      - href: contribute.qmd
+        text: Contribute
+  sidebar:
+    - title: "Gene catalogs"
+      style: docked
+      contents:
+        - lessons/gene-catalogs/index.qmd
+        - lessons/gene-catalogs/01-gene-calling.qmd
+        - lessons/gene-catalogs/02-clustering.qmd
+        - lessons/gene-catalogs/03-quantification.qmd
+        - lessons/gene-catalogs/04-downstream.qmd
+        - lessons/gene-catalogs/05-production.qmd
+  page-footer:
+    left: "Methods in Microbiomics · Sunagawa group, ETH Zürich · content CC BY 4.0"
+    right: "[Report a problem](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/issues/new)"
+
+format:
+  # live-html is html plus live R cells; using it for every page avoids rendering pages twice
+  live-html:
+    theme:
+      light: cosmo
+      dark: darkly
+    css: assets/styles.css
+    toc: true
+    code-copy: true
+    link-external-newwindow: true

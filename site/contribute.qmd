@@ -1,0 +1,27 @@
+---
+title: "Contribute"
+---
+
+Methods in Microbiomics is written by members of the Sunagawa group and the NCCR Microbiomes. Corrections and new lessons are welcome.
+
+- **Found a mistake or a broken link?** Use *Report an issue* in the right margin of any page, or [open an issue](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/issues/new).
+- **Want to fix it yourself?** Use *Edit this page*, or open a pull request against the `next` branch.
+
+## How a lesson is built
+
+| Folder | Content |
+|---|---|
+| `site/lessons/<lesson>/` | The lesson pages (Quarto `.qmd`), with live R cells for the browser |
+| `workshop/<lesson>/` | What learners get in the Codespace: input data, the `check` command and reference solutions |
+| `data-prep/<lesson>/` | Scripts that rebuild all lesson data from the raw downloads |
+| `.devcontainer/` | The Codespace definition and its software environment |
+| `tests/` | Runs every page's commands and R cells, as a learner would |
+
+Every number shown in a lesson comes from the data-prep scripts, and the tests check that the pages' own commands reproduce it. If you change a command on a page, run the tests:
+
+```bash
+python tests/page_commands.py workshop/gene-catalogs site/lessons/gene-catalogs/0[1-3]*.qmd
+python tests/webr_cells.py site/lessons/gene-catalogs/0[1-4]*.qmd
+```
+
+To preview the site locally, install [Quarto](https://quarto.org) and run `quarto preview` in `site/`.

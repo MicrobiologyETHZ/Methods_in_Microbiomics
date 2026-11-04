@@ -1,0 +1,109 @@
+# Build, test and publish the new site (branch `next`).
+#
+# 1. If the committed lesson data are provisional (built with MMSEQS_DEV_ARGS on a small
+#    machine), rebuild them with the exact settings and commit them back to the branch.
+# 2. Run every lesson page's terminal commands and R cells, as a learner would.
+# 3. Render the Quarto site, check links, and deploy it to GitHub Pages.
+# 4. Build the Codespace (devcontainer) and run the workshop inside it.
+name: Site (next)
+
+on:
+  push:
+    branches: [next]
+  pull_request:
+    branches: [next]
+  workflow_dispatch:
+    inputs:
+      rebuild-data:
+        description: "Rebuild the lesson data even if they are not provisional"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: site-next-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -el {0}   # login shell, so the micromamba environment is active
+
+jobs:
+  build:
+    runs-on: ubuntu-latest   # 4 CPUs / 16 GB: enough for the exact MMseqs2 settings
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: .devcontainer/environment.yml
+          cache-environment: true
+
+      - name: Rebuild lesson data if provisional
+        id: data
+        run: |
+          if grep -q '"provisional": true' site/lessons/gene-catalogs/data/provenance.json \
+             || [ "${{ inputs.rebuild-data }}" = "true" ]; then
+            bash data-prep/gene-catalogs/prepare.sh 4
+            echo "rebuilt=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit rebuilt data
+        if: steps.data.outputs.rebuilt == 'true' && github.event_name != 'pull_request'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/lessons/gene-catalogs/data workshop/gene-catalogs
+          git commit -m "Rebuild gene-catalog lesson data with exact MMseqs2 settings" || echo "No changes"
+          git push
+
+      - name: Test page commands (Parts A–C)
+        run: python tests/page_commands.py workshop/gene-catalogs site/lessons/gene-catalogs/0[1-3]*.qmd
+
+      - name: Test live R cells and exercise checks
+        run: python tests/webr_cells.py site/lessons/gene-catalogs/0[1-4]*.qmd
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render site
+        run: quarto render site
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --accept 200,403,429 'site/_site/**/*.html'
+          fail: true
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: site/_site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  codespace:
+    needs: build   # uses the (possibly rebuilt) data committed by the build job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref }}
+      - name: Build the devcontainer and run the workshop in it
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: |
+            micromamba run -n gene-catalogs bash -c 'cd workshop/gene-catalogs && bash solutions/run_lesson.sh 4 && ./check a b c'
