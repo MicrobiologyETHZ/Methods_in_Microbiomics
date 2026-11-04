@@ -4,7 +4,7 @@
   "features": {
     "ghcr.io/mamba-org/devcontainer-features/micromamba:1": {}
   },
-  "onCreateCommand": "micromamba env create -y -f .devcontainer/environment.yml && echo 'micromamba activate gene-catalogs' >> ~/.bashrc",
+  "onCreateCommand": "bash .devcontainer/on-create.sh",
   "postCreateCommand": "bash workshop/gene-catalogs/setup.sh",
   "postAttachCommand": "cat workshop/gene-catalogs/WELCOME.txt",
   "hostRequirements": {

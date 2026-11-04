@@ -90,7 +90,7 @@ Parts A–C run real bioinformatics tools. Instead of installing them, you'll us
 
    <a class="codespace-button" href="{{< var codespace_url >}}" target="_blank">Open in GitHub Codespaces</a>
 
-3. When it's ready, a terminal opens in `workshop/gene-catalogs/`. Check that everything is there:
+3. When it's ready, open a terminal if there isn't one (menu ☰ → **Terminal → New Terminal**). It starts in `workshop/gene-catalogs/`; if your prompt doesn't end in `gene-catalogs`, run `cd /workspaces/Methods_in_Microbiomics/workshop/gene-catalogs`. Check that everything is there:
 
    ```bash
    ls data/scaffolds data/reads
