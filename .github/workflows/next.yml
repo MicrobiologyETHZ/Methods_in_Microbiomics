@@ -52,14 +52,35 @@ jobs:
             echo "rebuilt=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Keep rebuilt data as an artifact
+        if: steps.data.outputs.rebuilt == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rebuilt-lesson-data
+          path: |
+            site/lessons/gene-catalogs/data
+            workshop/gene-catalogs/reference.tsv
+            workshop/gene-catalogs/provenance.json
+            workshop/gene-catalogs/data/scaffolds
+
+      # GitHub sometimes rejects pushes to this repo with "Internal Server Error", so retry,
+      # and don't fail the build: the tests and the site below use the rebuilt data either way.
       - name: Commit rebuilt data
         if: steps.data.outputs.rebuilt == 'true' && github.event_name != 'pull_request'
+        continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/lessons/gene-catalogs/data workshop/gene-catalogs
-          git commit -m "Rebuild gene-catalog lesson data with exact MMseqs2 settings" || echo "No changes"
-          git push
+          git commit -m "Rebuild gene-catalog lesson data with exact MMseqs2 settings" || { echo "No changes"; exit 0; }
+          for attempt in 1 2 3 4; do
+            git push && exit 0
+            echo "Push failed (attempt $attempt), retrying in $((attempt * 20)) s"
+            sleep $((attempt * 20))
+            git pull --rebase
+          done
+          echo "::warning::Could not push the rebuilt data. Download the 'rebuilt-lesson-data' artifact, or rebuild in a Codespace."
+          exit 1
 
       - name: Test page commands (Parts A–C)
         run: python tests/page_commands.py workshop/gene-catalogs site/lessons/gene-catalogs/0[1-3]*.qmd
