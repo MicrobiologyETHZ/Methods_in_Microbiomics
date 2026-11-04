@@ -1,0 +1,73 @@
+---
+title: "Spike: DESeq2 in WebR"
+subtitle: "Temporary page: how long does DESeq2 take to install and run in the browser?"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+---
+
+Run the cells in order and note the times they print. This page is temporary and will be removed.
+
+## 1. R version and DESeq2 install
+
+```{webr}
+R.version.string
+t0 <- Sys.time()
+webr::install("DESeq2", repos = c("https://bioc.r-universe.dev", "https://repo.r-wasm.org"))
+suppressPackageStartupMessages(library(DESeq2))
+cat("Install + load DESeq2:", round(as.numeric(difftime(Sys.time(), t0, units = "secs"))), "s\n")
+```
+
+## 2. Simulated data: 12 strains × 3,000 genes × 12 samples
+
+```{webr}
+set.seed(1)
+n_strains <- 12; n_genes <- 3000; n_samples <- 12
+genome <- rep(sprintf("strain%02d", 1:n_strains), each = n_genes)
+mu <- rlnorm(n_strains * n_genes, meanlog = 4, sdlog = 1.5)
+counts <- matrix(rnbinom(length(mu) * n_samples, mu = mu, size = 5), ncol = n_samples)
+colnames(counts) <- sprintf("S%02d", 1:n_samples)
+rownames(counts) <- sprintf("g%05d", seq_len(nrow(counts)))
+samples <- data.frame(row.names = colnames(counts),
+                      Treatment = factor(rep(c("PBS", "LPS"), each = n_samples / 2), levels = c("PBS", "LPS")))
+dim(counts)
+```
+
+## 3. DESeq2 on one strain (3,000 genes)
+
+```{webr}
+t0 <- Sys.time()
+one <- counts[genome == "strain01", ]
+dds1 <- DESeqDataSetFromMatrix(one, samples, design = ~ Treatment)
+dds1 <- DESeq(dds1, quiet = TRUE)
+cat("One strain:", round(as.numeric(difftime(Sys.time(), t0, units = "secs")), 1), "s\n")
+summary(results(dds1))
+```
+
+## 4. DESeq2 on all strains, size factors per strain (36,000 genes)
+
+```{webr}
+t0 <- Sys.time()
+nf <- matrix(1, nrow(counts), ncol(counts), dimnames = dimnames(counts))
+for (g in unique(genome)) {
+  rows <- genome == g
+  sf <- estimateSizeFactorsForMatrix(counts[rows, ])
+  nf[rows, ] <- matrix(sf, sum(rows), ncol(counts), byrow = TRUE)
+}
+dds <- DESeqDataSetFromMatrix(counts, samples, design = ~ Treatment)
+normalizationFactors(dds) <- nf
+dds <- DESeq(dds, quiet = TRUE)
+cat("All strains:", round(as.numeric(difftime(Sys.time(), t0, units = "secs")), 1), "s\n")
+summary(results(dds))
+```
+
+## 5. fgsea install (for Part 4)
+
+```{webr}
+t0 <- Sys.time()
+webr::install("fgsea", repos = c("https://bioc.r-universe.dev", "https://repo.r-wasm.org"))
+suppressPackageStartupMessages(library(fgsea))
+cat("Install + load fgsea:", round(as.numeric(difftime(Sys.time(), t0, units = "secs"))), "s\n")
+```
