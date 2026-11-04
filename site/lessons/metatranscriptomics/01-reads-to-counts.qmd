@@ -1,0 +1,98 @@
+---
+title: "1. From reads to counts"
+subtitle: "How a defined-community metatranscriptome becomes a count table"
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 15 min** reading</span>
+<span>💻 **Hands-on version:** coming soon as a Codespace exercise</span>
+:::
+
+## What you'll learn
+
+- The steps from sequenced RNA to a table of counts per gene.
+- Why reads are mapped to **all genomes at once**.
+- Which choices in these steps change your results.
+
+## The workflow
+
+For a defined community, the genomes are known, so this is close to ordinary RNA-seq of a single organism, with a few differences.
+
+::: {.compact-diagram}
+```{mermaid}
+flowchart LR
+  R["RNA reads"] --> Q["Quality control<br/>rRNA removal"]
+  Q --> A["Map to all genomes<br/>bowtie2"]
+  A --> C["Count per gene<br/>featureCounts"]
+  C --> T["Count table<br/>(Parts 2–4)"]
+```
+:::
+
+### 1. Quality control and rRNA
+
+Most RNA in a cell is ribosomal RNA (rRNA). Library preparation usually depletes it, but some always remains, and the amount varies between samples. Check the rRNA fraction of each sample (e.g. with [SortMeRNA](https://github.com/sortmerna/sortmerna)). Remove rRNA reads, or simply don't count them: count only protein-coding genes (CDS), as below.
+
+### 2. Map to one combined reference
+
+Concatenate the genomes of all community members into one reference, and map each sample's reads to it:
+
+```{.bash .notest}
+cat genomes/*.fna > community.fna
+bowtie2-build --threads 4 community.fna community
+
+bowtie2 -p 4 -x community -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz \
+  | samtools sort -@ 4 -o sample.bam
+```
+
+::: {.callout-important}
+## Map competitively
+Map to **all genomes together**, not to each genome separately. Related strains share similar sequences. Mapped separately, a read from a shared region would be counted once for every genome it matches, inflating the counts. Mapped together, each read is assigned to its best match.
+:::
+
+By default, bowtie2 reports one alignment per read. If a read matches several places equally well, it picks one at random, so such reads are spread evenly over their equally good matches.
+
+### 3. Count reads per gene
+
+Combine the annotation of all genomes into one file, and count read pairs (inserts) per gene:
+
+```{.bash .notest}
+cat annotations/*.gff > community.gff
+
+featureCounts -T 4 -p --countReadPairs -s 2 \
+  -t CDS -g locus_tag \
+  -a community.gff -o counts.tsv sample*.bam
+```
+
+- `-t CDS -g locus_tag`: count coding sequences, one row per locus tag.
+- `-s 2`: the library is **stranded** (reverse), as with most RNA library kits. Check yours: the wrong setting loses most of your reads, which you'll see in featureCounts' summary.
+- `-p --countReadPairs`: count inserts, not individual reads.
+
+::: {.callout-warning}
+## Not every aligner and counter fit together
+featureCounts recognises reads with several alignments from the `NH` tag, which bowtie2 and BWA don't write. If you ask these aligners for multiple alignments per read, featureCounts can't tell, and counts such reads several times. We have tested BWA with our own counter, salmon, and bowtie2 with featureCounts; in our hands all of them give very similar results. Whatever you choose, test it on your data.
+:::
+
+## The result
+
+A count table with one row per gene and one column per sample, plus an annotation table saying which genome each gene belongs to. That's where Part 2 starts.
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("Two strains in your community share a 5-kb genomic island with identical sequence. You map each sample to each genome separately and add up the counts. What happens to reads from the island?", [
+  {text: "They're counted twice, once for each strain", correct: true, why: "Each separate mapping finds them. Competitive mapping to the combined reference assigns each read once."},
+  {text: "They're discarded as ambiguous", correct: false, why: "Separate mappings don't know about the other genome, so nothing is ambiguous to them."},
+  {text: "They're split between the two strains", correct: false, why: "That's what competitive mapping does, not separate mapping."}
+])
+```
+
+## Key points
+
+- Map to **all genomes at once**, so each read is counted only once.
+- Count **coding sequences**, with the right **strandedness**, and count inserts rather than reads.
+- Check that your aligner and counter handle multi-mapping reads the way you think they do.
+
+[← Overview](index.qmd){.btn .btn-outline-secondary} [2. Explore the data →](02-explore.qmd){.btn .btn-primary}

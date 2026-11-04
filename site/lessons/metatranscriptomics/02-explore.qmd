@@ -1,0 +1,447 @@
+---
+title: "2. Explore the data"
+subtitle: "Who dominates the transcriptome, is there enough data, and do replicates agree?"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - readr
+    - ggplot2
+resources:
+  - data/samples.csv
+  - data/genes.csv.gz
+  - data/counts.csv.gz
+  - data/kegg_ko.csv
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 45 min**</span>
+<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
+<span>📦 **Data:** Oligo-MM12 mice, LPS vs PBS</span>
+:::
+
+## What you'll learn
+
+- Why the share of the transcriptome isn't the share of the community.
+- How to check that each strain has enough reads to analyse.
+- How to normalise counts for exploration (TPM, CLR), and check replicates with PCA and correlations.
+- How to read a strain's growth state from its ribosomal protein transcripts.
+
+::: {.callout-note}
+## How the code cells work
+The grey boxes are live R. Edit the code and press **Run Code**. The first run takes a few seconds while R starts in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
+:::
+
+## The data
+
+| File | Content |
+|---|---|
+| `samples.csv` | One row per mouse: sample ID and treatment (LPS or PBS) |
+| `genes.csv.gz` | One row per gene: locus tag, strain (`genome`), length, KEGG ortholog (KO) and KEGG pathways |
+| `counts.csv.gz` | Inserts per gene (rows) in each sample (columns), as produced in Part 1 |
+| `kegg_ko.csv` | Names of the KEGG orthologs |
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+
+samples <- read_csv("data/samples.csv", show_col_types = FALSE)
+genes <- read_csv("data/genes.csv.gz", show_col_types = FALSE)
+counts <- read_csv("data/counts.csv.gz", show_col_types = FALSE)
+kegg_ko <- read_csv("data/kegg_ko.csv", show_col_types = FALSE)
+
+# one row per gene per sample, with the gene's strain and length
+counts_long <- counts %>%
+  pivot_longer(-locus_tag, names_to = "sample_id", values_to = "count") %>%
+  left_join(select(genes, locus_tag, genome, length), by = "locus_tag") %>%
+  left_join(samples, by = "sample_id")
+
+strain_colours <- c(
+  YL32 = "#149AB3", KB18 = "#616161", I48 = "#C26215", YL27 = "#F59C46",
+  YL45 = "#E30C4B", I46 = "#2C5D52", YL58 = "#163A1A", YL31 = "#099334",
+  YL2 = "#282E68", I49 = "#3DB077", YL44 = "#AC7FB6", KB1 = "#42AB34"
+)
+cat("Loaded", nrow(genes), "genes from", n_distinct(genes$genome), "strains and",
+    nrow(samples), "samples.\n")
+```
+
+Have a look at the tables:
+
+```{webr}
+samples
+genes
+counts
+```
+
+About half of the genes have a KO, i.e. a known function. That will matter in Part 4.
+
+## Step 1: who dominates the transcriptome?
+
+Sum the counts of each strain's genes in each sample, and divide by the sample's total:
+
+```{webr}
+strain_reads <- counts_long %>%
+  group_by(sample_id, Treatment, genome) %>%
+  summarise(reads = sum(count), .groups = "drop") %>%
+  group_by(sample_id) %>%
+  mutate(share = reads / sum(reads)) %>%
+  ungroup()
+
+ggplot(strain_reads, aes(sample_id, share, fill = genome)) +
+  geom_col() +
+  facet_grid(~ Treatment, scales = "free_x", space = "free_x") +
+  scale_fill_manual(values = strain_colours) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = NULL, y = "Share of transcripts", fill = "Strain") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+
+Three strains, YL32, I48 and YL58, make up about 70% of all transcripts. Some strains barely appear, and YL2 is absent.
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("YL32 makes up 38% of the transcripts in PBS mice. Does that mean 38% of the bacterial cells are YL32?", [
+  {text: "Yes, every cell contributes transcripts", correct: false, why: "Cells differ in how much mRNA they make: fast-growing cells make far more than dormant ones."},
+  {text: "No: the transcript share depends on abundance and on activity", correct: true, why: "Transcripts = gene copies × expression. To measure composition, use DNA (metagenomics, 16S) instead."},
+  {text: "No, because YL32 has the largest genome", correct: false, why: "Genome size plays a part, but even strains with equal genomes can differ widely in mRNA per cell."}
+])
+```
+
+## Step 2: is there enough data for each strain?
+
+A sample with 10 million reads might have 8 million from one strain and only 50,000 from another. Analyses are done **strain by strain**, so what matters is each strain's depth. In this lesson, we ask for **at least 500,000 reads per strain per sample**.
+
+### Exercise: which strains can we analyse?
+
+Count, for each strain and treatment, the samples with at least 500,000 reads.
+
+```{webr}
+#| exercise: ex_depth
+depth <- strain_reads %>%
+  group_by(genome, Treatment) %>%
+  summarise(n_adequate = sum(______), .groups = "drop")
+
+ggplot(depth, aes(Treatment, genome, fill = n_adequate)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = n_adequate)) +
+  scale_fill_gradient(low = "grey95", high = "steelblue", limits = c(0, 6)) +
+  labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k reads")
+```
+
+::: {.hint exercise="ex_depth"}
+`sum()` of a logical vector counts the `TRUE` values. Compare each sample's `reads` with `5e5`.
+:::
+
+::: {.solution exercise="ex_depth"}
+```r
+depth <- strain_reads %>%
+  group_by(genome, Treatment) %>%
+  summarise(n_adequate = sum(reads >= 5e5), .groups = "drop")
+
+ggplot(depth, aes(Treatment, genome, fill = n_adequate)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = n_adequate)) +
+  scale_fill_gradient(low = "grey95", high = "steelblue", limits = c(0, 6)) +
+  labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k reads")
+```
+Only I48 and YL32 have enough reads in all 12 samples. YL58 has enough in 8.
+:::
+
+```{webr}
+#| exercise: ex_depth
+#| check: true
+expected <- strain_reads %>%
+  group_by(genome, Treatment) %>%
+  summarise(n = sum(reads >= 5e5), .groups = "drop")
+ok <- is.data.frame(depth) && "n_adequate" %in% names(depth) &&
+  isTRUE(all.equal(
+    arrange(depth, genome, Treatment)$n_adequate,
+    arrange(expected, genome, Treatment)$n
+  ))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Right. Only I48 and YL32 are deep enough in every sample; we'll focus on them and YL58.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: n_adequate should count samples with reads >= 5e5.")
+}
+```
+
+::: {.callout-tip}
+## What about the rare strains?
+With few reads, most genes have counts of 0 or 1, and nothing can be tested reliably. You can still describe them, but leave them out of differential expression, or sequence deeper.
+:::
+
+## Step 3: normalising for exploration
+
+Raw counts can't be compared directly:
+
+1. **Gene length:** longer genes collect more reads at the same expression.
+2. **Depth:** each strain has a different number of reads in each sample.
+3. **Compositionality:** counts are only meaningful relative to the other genes in the sample.
+
+For plots and PCA, we normalise **within each strain**: then a strain's depth or abundance doesn't matter, only the relative expression of its genes. (Differential expression in Part 3 uses its own normalisation.)
+
+### TPM: transcripts per million
+
+1. Divide each gene's count by its length in kilobases: reads per kilobase (RPK).
+2. Divide by the sum of RPK over all of the strain's genes in that sample, and multiply by a million.
+
+The TPM values of a strain then add up to one million in every sample.
+
+### Exercise: write a TPM function
+
+```{webr}
+#| exercise: ex_tpm
+calculate_tpm <- function(counts, lengths) {
+  rpk <- ______
+  rpk / sum(rpk) * 1e6
+}
+
+calculate_tpm(c(10, 20), c(1000, 2000))
+```
+
+::: {.hint exercise="ex_tpm"}
+Reads per kilobase is `counts` divided by the length in kilobases, `lengths / 1000`.
+:::
+
+::: {.solution exercise="ex_tpm"}
+```r
+calculate_tpm <- function(counts, lengths) {
+  rpk <- counts / (lengths / 1000)
+  rpk / sum(rpk) * 1e6
+}
+
+calculate_tpm(c(10, 20), c(1000, 2000))
+```
+Both genes have 10 reads per kilobase, so they get the same TPM: half a million each.
+:::
+
+```{webr}
+#| exercise: ex_tpm
+#| check: true
+ok <- is.function(calculate_tpm) &&
+  isTRUE(all.equal(calculate_tpm(c(10, 20), c(1000, 2000)), c(5e5, 5e5))) &&
+  isTRUE(all.equal(calculate_tpm(c(5, 0, 30), c(500, 900, 3000)), c(5e5, 0, 5e5)))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct: equal reads per kilobase give equal TPM.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: calculate_tpm(c(10, 20), c(1000, 2000)) should give 500000 for both genes.")
+}
+```
+
+Now apply it to every strain in every sample:
+
+```{webr}
+calculate_tpm <- function(counts, lengths) {
+  rpk <- counts / (lengths / 1000)
+  rpk / sum(rpk) * 1e6
+}
+
+expr <- counts_long %>%
+  group_by(genome, sample_id) %>%
+  mutate(tpm = calculate_tpm(count, length)) %>%
+  ungroup()
+
+# Each strain's TPM adds up to a million in every sample (strains without reads give NaN)
+expr %>%
+  group_by(genome, sample_id) %>%
+  summarise(total_tpm = sum(tpm), .groups = "drop") %>%
+  head()
+```
+
+### Log and CLR transformations
+
+Expression values span several orders of magnitude, so we look at them on a log scale. Two common choices:
+
+- **log2(TPM + 0.5):** the pseudocount 0.5 avoids taking the log of zero.
+- **CLR (centred log-ratio):** each gene's log value minus the mean log value of all of the strain's genes in that sample. It's made for compositional data: it compares each gene to the strain's "average gene".
+
+```{webr}
+expr <- expr %>%
+  group_by(genome, sample_id) %>%
+  mutate(
+    log2_tpm = log2(tpm + 0.5),
+    clr = log(tpm + 0.5) - mean(log(tpm + 0.5))
+  ) %>%
+  ungroup()
+
+expr %>%
+  filter(genome == "I48", sample_id == "AU647") %>%
+  pivot_longer(c(tpm, log2_tpm, clr), names_to = "scale") %>%
+  mutate(scale = factor(scale, levels = c("tpm", "log2_tpm", "clr"))) %>%
+  ggplot(aes(value)) +
+  geom_histogram(bins = 60, fill = "steelblue") +
+  facet_wrap(~ scale, scales = "free") +
+  labs(title = "I48 in one sample: the same genes on three scales", x = NULL, y = "Genes")
+```
+
+TPM is dominated by a few very highly expressed genes. On the log and CLR scales you can see the whole distribution, with a spike of unexpressed genes on the left. CLR is the log scale shifted so that each sample is centred on zero.
+
+## Step 4: do replicates agree?
+
+### PCA within one strain
+
+PCA summarises each sample's expression profile, over thousands of genes, in a few axes. Samples with similar profiles end up close together. Change `strain` and rerun to look at other strains.
+
+```{webr}
+strain <- "I48"
+
+clr_matrix <- expr %>%
+  filter(genome == strain) %>%
+  select(sample_id, locus_tag, clr) %>%
+  pivot_wider(names_from = locus_tag, values_from = clr) %>%
+  tibble::column_to_rownames("sample_id") %>%
+  as.matrix()
+
+pca <- prcomp(clr_matrix)
+explained <- round(100 * summary(pca)$importance[2, 1:2])
+
+as.data.frame(pca$x) %>%
+  tibble::rownames_to_column("sample_id") %>%
+  left_join(samples, by = "sample_id") %>%
+  ggplot(aes(PC1, PC2, colour = Treatment, label = sample_id)) +
+  geom_point(size = 3) +
+  geom_text(vjust = -0.8, size = 3, show.legend = FALSE) +
+  labs(title = paste("PCA of", strain, "gene expression (CLR)"),
+       x = paste0("PC1 (", explained[1], "%)"), y = paste0("PC2 (", explained[2], "%)"))
+```
+
+In I48, the first axis largely separates LPS from PBS mice: treatment is the largest source of variation. Four mice sit in between: two LPS (AU657, AU658) and two PBS (AU648, AU649). Try `"YL32"`, `"YL58"` and `"KB18"`: in all of them, the first axis separates the treatments.
+
+### Sample correlations
+
+A correlation heatmap shows the same thing differently: every pair of samples, and how similar their profiles are.
+
+```{webr}
+cor_matrix <- cor(t(clr_matrix), method = "spearman")
+order <- hclust(as.dist(1 - cor_matrix))$order
+sample_order <- rownames(cor_matrix)[order]
+
+as.data.frame(cor_matrix) %>%
+  tibble::rownames_to_column("sample_1") %>%
+  pivot_longer(-sample_1, names_to = "sample_2", values_to = "rho") %>%
+  mutate(sample_1 = factor(sample_1, sample_order), sample_2 = factor(sample_2, sample_order)) %>%
+  ggplot(aes(sample_1, sample_2, fill = rho)) +
+  geom_tile() +
+  geom_text(aes(label = sprintf("%.2f", rho)), size = 2.5) +
+  scale_fill_gradient(low = "white", high = "darkblue") +
+  labs(title = paste(strain, ": sample-to-sample correlation"), x = NULL, y = NULL) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+
+Samples are ordered by hierarchical clustering. Replicates should correlate highly; a sample that correlates poorly with all others is a candidate outlier (e.g. a failed library).
+
+## Step 5: how fast are the strains growing?
+
+A growing cell needs many ribosomes, so it spends a large share of its transcription on **ribosomal proteins**. The share of a strain's transcripts that encode ribosomal proteins is a rough proxy for its growth rate.
+
+```{webr}
+ribosomal_kos <- kegg_ko %>%
+  filter(grepl("subunit ribosomal protein", name)) %>%
+  pull(KO)
+
+# some genes have several KOs, separated by commas
+genes <- genes %>%
+  mutate(is_ribosomal = vapply(strsplit(coalesce(KO, ""), ","),
+                               function(k) any(k %in% ribosomal_kos), logical(1)))
+
+counts_long <- counts_long %>%
+  left_join(select(genes, locus_tag, is_ribosomal), by = "locus_tag")
+
+cat(length(ribosomal_kos), "ribosomal protein KOs;",
+    sum(genes$is_ribosomal), "ribosomal protein genes in the community\n")
+```
+
+### Exercise: ribosomal protein share
+
+For each strain in each sample, compute the share of transcripts from ribosomal protein genes. Plot it for the three main strains.
+
+```{webr}
+#| exercise: ex_ribo
+ribo <- counts_long %>%
+  filter(genome %in% c("I48", "YL32", "YL58")) %>%
+  group_by(genome, sample_id, Treatment) %>%
+  summarise(ribosomal_share = ______, .groups = "drop")
+
+ggplot(ribo, aes(Treatment, ribosomal_share, colour = Treatment)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.1) +
+  facet_wrap(~ genome, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(y = "Transcripts from ribosomal proteins", x = NULL)
+```
+
+::: {.hint exercise="ex_ribo"}
+Sum the counts of the ribosomal protein genes only, `sum(count[is_ribosomal])`, and divide by the sum of all counts.
+:::
+
+::: {.solution exercise="ex_ribo"}
+```r
+ribo <- counts_long %>%
+  filter(genome %in% c("I48", "YL32", "YL58")) %>%
+  group_by(genome, sample_id, Treatment) %>%
+  summarise(ribosomal_share = sum(count[is_ribosomal]) / sum(count), .groups = "drop")
+
+ggplot(ribo, aes(Treatment, ribosomal_share, colour = Treatment)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.1) +
+  facet_wrap(~ genome, scales = "free_y") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(y = "Transcripts from ribosomal proteins", x = NULL)
+```
+The ribosomal protein share is lower in LPS mice in all three strains: the bacteria seem to grow more slowly when their host is inflamed. The difference is clear for YL32 and YL58 (Wilcoxon p ≈ 0.002), and a trend for I48 (p ≈ 0.09). Test it with `wilcox.test(ribosomal_share ~ Treatment, data = filter(ribo, genome == "YL32"))`.
+:::
+
+```{webr}
+#| exercise: ex_ribo
+#| check: true
+expected <- counts_long %>%
+  filter(genome == "I48") %>%
+  group_by(sample_id) %>%
+  summarise(share = sum(count[is_ribosomal]) / sum(count))
+mine <- if (is.data.frame(ribo) && "ribosomal_share" %in% names(ribo)) {
+  ribo %>% filter(genome == "I48") %>% arrange(sample_id)
+}
+ok <- !is.null(mine) && nrow(mine) == 12 &&
+  isTRUE(all.equal(mine$ribosomal_share, arrange(expected, sample_id)$share))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct. Ribosomal protein transcripts are lower in LPS mice, most clearly in YL32 and YL58.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: divide the counts of ribosomal protein genes by all counts of the strain in that sample.")
+}
+```
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+quiz("Strain X has 50,000 reads in some samples and 3 million in others. Why do we normalise within each strain before PCA?", [
+  {text: "So that the PCA shows differences in gene expression, not in how many reads the strain got", correct: true, why: "Within-strain normalisation removes the strain's depth and abundance, leaving the relative expression of its genes."},
+  {text: "Because PCA can't handle large numbers", correct: false, why: "PCA works with any numbers; the issue is what the differences mean."},
+  {text: "To remove rare genes", correct: false, why: "Normalisation doesn't remove genes; filtering does."}
+])
+```
+
+## Key points
+
+- **Transcript share ≠ community composition:** it mixes abundance with activity.
+- **Check depth per strain,** not per sample. Analyse only strains with enough reads.
+- **Normalise within each strain** for exploration: TPM, then log or CLR.
+- **PCA and correlation heatmaps** show whether replicates agree and what drives the variation. Here: treatment.
+- **Ribosomal protein share** is a simple proxy for growth. In LPS mice, the main strains seem to grow more slowly.
+
+[← 1. From reads to counts](01-reads-to-counts.qmd){.btn .btn-outline-secondary} [3. Differential expression →](03-differential-expression.qmd){.btn .btn-primary}

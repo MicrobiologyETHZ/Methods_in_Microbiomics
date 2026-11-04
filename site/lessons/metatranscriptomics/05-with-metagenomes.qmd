@@ -1,0 +1,219 @@
+---
+title: "5. When you have metagenomes"
+subtitle: "Separate gene abundance from gene expression in a complex community"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - readr
+    - ggplot2
+resources:
+  - data/tara_samples.csv
+  - data/tara_ko_sums.csv
+  - data/tara_kos.csv
+  - data/tara_cspa.csv
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 30 min**</span>
+<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
+<span>📦 **Data:** Tara Oceans, 129 paired metagenomes and metatranscriptomes</span>
+:::
+
+## What you'll learn
+
+- How matched metagenomes let you compute **expression per gene copy**.
+- How to tell whether a change in transcripts comes from **community turnover** or from **regulation**.
+
+## From strains to whole communities
+
+In a defined community, you know the genomes, so you can normalise within each strain (Part 3). In the open ocean, there are thousands of species, most without a genome. Instead, you can sequence **both DNA and RNA** from each sample, and map both to the same [gene catalog](../gene-catalogs/index.qmd). Then, for every gene or function:
+
+$$
+\text{expression per copy} = \frac{\text{transcripts per cell}}{\text{gene copies per cell}}
+$$
+
+The data come from [Salazar et al. (2019)](https://doi.org/10.1016/j.cell.2019.10.014). You normalised the metagenomes in [Part D of the gene-catalog lesson](../gene-catalogs/04-downstream.qmd): divide inserts by gene length, then by the median of 10 single-copy marker genes, to get **copies per cell**. The metatranscriptomes are normalised the same way, giving **transcripts per cell**. The setup cell does both:
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+
+samples <- read_csv("data/tara_samples.csv", show_col_types = FALSE)
+kos <- read_csv("data/tara_kos.csv", show_col_types = FALSE) %>%
+  add_row(KO = "K03704", Description = "cspA; cold shock protein")
+marker_genes <- c("K06942", "K01889", "K01887", "K01875", "K01883",
+                  "K01869", "K01873", "K01409", "K03106", "K03110")
+
+# copies (metagenomes) or transcripts (metatranscriptomes) per cell, for 12 KOs, plus cspA
+per_cell <- read_csv("data/tara_ko_sums.csv", show_col_types = FALSE) %>%
+  group_by(sample) %>%
+  mutate(per_cell = inserts_per_bp / median(inserts_per_bp[KO %in% marker_genes])) %>%
+  ungroup() %>%
+  select(sample, KO, per_cell) %>%
+  bind_rows(read_csv("data/tara_cspa.csv", show_col_types = FALSE) %>%
+              transmute(sample, KO = "K03704", per_cell = cspa_per_cell))
+
+cat(n_distinct(per_cell$sample), "samples,", n_distinct(per_cell$KO), "KOs\n")
+```
+
+## Cold-shock protein: genes or expression?
+
+Cold-shock proteins such as **cspA** (K03704) help bacteria cope with low temperatures. Colder samples carry more cspA genes per cell:
+
+```{webr}
+cspa_genes <- samples %>%
+  inner_join(filter(per_cell, KO == "K03704"), by = c("sample_metag" = "sample")) %>%
+  rename(genes_per_cell = per_cell)
+
+ggplot(cspa_genes, aes(Temperature, genes_per_cell, colour = polar)) +
+  geom_point(alpha = 0.8) +
+  scale_y_log10() +
+  labs(x = "Temperature (°C)", y = "cspA genes per cell (log scale)")
+
+cor.test(cspa_genes$genes_per_cell, cspa_genes$Temperature, method = "spearman")
+```
+
+But **more genes** doesn't necessarily mean **more activity**. The increase in transcripts could come from two sources:
+
+1. **Community turnover:** cold-water organisms carry more cspA genes.
+2. **Regulation:** each cspA copy is expressed more in the cold.
+
+### Exercise: expression per gene copy
+
+Join the metatranscriptome values (`sample_metat`) to `cspa_genes`, compute expression per copy, and test whether it also correlates with temperature.
+
+```{webr}
+#| exercise: ex_expression
+cspa_both <- cspa_genes %>%
+  inner_join(filter(per_cell, KO == "K03704"), by = c("sample_metat" = "sample", "KO")) %>%
+  rename(transcripts_per_cell = per_cell) %>%
+  mutate(expression = ______)
+
+ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
+  geom_point(alpha = 0.8) +
+  scale_y_log10() +
+  labs(x = "Temperature (°C)", y = "cspA expression per gene copy (log scale)")
+
+cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman")
+```
+
+::: {.hint exercise="ex_expression"}
+Expression per gene copy is `transcripts_per_cell / genes_per_cell`.
+:::
+
+::: {.solution exercise="ex_expression"}
+```r
+cspa_both <- cspa_genes %>%
+  inner_join(filter(per_cell, KO == "K03704"), by = c("sample_metat" = "sample", "KO")) %>%
+  rename(transcripts_per_cell = per_cell) %>%
+  mutate(expression = transcripts_per_cell / genes_per_cell)
+
+ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
+  geom_point(alpha = 0.8) +
+  scale_y_log10() +
+  labs(x = "Temperature (°C)", y = "cspA expression per gene copy (log scale)")
+
+cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman")
+```
+Expression per gene copy also rises in the cold (ρ ≈ −0.76). **Both** processes contribute: cold communities have more cspA genes, and each copy is more highly expressed.
+:::
+
+```{webr}
+#| exercise: ex_expression
+#| check: true
+expected <- with(cspa_both, transcripts_per_cell / genes_per_cell)
+ok <- is.data.frame(cspa_both) && "expression" %in% names(cspa_both) &&
+  isTRUE(all.equal(cspa_both$expression, expected))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct: expression per copy also increases in the cold.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: expression is transcripts_per_cell divided by genes_per_cell.")
+}
+```
+
+## How much is turnover, how much is regulation?
+
+On a log scale, the equation becomes a sum:
+
+$$
+\log(\text{transcripts}) = \log(\text{genes}) + \log(\text{expression})
+$$
+
+So the variation of transcripts across samples splits into the variation of genes, the variation of expression, and a term for how the two vary together (their covariance). Let's compute this for every KO in the data:
+
+```{webr}
+paired <- samples %>%
+  select(sample_metag, sample_metat, Temperature) %>%
+  inner_join(per_cell, by = c("sample_metag" = "sample")) %>%
+  rename(genes = per_cell) %>%
+  inner_join(per_cell, by = c("sample_metat" = "sample", "KO")) %>%
+  rename(transcripts = per_cell) %>%
+  filter(genes > 0, transcripts > 0) %>%
+  mutate(expression = transcripts / genes)
+
+variance <- paired %>%
+  group_by(KO) %>%
+  summarise(
+    genes = var(log2(genes)),
+    expression = var(log2(expression)),
+    covariance = 2 * cov(log2(genes), log2(expression))
+  ) %>%
+  left_join(kos, by = "KO") %>%
+  mutate(label = paste(KO, sub(";.*", "", Description)))
+
+variance %>%
+  pivot_longer(c(genes, expression, covariance), names_to = "source", values_to = "variance") %>%
+  mutate(source = factor(source, levels = c("covariance", "expression", "genes"))) %>%
+  ggplot(aes(variance, reorder(label, variance), fill = source)) +
+  geom_col() +
+  geom_vline(xintercept = 0) +
+  scale_fill_manual(values = c(genes = "#2f6f8f", expression = "#e8590c", covariance = "grey70")) +
+  labs(x = "Variance of log2 transcripts per cell across samples", y = NULL, fill = "Part due to")
+```
+
+- **Housekeeping genes** (tRNA synthetases, RNA polymerase, signal recognition particle): nearly every cell has one copy, so genes per cell hardly vary (blue). The little variation their transcripts have comes from **expression** (orange).
+- **cspA** varies far more than any of them. Most of that is regulation, but part is turnover: the cold-water community carries more copies of the gene.
+
+::: {.callout-note}
+## A caveat about the marker genes
+The 10 marker genes are also the yardstick for "per cell", so their gene copies are close to 1 by construction. That's fine for this lesson, but in a real analysis, use other genes to check your normalisation.
+:::
+
+Salazar et al. did this for whole processes across the ocean. They found that gene expression changes contribute relatively less in **polar** than in non-polar waters, and suggest that polar communities will respond to ocean warming mainly through changes in **which organisms are there**, rather than through gene regulation.
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("A gene's transcripts per cell are 4 times higher in sample 1 than in sample 2. Its gene copies per cell are also 4 times higher. What happened?", [
+  {text: "The gene is induced in sample 1", correct: false, why: "Expression per copy is transcripts ÷ genes, which is the same in both samples."},
+  {text: "Community turnover: sample 1 has more organisms carrying the gene", correct: true, why: "Each copy is expressed the same; there are just more copies."},
+  {text: "Nothing: the samples were sequenced to different depths", correct: false, why: "Per-cell values are already corrected for depth."}
+])
+```
+
+## Going further
+
+- **Scaling up:** [Part E of the gene-catalog lesson](../gene-catalogs/05-production.qmd) shows how to run the mapping steps for many samples on a cluster. Map the metatranscriptomes to the catalog exactly like the metagenomes.
+- **Statistics:** for differential expression with metagenomes, a good approach is to model transcripts with gene copies as a covariate ([Zhang et al. 2021](https://doi.org/10.1093/bioinformatics/btab327)).
+- **Defined communities, hands on:** a Codespace version of Part 1 is coming.
+
+## Key points
+
+- With matched metagenomes, **expression per copy = transcripts per cell ÷ genes per cell**.
+- On a log scale, the variation of transcripts splits into **turnover** (genes) and **regulation** (expression).
+- Housekeeping genes vary little; environmental response genes such as cspA vary through both.
+
+[← 4. From genes to functions](04-functions.qmd){.btn .btn-outline-secondary} [Back to overview](index.qmd){.btn .btn-primary}

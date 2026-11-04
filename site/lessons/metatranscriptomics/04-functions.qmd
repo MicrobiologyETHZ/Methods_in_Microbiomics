@@ -1,0 +1,254 @@
+---
+title: "4. From genes to functions"
+subtitle: "What do the responding genes have in common?"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - readr
+    - ggplot2
+    - fgsea
+  repos:
+    - https://bioc.r-universe.dev
+resources:
+  - data/genes.csv.gz
+  - data/de_reference.csv.gz
+  - data/kegg_pathways.csv
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 30 min**</span>
+<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
+<span>📦 **Data:** differential expression results from Part 3</span>
+:::
+
+## What you'll learn
+
+- How **over-representation analysis** (ORA) tests whether a pathway has more responding genes than expected by chance.
+- How **gene set enrichment analysis** (GSEA) does the same without a significance cut-off.
+- How to look up interactions between genes in STRING.
+
+## The data
+
+Part 3 found hundreds of genes that respond to LPS in each strain. A list of locus tags isn't very informative, so we ask: **are some functions over-represented among them?** We use the KEGG pathways of each gene, and focus on *Bacteroides caecimuris* **I48**.
+
+To save you from running DESeq2 again, `de_reference.csv.gz` has the results of Part 3, computed with exactly the same method.
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+
+genes <- read_csv("data/genes.csv.gz", show_col_types = FALSE)
+de <- read_csv("data/de_reference.csv.gz", show_col_types = FALSE)
+pathway_names <- read_csv("data/kegg_pathways.csv", show_col_types = FALSE)
+
+# I48 genes that were tested (padj is NA for genes DESeq2 filtered out)
+i48 <- de %>%
+  filter(genome == "I48", !is.na(padj)) %>%
+  left_join(select(genes, locus_tag, pathways), by = "locus_tag")
+
+# one row per gene and pathway
+pathway_genes <- i48 %>%
+  filter(!is.na(pathways)) %>%
+  separate_rows(pathways, sep = ";") %>%
+  distinct(pathway = pathways, locus_tag)
+
+cat(nrow(i48), "I48 genes tested;", n_distinct(pathway_genes$locus_tag),
+    "of them are in at least one KEGG pathway\n")
+```
+
+Only about a quarter of the genes are in a KEGG pathway. Enrichment can only say something about those, so they are our **universe**: the genes that could have been picked.
+
+```{webr}
+universe <- unique(pathway_genes$locus_tag)
+down <- i48 %>% filter(padj < 0.01, log2FoldChange < -1) %>% pull(locus_tag) %>% intersect(universe)
+up <- i48 %>% filter(padj < 0.01, log2FoldChange > 1) %>% pull(locus_tag) %>% intersect(universe)
+cat(length(universe), "genes in the universe;", length(down), "down and", length(up), "up in LPS mice\n")
+```
+
+## Over-representation analysis
+
+Take one pathway, e.g. **valine, leucine and isoleucine biosynthesis** (ko00290). Sort the universe into a 2 × 2 table:
+
+| | In the pathway | Not in the pathway |
+|---|---|---|
+| **Down in LPS** | *a* | *b* |
+| **Not down** | *c* | *d* |
+
+If the pathway had nothing to do with the response, its share of down genes would be about the same as everyone else's. The **hypergeometric test** (equivalently, a one-sided Fisher's exact test) gives the probability of seeing at least *a* pathway genes among the down genes by chance.
+
+### Exercise: test one pathway
+
+```{webr}
+#| exercise: ex_ora
+bcaa <- pathway_genes %>% filter(pathway == "ko00290") %>% pull(locus_tag)
+
+hits <- sum(______)   # pathway genes that are down
+
+# P(at least `hits` pathway genes among the down genes, drawn at random from the universe)
+p <- phyper(hits - 1, length(bcaa), length(universe) - length(bcaa), length(down),
+            lower.tail = FALSE)
+cat(hits, "of", length(bcaa), "pathway genes are down; expected by chance:",
+    round(length(bcaa) * length(down) / length(universe), 1), "; p =", signif(p, 2), "\n")
+```
+
+::: {.hint exercise="ex_ora"}
+`bcaa %in% down` is `TRUE` for every pathway gene that is also in the `down` list.
+:::
+
+::: {.solution exercise="ex_ora"}
+```r
+bcaa <- pathway_genes %>% filter(pathway == "ko00290") %>% pull(locus_tag)
+
+hits <- sum(bcaa %in% down)   # pathway genes that are down
+
+# P(at least `hits` pathway genes among the down genes, drawn at random from the universe)
+p <- phyper(hits - 1, length(bcaa), length(universe) - length(bcaa), length(down),
+            lower.tail = FALSE)
+cat(hits, "of", length(bcaa), "pathway genes are down; expected by chance:",
+    round(length(bcaa) * length(down) / length(universe), 1), "; p =", signif(p, 2), "\n")
+```
+7 of the 11 genes of the pathway are down, where less than 1 was expected: p < 10⁻⁸. Check with Fisher's test: `fisher.test(table(universe %in% bcaa, universe %in% down), alternative = "greater")`.
+:::
+
+```{webr}
+#| exercise: ex_ora
+#| check: true
+bcaa <- pathway_genes %>% filter(pathway == "ko00290") %>% pull(locus_tag)
+expected <- fisher.test(table(universe %in% bcaa, universe %in% down), alternative = "greater")$p.value
+ok <- is.numeric(hits) && hits == sum(bcaa %in% down) && isTRUE(all.equal(p, expected))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct, and identical to Fisher's exact test. Branched-chain amino acid synthesis is switched down in LPS mice.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: hits is the number of pathway genes (bcaa) that are also in down.")
+}
+```
+
+### All pathways at once
+
+The same test for every pathway with at least 10 genes. Since we run many tests, we adjust the p-values for multiple testing (Benjamini–Hochberg):
+
+```{webr}
+ora <- function(selected) {
+  pathway_genes %>%
+    group_by(pathway) %>%
+    summarise(size = n(), hits = sum(locus_tag %in% selected)) %>%
+    filter(size >= 10) %>%
+    mutate(
+      expected = size * length(selected) / length(universe),
+      p = phyper(hits - 1, size, length(universe) - size, length(selected), lower.tail = FALSE),
+      padj = p.adjust(p, method = "BH")
+    ) %>%
+    left_join(pathway_names, by = "pathway") %>%
+    arrange(p) %>%
+    select(pathway, name, size, hits, expected, padj)
+}
+
+ora(down) %>% head(8)
+ora(up) %>% head(8)
+```
+
+Amino acid biosynthesis pathways stand out among the genes switched down in LPS mice. No pathway passes the adjusted cut-off for the up-regulated genes: they are spread over many functions, or not in KEGG pathways at all.
+
+::: {.callout-warning}
+## Choose the universe carefully
+Using all genes of the genome as the universe, instead of the genes that were tested and annotated, inflates the significance: unannotated genes can never be hits.
+:::
+
+## Gene set enrichment analysis
+
+ORA needs a cut-off (here: adjusted p < 0.01 and a fold change above 2), and ignores everything below it. **GSEA** uses all genes instead. It ranks them by fold change and asks whether a pathway's genes cluster at the top or the bottom of the ranking. We use the fast implementation in `fgsea`:
+
+```{webr}
+library(fgsea)
+
+ranks <- i48 %>%
+  filter(locus_tag %in% universe) %>%
+  arrange(desc(log2FoldChange)) %>%
+  { setNames(.$log2FoldChange, .$locus_tag) }
+
+set.seed(42)
+gsea <- fgsea(split(pathway_genes$locus_tag, pathway_genes$pathway), ranks,
+              minSize = 10, maxSize = 500, nproc = 1)
+
+gsea %>%
+  as_tibble() %>%
+  left_join(pathway_names, by = "pathway") %>%
+  filter(padj < 0.05) %>%
+  arrange(NES) %>%
+  select(pathway, name, size, NES, padj)
+```
+
+The **normalised enrichment score** (NES) is negative for pathways whose genes are mostly down in LPS mice, and positive for pathways mostly up. The strongest signal is **Ribosome**, which ORA missed: its genes go down together, but most of them by less than 2-fold. It agrees with the drop in ribosomal protein transcripts you found in Part 2. Up in LPS: ABC transporters and oxidative phosphorylation.
+
+```{webr}
+plotEnrichment(split(pathway_genes$locus_tag, pathway_genes$pathway)[["ko03010"]], ranks) +
+  labs(title = "Ribosome (ko03010) in I48", x = "Gene rank (most up in LPS → most down)", y = "Enrichment score")
+```
+
+Each vertical line is a ribosome gene in the ranking. They pile up at the right end, among the genes most strongly down in LPS mice.
+
+## STRING: how do the genes work together?
+
+[STRING](https://string-db.org) collects known and predicted interactions between proteins. It knows the I48 genome by its locus tags. Print the down-regulated genes:
+
+```{webr}
+down_all <- i48 %>% filter(padj < 0.01, log2FoldChange < -1) %>% pull(locus_tag)
+writeLines(down_all)
+```
+
+Copy the list, open [string-db.org](https://string-db.org), choose **Multiple proteins**, paste the list, enter *Bacteroides caecimuris* as the organism, and press **Search**. Genes that are connected in the network often work together, such as the enzymes of one pathway, or the subunits of a transporter.
+
+## Running this on your own computer
+
+::: {.callout-note collapse="true"}
+## GO enrichment with topGO, and clusterProfiler
+In R on your own computer, you can also test Gene Ontology (GO) terms with [topGO](https://bioconductor.org/packages/topGO/), and run ORA and GSEA with [clusterProfiler](https://bioconductor.org/packages/clusterProfiler/), which also makes many plots. Both need the GO.db annotation package, which doesn't run in a browser.
+
+```{.r .notest}
+library(clusterProfiler)
+
+# the same ORA as above
+enricher(down, universe = universe, TERM2GENE = pathway_genes[, c("pathway", "locus_tag")],
+         pvalueCutoff = 0.05, minGSSize = 10)
+
+# GO terms with topGO: gene2go is a named list of GO IDs per locus tag (e.g. from eggNOG-mapper)
+library(topGO)
+scores <- setNames(i48$padj, i48$locus_tag)
+go_data <- new("topGOdata", ontology = "BP", allGenes = scores,
+               geneSel = function(p) p < 0.01, nodeSize = 10,
+               annot = annFUN.gene2GO, gene2GO = gene2go)
+GenTable(go_data, weight01 = runTest(go_data, algorithm = "weight01", statistic = "fisher"), topNodes = 20)
+```
+:::
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("A pathway has 3 of its 10 genes among your down-regulated genes, with an adjusted p-value of 0.4. What do you conclude?", [
+  {text: "The pathway is not affected", correct: false, why: "Absence of evidence isn't evidence of absence: with few genes, ORA has little power. GSEA, or a closer look at the genes, may tell more."},
+  {text: "There's no evidence that the pathway is over-represented", correct: true, why: "That's all a non-significant test says. Small pathways rarely reach significance."},
+  {text: "The pathway is switched down", correct: false, why: "3 of 10 could easily happen by chance, given how many genes are down overall."}
+])
+```
+
+## Key points
+
+- **ORA** tests whether a pathway has more responding genes than expected; it needs a cut-off and a well-chosen **universe**.
+- **GSEA** uses the whole ranking, and finds pathways whose genes shift together, even by small amounts.
+- In I48, inflammation of the host switches down **ribosomes** and **amino acid biosynthesis**: the bacteria seem to grow more slowly.
+- Enrichment can only see annotated genes; in bacteria, that's often less than half of them.
+
+[← 3. Differential expression](03-differential-expression.qmd){.btn .btn-outline-secondary} [5. When you have metagenomes →](05-with-metagenomes.qmd){.btn .btn-primary}

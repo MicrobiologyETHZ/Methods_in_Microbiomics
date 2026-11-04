@@ -1,0 +1,89 @@
+---
+title: "Metatranscriptomics: overview"
+subtitle: "Which genes is a microbial community expressing, and what changes them?"
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 3 hours** in total</span>
+<span>🎯 **Level:** first-year graduate students</span>
+<span>🧰 **You need:** basic R (dplyr, ggplot2); nothing to install</span>
+:::
+
+## What you'll learn
+
+By the end of this lesson you will be able to:
+
+1. Explain what a metatranscriptome measures, and why it mixes **who is there** with **what they are doing**.
+2. Check a metatranscriptome for depth and quality, strain by strain.
+3. Find differentially expressed genes without being fooled by changes in community composition.
+4. Turn a list of genes into biological functions with enrichment analysis.
+5. Use matched metagenomes to separate gene abundance from gene expression.
+
+## One equation for the whole lesson
+
+A metatranscriptome counts the mRNA of every organism in a sample. How many transcripts of a gene you see depends on two things:
+
+$$
+\text{transcripts} = \text{gene copies} \times \text{expression per copy}
+$$
+
+If a strain doubles in abundance, all of its transcripts double, even though no gene changed its expression. **Every metatranscriptomic analysis has to separate these two effects.** How you do that depends on what you know about the community:
+
+::: {.compact-diagram}
+```{mermaid}
+flowchart LR
+  Q{"Do you know<br/>who is there?"} -->|"Yes: defined community<br/>(Parts 2–4)"| D["Map to the genomes<br/>normalise within each genome"]
+  Q -->|"No, but you have<br/>metagenomes (Part 5)"| M["Map to a gene catalog<br/>expression = transcripts ÷ genes"]
+  Q -->|"Neither"| N["Interpret with care:<br/>changes mix abundance<br/>and expression"]
+```
+:::
+
+## The data
+
+Parts 2–4 use a **defined community**: mice colonised with **Oligo-MM12**, a community of 12 mouse gut bacterial strains, whose genomes are known. The mice were treated with **LPS** (bacterial lipopolysaccharide, which triggers an inflammatory response) or with **PBS** as a control, 6 mice each. The question: **how do the gut bacteria respond when their host is inflamed?**
+
+| Strain | Species |
+|---|---|
+| YL2 | *Bifidobacterium animalis* |
+| YL27 | *Muribaculum intestinale* |
+| YL31 | *Flavonifractor plautii* |
+| YL32 | *Enterocloster clostridioformis* |
+| YL44 | *Akkermansia muciniphila* |
+| YL45 | *Turicimonas muris* |
+| YL58 | *Blautia coccoides* |
+| I46 | *Clostridium innocuum* |
+| I48 | *Bacteroides caecimuris* |
+| I49 | *Limosilactobacillus reuteri* |
+| KB1 | *Enterococcus faecalis* |
+| KB18 | *Acutalibacter muris* |
+
+Part 5 returns to the **Tara Oceans** data from the [gene-catalog lesson](../gene-catalogs/04-downstream.qmd), where each sample has both a metagenome and a metatranscriptome.
+
+## Warm-up
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("In LPS-treated mice, you see twice as many transcripts of a Bacteroides gene as in controls. What can you conclude?", [
+  {text: "The gene is induced by inflammation", correct: false, why: "Maybe, but Bacteroides itself might have become twice as abundant. Then every one of its genes would double."},
+  {text: "Not yet: you need to know whether Bacteroides became more abundant", correct: true, why: "Transcripts = gene copies × expression. Part 3 shows how to remove the abundance effect."},
+  {text: "Bacteroides became more abundant", correct: false, why: "That's one explanation, but the gene could also be more highly expressed."}
+])
+```
+
+## The lesson at a glance
+
+| Part | Where it runs | Time |
+|---|---|---|
+| [1. From reads to counts](01-reads-to-counts.qmd) | Reading | 15 min |
+| [2. Explore the data](02-explore.qmd) | This site (R in your browser) | 45 min |
+| [3. Differential expression](03-differential-expression.qmd) | This site | 45 min |
+| [4. From genes to functions](04-functions.qmd) | This site | 30 min |
+| [5. When you have metagenomes](05-with-metagenomes.qmd) | This site | 30 min |
+
+Parts 2–4 build on each other. Part 5 stands on its own.
+
+Slides from the lecture that goes with this lesson: [METAT_lecture_slides.pdf](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/raw/main/docs/downloads/METAT_lecture_slides.pdf).
+
+[Start Part 1 →](01-reads-to-counts.qmd){.btn .btn-primary}

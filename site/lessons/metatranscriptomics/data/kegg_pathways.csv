@@ -1,0 +1,248 @@
+pathway,name
+ko01100,Metabolic pathways
+ko01110,Biosynthesis of secondary metabolites
+ko01120,Microbial metabolism in diverse environments
+ko01200,Carbon metabolism
+ko01210,2-Oxocarboxylic acid metabolism
+ko01212,Fatty acid metabolism
+ko01230,Biosynthesis of amino acids
+ko01220,Degradation of aromatic compounds
+ko00010,Glycolysis / Gluconeogenesis
+ko00020,Citrate cycle (TCA cycle)
+ko00030,Pentose phosphate pathway
+ko00040,Pentose and glucuronate interconversions
+ko00051,Fructose and mannose metabolism
+ko00052,Galactose metabolism
+ko00053,Ascorbate and aldarate metabolism
+ko00500,Starch and sucrose metabolism
+ko00620,Pyruvate metabolism
+ko00630,Glyoxylate and dicarboxylate metabolism
+ko00640,Propanoate metabolism
+ko00650,Butanoate metabolism
+ko00660,C5-Branched dibasic acid metabolism
+ko00562,Inositol phosphate metabolism
+ko00190,Oxidative phosphorylation
+ko00195,Photosynthesis
+ko00196,Photosynthesis - antenna proteins
+ko00710,Carbon fixation by Calvin cycle
+ko00720,Other carbon fixation pathways
+ko00680,Methane metabolism
+ko00910,Nitrogen metabolism
+ko00920,Sulfur metabolism
+ko00061,Fatty acid biosynthesis
+ko00071,Fatty acid degradation
+ko00100,Steroid biosynthesis
+ko00120,Primary bile acid biosynthesis
+ko00121,Secondary bile acid biosynthesis
+ko00140,Steroid hormone biosynthesis
+ko00561,Glycerolipid metabolism
+ko00564,Glycerophospholipid metabolism
+ko00565,Ether lipid metabolism
+ko00600,Sphingolipid metabolism
+ko00590,Arachidonic acid metabolism
+ko00591,Linoleic acid metabolism
+ko00592,alpha-Linolenic acid metabolism
+ko01040,Biosynthesis of unsaturated fatty acids
+ko00230,Purine metabolism
+ko00240,Pyrimidine metabolism
+ko00250,"Alanine, aspartate and glutamate metabolism"
+ko00260,"Glycine, serine and threonine metabolism"
+ko00270,Cysteine and methionine metabolism
+ko00280,"Valine, leucine and isoleucine degradation"
+ko00290,"Valine, leucine and isoleucine biosynthesis"
+ko00300,Lysine biosynthesis
+ko00310,Lysine degradation
+ko00220,Arginine biosynthesis
+ko00330,Arginine and proline metabolism
+ko00340,Histidine metabolism
+ko00350,Tyrosine metabolism
+ko00360,Phenylalanine metabolism
+ko00380,Tryptophan metabolism
+ko00400,"Phenylalanine, tyrosine and tryptophan biosynthesis"
+ko00410,beta-Alanine metabolism
+ko00430,Taurine and hypotaurine metabolism
+ko00440,Phosphonate and phosphinate metabolism
+ko00450,Selenocompound metabolism
+ko00460,Cyanoamino acid metabolism
+ko00480,Glutathione metabolism
+ko00520,Amino sugar and nucleotide sugar metabolism
+ko00510,N-Glycan biosynthesis
+ko00513,Various types of N-glycan biosynthesis
+ko00515,Mannose type O-glycan biosynthesis
+ko00514,Other types of O-glycan biosynthesis
+ko00531,Glycosaminoglycan degradation
+ko00603,Glycosphingolipid biosynthesis - globo and isoglobo series
+ko00604,Glycosphingolipid biosynthesis - ganglio series
+ko00511,Other glycan degradation
+ko00540,Lipopolysaccharide biosynthesis
+ko00550,Peptidoglycan biosynthesis
+ko00730,Thiamine metabolism
+ko00740,Riboflavin metabolism
+ko00750,Vitamin B6 metabolism
+ko00760,Nicotinate and nicotinamide metabolism
+ko00770,Pantothenate and CoA biosynthesis
+ko00780,Biotin metabolism
+ko00785,Lipoic acid metabolism
+ko00790,Folate biosynthesis
+ko00670,One carbon pool by folate
+ko00830,Retinol metabolism
+ko00860,Porphyrin metabolism
+ko00130,Ubiquinone and other terpenoid-quinone biosynthesis
+ko00900,Terpenoid backbone biosynthesis
+ko00909,Sesquiterpenoid and triterpenoid biosynthesis
+ko00906,Carotenoid biosynthesis
+ko00981,Insect hormone biosynthesis
+ko00908,Zeatin biosynthesis
+ko00903,Limonene degradation
+ko01051,Biosynthesis of ansamycins
+ko00523,Polyketide sugar unit biosynthesis
+ko01054,Nonribosomal peptide structures
+ko01053,Biosynthesis of siderophore group nonribosomal peptides
+ko01055,Biosynthesis of vancomycin group antibiotics
+ko00940,Phenylpropanoid biosynthesis
+ko00945,"Stilbenoid, diarylheptanoid and gingerol biosynthesis"
+ko00941,Flavonoid biosynthesis
+ko00944,Flavone and flavonol biosynthesis
+ko00950,Isoquinoline alkaloid biosynthesis
+ko00960,"Tropane, piperidine and pyridine alkaloid biosynthesis"
+ko00966,Glucosinolate metabolism
+ko00311,Penicillin and cephalosporin biosynthesis
+ko00332,Carbapenem biosynthesis
+ko00261,Monobactam biosynthesis
+ko00521,Streptomycin biosynthesis
+ko00524,"Neomycin, kanamycin and gentamicin biosynthesis"
+ko00525,Acarbose and validamycin biosynthesis
+ko00401,Novobiocin biosynthesis
+ko00405,Phenazine biosynthesis
+ko00333,Prodigiosin biosynthesis
+ko00362,Benzoate degradation
+ko00627,Aminobenzoate degradation
+ko00364,Fluorobenzoate degradation
+ko00625,Chloroalkane and chloroalkene degradation
+ko00361,Chlorocyclohexane and chlorobenzene degradation
+ko00623,Toluene degradation
+ko00622,Xylene degradation
+ko00633,Nitrotoluene degradation
+ko00642,Ethylbenzene degradation
+ko00643,Styrene degradation
+ko00791,Atrazine degradation
+ko00930,Caprolactam degradation
+ko00363,Bisphenol degradation
+ko00621,Dioxin degradation
+ko00626,Naphthalene degradation
+ko00980,Metabolism of xenobiotics by cytochrome P450
+ko00982,Drug metabolism - cytochrome P450
+ko00983,Drug metabolism - other enzymes
+ko03020,RNA polymerase
+ko03022,Basal transcription factors
+ko03010,Ribosome
+ko00970,Aminoacyl-tRNA biosynthesis
+ko03013,Nucleocytoplasmic transport
+ko03008,Ribosome biogenesis in eukaryotes
+ko03060,Protein export
+ko04141,Protein processing in endoplasmic reticulum
+ko04122,Sulfur relay system
+ko03050,Proteasome
+ko03018,RNA degradation
+ko03030,DNA replication
+ko03410,Base excision repair
+ko03420,Nucleotide excision repair
+ko03430,Mismatch repair
+ko03440,Homologous recombination
+ko03450,Non-homologous end-joining
+ko02010,ABC transporters
+ko02060,Phosphotransferase system (PTS)
+ko03070,Bacterial secretion system
+ko02020,Two-component system
+ko04013,MAPK signaling pathway - fly
+ko04016,MAPK signaling pathway - plant
+ko04011,MAPK signaling pathway - yeast
+ko04066,HIF-1 signaling pathway
+ko04068,FoxO signaling pathway
+ko04070,Phosphatidylinositol signaling system
+ko04072,Phospholipase D signaling pathway
+ko04071,Sphingolipid signaling pathway
+ko04151,PI3K-Akt signaling pathway
+ko04152,AMPK signaling pathway
+ko04080,Neuroactive ligand-receptor interaction
+ko04142,Lysosome biogenesis
+ko04146,Peroxisome
+ko04138,Autophagy - yeast
+ko04112,Cell cycle - Caulobacter
+ko04113,Meiosis - yeast
+ko04210,Apoptosis
+ko04214,Apoptosis - fly
+ko04216,Ferroptosis
+ko04217,Necroptosis
+ko02024,Quorum sensing
+ko05111,Biofilm formation - Vibrio cholerae
+ko02025,Biofilm formation - Pseudomonas aeruginosa
+ko02026,Biofilm formation - Escherichia coli
+ko02030,Bacterial chemotaxis
+ko02040,Flagellar assembly
+ko04640,Hematopoietic cell lineage
+ko04621,NOD-like receptor signaling pathway
+ko04612,Antigen processing and presentation
+ko04659,Th17 cell differentiation
+ko04657,IL-17 signaling pathway
+ko04910,Insulin signaling pathway
+ko04922,Glucagon signaling pathway
+ko04920,Adipocytokine signaling pathway
+ko03320,PPAR signaling pathway
+ko04915,Estrogen signaling pathway
+ko04914,Progesterone-mediated oocyte maturation
+ko04917,Prolactin signaling pathway
+ko04918,Thyroid hormone synthesis
+ko04614,Renin-angiotensin system
+ko04973,Carbohydrate digestion and absorption
+ko04974,Protein digestion and absorption
+ko04979,Cholesterol metabolism
+ko04978,Mineral absorption
+ko04964,Proximal tubule bicarbonate reclamation
+ko04724,Glutamatergic synapse
+ko04727,GABAergic synapse
+ko04380,Osteoclast differentiation
+ko04211,Longevity regulating pathway
+ko04212,Longevity regulating pathway - worm
+ko04213,Longevity regulating pathway - multiple species
+ko04714,Thermogenesis
+ko04626,Plant-pathogen interaction
+ko05200,Pathways in cancer
+ko05206,MicroRNAs in cancer
+ko05205,Proteoglycans in cancer
+ko05204,Chemical carcinogenesis - DNA adducts
+ko05203,Viral carcinogenesis
+ko05230,Central carbon metabolism in cancer
+ko05231,Choline metabolism in cancer
+ko05211,Renal cell carcinoma
+ko05219,Bladder cancer
+ko05215,Prostate cancer
+ko05166,Human T-cell leukemia virus 1 infection
+ko05165,Human papillomavirus infection
+ko05110,Vibrio cholerae infection
+ko05120,Epithelial cell signaling in Helicobacter pylori infection
+ko05132,Salmonella infection
+ko05133,Pertussis
+ko05134,Legionellosis
+ko05150,Staphylococcus aureus infection
+ko05152,Tuberculosis
+ko05100,Bacterial invasion of epithelial cells
+ko05146,Amoebiasis
+ko05142,Chagas disease
+ko05143,African trypanosomiasis
+ko05323,Rheumatoid arthritis
+ko05340,Primary immunodeficiency
+ko05010,Alzheimer disease
+ko05014,Amyotrophic lateral sclerosis
+ko05016,Huntington disease
+ko05020,Prion disease
+ko05418,Fluid shear stress and atherosclerosis
+ko04930,Type II diabetes mellitus
+ko04940,Type I diabetes mellitus
+ko04931,Insulin resistance
+ko04934,Cushing syndrome
+ko01501,beta-Lactam resistance
+ko01502,Vancomycin resistance
+ko01503,Cationic antimicrobial peptide (CAMP) resistance
+ko01524,Platinum drug resistance
+ko01523,Antifolate resistance

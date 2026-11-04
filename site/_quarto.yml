@@ -19,6 +19,8 @@ website:
         menu:
           - href: lessons/gene-catalogs/index.qmd
             text: Gene catalogs
+          - href: lessons/metatranscriptomics/index.qmd
+            text: Metatranscriptomics
       - href: contribute.qmd
         text: Contribute
   sidebar:
@@ -31,6 +33,15 @@ website:
         - lessons/gene-catalogs/03-quantification.qmd
         - lessons/gene-catalogs/04-downstream.qmd
         - lessons/gene-catalogs/05-production.qmd
+    - title: "Metatranscriptomics"
+      style: docked
+      contents:
+        - lessons/metatranscriptomics/index.qmd
+        - lessons/metatranscriptomics/01-reads-to-counts.qmd
+        - lessons/metatranscriptomics/02-explore.qmd
+        - lessons/metatranscriptomics/03-differential-expression.qmd
+        - lessons/metatranscriptomics/04-functions.qmd
+        - lessons/metatranscriptomics/05-with-metagenomes.qmd
   page-footer:
     left: "Methods in Microbiomics · Sunagawa group, ETH Zürich · content CC BY 4.0"
     right: "[Report a problem](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/issues/new)"

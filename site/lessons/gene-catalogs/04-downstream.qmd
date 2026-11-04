@@ -29,7 +29,7 @@ resources:
 - Why raw insert counts can't be compared between genes or between samples.
 - How to normalise for **gene length**, **sequencing depth** and **number of cells**, using single-copy marker genes.
 - Why relative abundances are **compositional**, and what that means for interpreting them.
-- How to compare samples with an ordination, and test a hypothesis with gene abundances and expression.
+- How to compare samples with an ordination, and test a hypothesis with gene abundances.
 
 ::: {.callout-note}
 ## How the code cells work
@@ -385,7 +385,7 @@ Temperature is almost perfectly correlated with the first axis (ρ ≈ −0.95).
 
 **Do cold-water communities have more cold-shock protein?** Cold-shock proteins (such as **cspA**, K03704) help bacteria cope with low temperatures. If they matter in the cold ocean, we'd expect more of them per cell in cold samples.
 
-`tara_cspa.csv` has cspA copies per cell, computed exactly as you did above, for both metagenomes (genes) and metatranscriptomes (transcripts).
+`tara_cspa.csv` has cspA copies per cell, computed exactly as you did above.
 
 ```{webr}
 cspa <- read_csv("data/tara_cspa.csv", show_col_types = FALSE)
@@ -402,54 +402,16 @@ ggplot(cspa_genes, aes(Temperature, genes_per_cell, colour = polar)) +
 cor.test(cspa_genes$genes_per_cell, cspa_genes$Temperature, method = "spearman")
 ```
 
-Colder samples carry more cspA per cell. But **more genes** doesn't necessarily mean **more activity**. For that we need the transcripts.
+Colder samples carry more cspA per cell: the cold-water community has more of the genes it needs to cope with low temperatures.
 
-### Exercise: genes or expression?
-
-The increase could come from two sources:
-
-1. **Community turnover:** cold-water organisms carry more cspA genes.
-2. **Regulation:** each cspA copy is expressed more in the cold.
-
-The metatranscriptome tells transcripts per cell; dividing transcripts by genes gives **expression per gene copy**. Join the metatranscriptome values (`sample_metat`) to `cspa_genes`, compute the ratio, and test whether it also correlates with temperature.
-
-```{webr}
-#| exercise: ex_expression
-cspa_both <- cspa_genes %>%
-  inner_join(cspa, by = c("sample_metat" = "sample")) %>%
-  rename(transcripts_per_cell = cspa_per_cell) %>%
-  mutate(expression = ______)
-
-ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
-  geom_point(alpha = 0.8) +
-  scale_y_log10()
-
-cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman")
-```
-
-::: {.hint exercise="ex_expression"}
-Expression per gene copy is `transcripts_per_cell / genes_per_cell`.
-:::
-
-::: {.solution exercise="ex_expression"}
-```r
-cspa_both <- cspa_genes %>%
-  inner_join(cspa, by = c("sample_metat" = "sample")) %>%
-  rename(transcripts_per_cell = cspa_per_cell) %>%
-  mutate(expression = transcripts_per_cell / genes_per_cell)
-
-ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
-  geom_point(alpha = 0.8) +
-  scale_y_log10()
-
-cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman")
-```
-Expression per gene copy also rises in the cold (ρ ≈ −0.76). **Both** processes contribute: cold communities have more cspA genes, and each copy is more highly expressed. Separating these two effects is a key reason to pair metatranscriptomes with metagenomes (see the [metatranscriptomics lesson](https://methods-in-microbiomics.readthedocs.io/en/latest/transcriptomics/metatranscriptomics_metagenomics.html)).
+::: {.callout-tip}
+## Genes or activity?
+More cspA **genes** doesn't necessarily mean more cspA **activity**. To find out, you need the metatranscriptomes as well: that's [Part 5 of the metatranscriptomics lesson](../metatranscriptomics/05-with-metagenomes.qmd), which starts from exactly these data.
 :::
 
 ## Your turn
 
-Pick another environmental variable in `samples` (`Oxygen`, `Latitude`, `Layer`) and ask whether cspA genes or expression relate to it. Is the relationship independent of temperature? (Hint: polar samples are cold *and* high-latitude.)
+Pick another environmental variable in `samples` (`Oxygen`, `Latitude`, `Layer`) and ask whether cspA genes per cell relate to it. Is the relationship independent of temperature? (Hint: polar samples are cold *and* high-latitude.)
 
 ```{webr}
 names(samples)
@@ -471,6 +433,6 @@ quiz("You compare a gene between two samples using raw insert counts. Sample 1 h
 - **Length:** longer genes collect more inserts, so divide by gene length before summing genes into functions.
 - **Depth and genome size:** divide by the median abundance of 10 single-copy marker genes to get **copies per cell**.
 - **Compositionality:** relative abundances can't increase independently; prefer per-cell values, or compositional methods.
-- **Genes vs transcripts:** metagenomes tell you the potential; transcripts divided by genes tell you expression per copy.
+- **Genes vs transcripts:** metagenomes tell you a community's functional potential; for its activity, see the [metatranscriptomics lesson](../metatranscriptomics/index.qmd).
 
 [← C. Quantification](03-quantification.qmd){.btn .btn-outline-secondary} [E. Going to real projects →](05-production.qmd){.btn .btn-primary}

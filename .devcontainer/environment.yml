@@ -1,4 +1,5 @@
-# Software for the gene-catalog workshop (Parts A–C). Versions as tested on 2026-11-04.
+# Software for the lessons' command-line parts and tests. Versions as tested on 2026-11-04.
+# The environment keeps its original name, gene-catalogs, which the Codespace and CI use.
 name: gene-catalogs
 channels:
   - conda-forge
@@ -14,6 +15,10 @@ dependencies:
   - r-tidyr=1.3
   - r-readr=2.2
   - r-ggplot2=4.0
+  # metatranscriptomics lesson: the same packages the pages load in the browser
+  - bioconductor-deseq2=1.50
+  - bioconductor-fgsea=1.36
   # only needed to rebuild the lesson data (data-prep/)
   - spades=4.3
   - biopython=1.88
+  - bioconductor-keggrest=1.50

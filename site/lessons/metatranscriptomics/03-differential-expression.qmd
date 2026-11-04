@@ -1,0 +1,380 @@
+---
+title: "3. Differential expression"
+subtitle: "Which genes respond to inflammation, once changes in abundance are removed?"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - readr
+    - ggplot2
+    - DESeq2
+  repos:
+    - https://bioc.r-universe.dev
+resources:
+  - data/samples.csv
+  - data/genes.csv.gz
+  - data/counts.csv.gz
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 45 min**</span>
+<span>💻 **Runs in this page:** R in your browser, including DESeq2. Loading it takes a moment the first time.</span>
+<span>📦 **Data:** Oligo-MM12 mice, LPS vs PBS</span>
+:::
+
+## What you'll learn
+
+- Why a change in a strain's abundance looks like a change in expression of all of its genes.
+- How **size factors** normalise samples, and why they must be computed **within each strain**.
+- How to run DESeq2 with per-strain normalisation, and read volcano and MA plots.
+
+## The problem: a strain blooms
+
+Imagine two strains, A and B. Between two conditions, strain B becomes more abundant, and **no gene changes its expression**. Since the sequencer returns about the same number of reads either way, B's genes take a larger share of the reads and A's genes a smaller one.
+
+A few genes in each strain truly respond (orange): A's are induced 4-fold, B's repressed 4-fold. Move the slider, and compare the normalisations.
+
+```{ojs}
+//| echo: false
+viewof bloom = Inputs.range([1, 8], {value: 3, step: 0.5, label: "Strain B grows ×"})
+viewof method = Inputs.radio(["No normalisation", "Global size factors", "Per-strain size factors"], {value: "Global size factors", label: "Normalisation"})
+```
+
+```{ojs}
+//| echo: false
+sim = {
+  // a fixed pseudo-random community, so every learner sees the same picture
+  let seed = 11;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const gauss = () => Math.sqrt(-2 * Math.log(rand())) * Math.cos(2 * Math.PI * rand());
+  const genes = [];
+  for (const [strain, n, change] of [["A", 300, 4], ["B", 150, 1 / 4]]) {
+    for (let i = 0; i < n; i++) {
+      const responds = i < n / 10;
+      genes.push({strain, responds, base: Math.exp(3 + 1.5 * gauss()),
+                  fold: responds ? change : 1, noise1: gauss(), noise2: gauss(), jitter: rand()});
+    }
+  }
+  return genes;
+}
+
+result = {
+  const abundance = s => s === "B" ? bloom : 1;
+  const c1 = sim.map(g => g.base * Math.exp(0.15 * g.noise1));
+  const c2 = sim.map(g => g.base * abundance(g.strain) * g.fold * Math.exp(0.15 * g.noise2));
+  // the same number of reads in both conditions
+  const t1 = d3.sum(c1), t2 = d3.sum(c2);
+  const lfc = sim.map((g, i) => Math.log2((c2[i] / t2) / (c1[i] / t1)));
+  const shift = strains => d3.median(lfc.filter((_, i) => strains.includes(sim[i].strain)));
+  const offset = {
+    "No normalisation": {A: 0, B: 0},
+    "Global size factors": {A: shift(["A", "B"]), B: shift(["A", "B"])},
+    "Per-strain size factors": {A: shift(["A"]), B: shift(["B"])}
+  }[method];
+  return sim.map((g, i) => ({...g, lfc: lfc[i] - offset[g.strain],
+    status: g.responds ? "truly changed" : "unchanged"}));
+}
+
+falsePositives = result.filter(d => !d.responds && Math.abs(d.lfc) > 1).length
+unchanged = result.filter(d => !d.responds).length
+
+Plot.plot({
+  height: 220, marginLeft: 70,
+  x: {label: "log2 fold change", domain: [-5, 5], grid: true},
+  y: {domain: [-0.5, 1.5], ticks: [0, 1], tickFormat: d => d === 1 ? "Strain A" : "Strain B", label: null},
+  color: {domain: ["unchanged", "truly changed"], range: ["#8a8a8a", "#e8590c"], legend: true},
+  marks: [
+    Plot.ruleX([-1, 1], {stroke: "#ccc", strokeDasharray: "4,3"}),
+    Plot.ruleX([0]),
+    Plot.dot(result, {x: "lfc", y: d => (d.strain === "A" ? 1 : 0) + (d.jitter - 0.5) * 0.6,
+                      fill: "status", r: 2.5, fillOpacity: 0.7})
+  ]
+})
+```
+
+```{ojs}
+//| echo: false
+md`**${falsePositives} of ${unchanged}** unchanged genes have a fold change above 2 (outside the dashed lines).`
+```
+
+- **No normalisation:** B's genes all look induced, A's all look repressed.
+- **Global size factors** (one per sample, from all genes): centre the *community* on zero. With a strong bloom, B's genes still look induced. That's the default in RNA-seq tools.
+- **Per-strain size factors:** centre each strain on zero separately. Only the genes that truly changed stand out.
+
+This is **taxon-specific scaling** ([Klingenberg & Meinicke 2017](https://doi.org/10.7717/peerj.3859)). With it, a fold change means "this gene's share of its own strain's transcripts changed", whatever happened to the strain's abundance.
+
+## The data
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+suppressPackageStartupMessages(library(DESeq2))
+theme_set(theme_bw())
+
+samples <- read_csv("data/samples.csv", show_col_types = FALSE) %>%
+  mutate(Treatment = factor(Treatment, levels = c("PBS", "LPS")))
+genes <- read_csv("data/genes.csv.gz", show_col_types = FALSE)
+counts <- read_csv("data/counts.csv.gz", show_col_types = FALSE)
+
+# the three strains with enough reads (Part 2), as a gene x sample matrix
+strains <- c("I48", "YL32", "YL58")
+count_matrix <- counts %>%
+  filter(locus_tag %in% genes$locus_tag[genes$genome %in% strains]) %>%
+  tibble::column_to_rownames("locus_tag") %>%
+  as.matrix()
+gene_strain <- genes$genome[match(rownames(count_matrix), genes$locus_tag)]
+cat(nrow(count_matrix), "genes from", length(strains), "strains in", ncol(count_matrix), "samples\n")
+```
+
+## Step 1: size factors
+
+A **size factor** says how much more sequencing a sample got than a typical sample: divide its counts by it, and samples become comparable. DESeq2 estimates size factors with the **median of ratios**:
+
+1. Keep genes with a count above zero in every sample, and take logs.
+2. For each gene, compute its average log count over all samples: a "reference sample".
+3. For each sample, compute each gene's difference to the reference (the log ratio).
+4. The size factor is the exponent of the **median** log ratio over all genes.
+
+The median makes it robust: as long as most genes don't change, the few that do don't move it.
+
+### Exercise: median of ratios by hand
+
+Complete step 4, then compare your function with DESeq2's.
+
+```{webr}
+#| exercise: ex_sizefactors
+size_factors <- function(m) {
+  m <- m[rowSums(m == 0) == 0, ]      # 1. genes with counts in every sample
+  log_m <- log(m)
+  reference <- rowMeans(log_m)        # 2. average log count of each gene
+  log_ratios <- log_m - reference     # 3. each gene vs the reference
+  exp(apply(log_ratios, 2, ______))   # 4. median per sample
+}
+
+i48 <- count_matrix[gene_strain == "I48", ]
+round(rbind(mine = size_factors(i48), DESeq2 = estimateSizeFactorsForMatrix(i48)), 3)
+```
+
+::: {.hint exercise="ex_sizefactors"}
+`apply(x, 2, f)` applies the function `f` to every column of `x`. Which function gives the median?
+:::
+
+::: {.solution exercise="ex_sizefactors"}
+```r
+size_factors <- function(m) {
+  m <- m[rowSums(m == 0) == 0, ]      # 1. genes with counts in every sample
+  log_m <- log(m)
+  reference <- rowMeans(log_m)        # 2. average log count of each gene
+  log_ratios <- log_m - reference     # 3. each gene vs the reference
+  exp(apply(log_ratios, 2, median))   # 4. median per sample
+}
+
+i48 <- count_matrix[gene_strain == "I48", ]
+round(rbind(mine = size_factors(i48), DESeq2 = estimateSizeFactorsForMatrix(i48)), 3)
+```
+:::
+
+```{webr}
+#| exercise: ex_sizefactors
+#| check: true
+i48 <- count_matrix[gene_strain == "I48", ]
+ok <- is.function(size_factors) &&
+  isTRUE(all.equal(size_factors(i48), estimateSizeFactorsForMatrix(i48)))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Your size factors are identical to DESeq2's.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: the size factor is exp() of the median log ratio of each sample (column).")
+}
+```
+
+### Global or per strain?
+
+Now compute size factors once for all genes together (global), and once for each strain:
+
+```{webr}
+sf <- data.frame(sample_id = colnames(count_matrix),
+                 global = estimateSizeFactorsForMatrix(count_matrix))
+for (s in strains) {
+  sf[[s]] <- estimateSizeFactorsForMatrix(count_matrix[gene_strain == s, ])
+}
+
+sf %>%
+  pivot_longer(all_of(strains), names_to = "strain", values_to = "per_strain") %>%
+  left_join(samples, by = "sample_id") %>%
+  ggplot(aes(global, per_strain, colour = Treatment)) +
+  geom_abline(linetype = 2) +
+  geom_point(size = 2) +
+  facet_wrap(~ strain) +
+  labs(x = "Global size factor", y = "Per-strain size factor")
+```
+
+If all strains kept the same proportions, each strain's points would lie on one line through the origin. They don't quite. Relative to the global size factors, I48's are on average about 15% higher in LPS mice than in PBS mice, and YL58's about 15% lower: the strains' proportions shift with treatment. Small as it is, such a shift moves **every** gene of the strain.
+
+## Step 2: DESeq2 with per-strain size factors
+
+DESeq2 accepts a matrix of **normalisation factors**, one per gene and sample, in place of one size factor per sample. We give every gene its own strain's size factors:
+
+```{webr}
+norm_factors <- matrix(1, nrow(count_matrix), ncol(count_matrix),
+                       dimnames = dimnames(count_matrix))
+for (s in strains) {
+  norm_factors[gene_strain == s, ] <- matrix(sf[[s]], sum(gene_strain == s),
+                                             ncol(count_matrix), byrow = TRUE)
+}
+
+coldata <- samples %>% tibble::column_to_rownames("sample_id")
+dds <- DESeqDataSetFromMatrix(count_matrix, coldata[colnames(count_matrix), , drop = FALSE],
+                              design = ~ Treatment)
+normalizationFactors(dds) <- norm_factors
+dds <- DESeq(dds, quiet = TRUE)
+
+res <- results(dds, contrast = c("Treatment", "LPS", "PBS"), alpha = 0.01) %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column("locus_tag") %>%
+  mutate(strain = gene_strain[match(locus_tag, rownames(count_matrix))])
+res %>% arrange(padj) %>% head()
+```
+
+::: {.callout-note}
+## Why not divide the counts first?
+You may find code that divides the counts by the size factors, rounds them, and gives those to DESeq2. That changes the data DESeq2 models: a count of 10 is noisier than a count of 100, and DESeq2 relies on that relationship. Normalisation factors leave the counts as they are.
+:::
+
+### What global size factors would have done
+
+For comparison, run the same model with DESeq2's default, global size factors, and compare the fold changes of each strain:
+
+```{webr}
+dds_global <- DESeqDataSetFromMatrix(count_matrix, coldata[colnames(count_matrix), , drop = FALSE],
+                                     design = ~ Treatment)
+dds_global <- DESeq(dds_global, quiet = TRUE)
+res_global <- results(dds_global, contrast = c("Treatment", "LPS", "PBS"))
+
+bind_rows(
+  data.frame(strain = gene_strain, log2FC = res$log2FoldChange, size_factors = "per strain"),
+  data.frame(strain = gene_strain, log2FC = res_global$log2FoldChange, size_factors = "global")
+) %>%
+  ggplot(aes(log2FC, colour = size_factors)) +
+  geom_vline(xintercept = 0) +
+  geom_density() +
+  facet_wrap(~ strain) +
+  coord_cartesian(xlim = c(-4, 4)) +
+  labs(x = "log2 fold change, LPS vs PBS", colour = "Size factors")
+```
+
+With global size factors, I48's fold changes are shifted to the right (more of its genes look induced) and YL58's to the left, as in the simulation at the top of this page. With per-strain size factors, each strain is centred on zero.
+
+## Step 3: look at the results
+
+A **volcano plot** shows each gene's fold change against its significance:
+
+```{webr}
+res %>%
+  filter(!is.na(padj)) %>%
+  mutate(call = case_when(
+    padj < 0.01 & log2FoldChange > 1 ~ "up in LPS",
+    padj < 0.01 & log2FoldChange < -1 ~ "down in LPS",
+    TRUE ~ "not significant"
+  )) %>%
+  ggplot(aes(log2FoldChange, -log10(padj), colour = call)) +
+  geom_point(alpha = 0.5, size = 0.8) +
+  geom_vline(xintercept = c(-1, 1), linetype = 2) +
+  geom_hline(yintercept = 2, linetype = 2) +
+  facet_wrap(~ strain) +
+  scale_colour_manual(values = c("up in LPS" = "firebrick", "down in LPS" = "steelblue",
+                                 "not significant" = "grey70")) +
+  labs(x = "log2 fold change, LPS vs PBS", y = "-log10 adjusted p-value", colour = NULL)
+```
+
+An **MA plot** shows fold change against mean expression. Fold changes of lowly expressed genes are noisy, so they spread widely and are rarely significant:
+
+```{webr}
+res %>%
+  filter(baseMean > 0) %>%
+  ggplot(aes(baseMean, log2FoldChange, colour = !is.na(padj) & padj < 0.01)) +
+  geom_point(alpha = 0.4, size = 0.6) +
+  geom_hline(yintercept = 0) +
+  scale_x_log10() +
+  facet_wrap(~ strain) +
+  scale_colour_manual(values = c(`FALSE` = "grey70", `TRUE` = "firebrick"),
+                      labels = c("not significant", "padj < 0.01")) +
+  labs(x = "Mean normalised count", y = "log2 fold change", colour = NULL)
+```
+
+### Exercise: how many genes respond?
+
+Count the genes up- and down-regulated in LPS mice in each strain, at an adjusted p-value below 0.01.
+
+```{webr}
+#| exercise: ex_de_summary
+de_summary <- res %>%
+  filter(!is.na(padj), ______) %>%
+  group_by(strain) %>%
+  summarise(up = sum(log2FoldChange > 0), down = sum(log2FoldChange < 0))
+de_summary
+```
+
+::: {.hint exercise="ex_de_summary"}
+Keep only the genes with `padj < 0.01`.
+:::
+
+::: {.solution exercise="ex_de_summary"}
+```r
+de_summary <- res %>%
+  filter(!is.na(padj), padj < 0.01) %>%
+  group_by(strain) %>%
+  summarise(up = sum(log2FoldChange > 0), down = sum(log2FoldChange < 0))
+de_summary
+```
+YL32 responds the most, with about 1,100 genes. In every strain, roughly as many genes go up as down.
+:::
+
+```{webr}
+#| exercise: ex_de_summary
+#| check: true
+expected <- res %>%
+  filter(!is.na(padj), padj < 0.01) %>%
+  group_by(strain) %>%
+  summarise(up = sum(log2FoldChange > 0), down = sum(log2FoldChange < 0))
+ok <- is.data.frame(de_summary) && all(c("up", "down") %in% names(de_summary)) &&
+  isTRUE(all.equal(as.data.frame(arrange(de_summary, strain)), as.data.frame(expected)))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct. Over 2,000 genes respond to the host's inflammation. Part 4 asks what they do.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: filter for padj < 0.01, then count positive and negative fold changes per strain.")
+}
+```
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("With global size factors, 80% of strain X's genes come out as induced in the treatment. What's the most likely explanation?", [
+  {text: "The treatment activates most of strain X's genes", correct: false, why: "Possible, but very unusual. A shift of almost all of a strain's genes is the signature of a change in abundance."},
+  {text: "Strain X became more abundant", correct: true, why: "More cells means more transcripts of every gene. Per-strain size factors remove that shift."},
+  {text: "Strain X was sequenced more deeply", correct: false, why: "Depth applies to whole samples, and global size factors already correct for it."}
+])
+```
+
+## Key points
+
+- In a community, a change in a strain's **abundance** shifts the counts of **all** its genes.
+- **Size factors** normalise samples; compute them **within each strain** (taxon-specific scaling).
+- Give per-strain size factors to DESeq2 as **normalisation factors**; don't divide and round the counts.
+- In this experiment, thousands of genes respond to the host's inflammation, in all three strains.
+
+Further reading: [Zhang et al. 2021](https://doi.org/10.1093/bioinformatics/btab327) compare statistical methods for differential expression in metatranscriptomes, with and without metagenomes.
+
+[← 2. Explore the data](02-explore.qmd){.btn .btn-outline-secondary} [4. From genes to functions →](04-functions.qmd){.btn .btn-primary}
