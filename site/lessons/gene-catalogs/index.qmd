@@ -24,7 +24,17 @@ A gene catalog is a non-redundant collection of genes found in a set of metageno
 
 Gene profiles show a community's **functional potential** and diversity. They let you relate genes to environmental factors, or to health and disease.
 
-![Building a gene catalog: genes are predicted in each assembly, pooled and clustered.](images/Building-gene-catalog.png){fig-alt="Diagram showing genes predicted from metagenomic assemblies of several samples being pooled and clustered into one non-redundant catalog."}
+::: {.compact-diagram}
+```{mermaid}
+flowchart LR
+  A["Assembly<br/>sample 1"] --> G1["Gene calling<br/>prodigal"]
+  B["Assembly<br/>sample 2"] --> G2["Gene calling<br/>prodigal"]
+  C["Assembly<br/>sample 3"] --> G3["Gene calling<br/>prodigal"]
+  G1 & G2 & G3 --> P["Pool genes"]
+  P --> M["Cluster<br/>MMseqs2<br/>95% id, 90% cov"]
+  M --> K["Gene catalog"]
+```
+:::
 
 ### Catalogs, MAGs or reference profiles?
 
@@ -54,14 +64,12 @@ quiz("Two samples contain the same bacterial strain. Its gene for RNA polymerase
 
 ## The lesson at a glance
 
+::: {.compact-diagram}
 ```{mermaid}
 flowchart LR
-  A["Assemblies<br/>(provided)"] --> B["A. Gene calling<br/>prodigal"]
-  B --> C["B. Clustering<br/>MMseqs2"]
-  C --> D["C. Quantification<br/>bwa + R"]
-  D --> E["D. Downstream analysis<br/>R in the browser"]
-  E --> F["E. Real projects"]
+  A["A. Gene calling"] --> B["B. Clustering"] --> C["C. Quantification"] --> D["D. Analysis"] --> E["E. Real projects"]
 ```
+:::
 
 | Part | Where it runs | Time |
 |---|---|---|

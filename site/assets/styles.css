@@ -8,3 +8,17 @@
 .codespace-button { display: inline-block; padding: .5rem 1rem; border-radius: .4rem;
   background: #24292f; color: #fff !important; text-decoration: none; font-weight: 600; }
 .codespace-button:hover { background: #3b434b; }
+
+/* Mermaid diagrams: keep them compact instead of full page width */
+.compact-diagram { max-width: 720px; margin: 1rem auto; }
+.compact-diagram svg { max-width: 100% !important; height: auto; }
+.compact-diagram .cell-output-display { text-align: center; }
+
+/* Quarto adds copy buttons even to OJS cells whose source is hidden (echo: false) */
+.code-copy-outer-scaffold:has(> .cell-code.hidden) > .code-copy-button { display: none; }
+
+/* Quiz: question above, answers stacked at full width */
+.quiz-question { font-weight: 600; margin-bottom: .5rem; }
+.quiz form { width: 100%; max-width: none; }
+.quiz form > div { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; }
+.quiz form > div > label { width: auto; max-width: 100%; white-space: normal; }

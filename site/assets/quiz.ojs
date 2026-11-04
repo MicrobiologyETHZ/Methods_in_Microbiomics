@@ -1,11 +1,11 @@
 // Multiple-choice question with immediate feedback.
 // options: array of {text, correct, why}
 function quiz(question, options) {
-  const form = Inputs.radio(options, {label: question, format: (d) => d.text});
+  const form = Inputs.radio(options, {format: (d) => d.text});
   const feedback = html`<div class="quiz-feedback"></div>`;
   form.addEventListener("input", () => {
     const d = form.value;
     feedback.innerHTML = d.correct ? `✅ ${d.why}` : `❌ ${d.why}`;
   });
-  return html`<div class="quiz">${form}${feedback}</div>`;
+  return html`<div class="quiz"><p class="quiz-question">${question}</p>${form}${feedback}</div>`;
 }

@@ -28,7 +28,15 @@ resources:
 - How to count **inserts** per gene, and what to do with inserts that match several genes.
 - How to judge how much of a community the catalog captures.
 
-![Profiling a gene catalog: reads from each sample are mapped back to the catalog and counted per gene.](images/Gene-Catalog-Profiling.png){fig-alt="Diagram showing reads from several samples mapped to a gene catalog, giving a table of counts per gene and sample."}
+::: {.compact-diagram}
+```{mermaid}
+flowchart LR
+  R["Reads<br/>per sample"] --> A["Align to catalog<br/>bwa mem -a"]
+  A --> F["Filter<br/>≥ 45 bp aligned<br/>≥ 95% identity"]
+  F --> C["Count unique inserts<br/>per gene"]
+  C --> T["Count table<br/>genes × samples"]
+```
+:::
 
 ## Map the reads
 
