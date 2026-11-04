@@ -25,7 +25,7 @@ resources:
 ## What you'll learn
 
 - Why the share of the transcriptome isn't the share of the community.
-- How to check that each strain has enough reads to analyse.
+- How to check that each strain has enough inserts to analyse.
 - How to normalise counts for exploration (TPM, CLR), and check replicates with PCA and correlations.
 - How to read a strain's growth state from its ribosomal protein transcripts.
 
@@ -87,14 +87,14 @@ About half of the genes have a KO, i.e. a known function. That will matter in Pa
 Sum the counts of each strain's genes in each sample, and divide by the sample's total:
 
 ```{webr}
-strain_reads <- counts_long %>%
+strain_inserts <- counts_long %>%
   group_by(sample_id, Treatment, genome) %>%
-  summarise(reads = sum(count), .groups = "drop") %>%
+  summarise(inserts = sum(count), .groups = "drop") %>%
   group_by(sample_id) %>%
-  mutate(share = reads / sum(reads)) %>%
+  mutate(share = inserts / sum(inserts)) %>%
   ungroup()
 
-ggplot(strain_reads, aes(sample_id, share, fill = genome)) +
+ggplot(strain_inserts, aes(sample_id, share, fill = genome)) +
   geom_col() +
   facet_grid(~ Treatment, scales = "free_x", space = "free_x") +
   scale_fill_manual(values = strain_colours) +
@@ -116,17 +116,19 @@ quiz("YL32 makes up 38% of the transcripts in PBS mice. Does that mean 38% of th
 ])
 ```
 
+To estimate composition, use DNA: 16S rRNA gene sequencing or a metagenome. Marker-gene profilers such as [mOTUs](https://motu-tool.org/) can also be run on the metatranscriptome itself, since they rely on genes that every cell expresses.
+
 ## Step 2: is there enough data for each strain?
 
-A sample with 10 million reads might have 8 million from one strain and only 50,000 from another. Analyses are done **strain by strain**, so what matters is each strain's depth. In this lesson, we ask for **at least 500,000 reads per strain per sample**.
+A sample with 10 million inserts might have 8 million from one strain and only 50,000 from another. Analyses are done **strain by strain**, so what matters is each strain's depth. In this lesson, we ask for **at least 500,000 inserts per strain per sample**.
 
 ### Exercise: which strains can we analyse?
 
-Count, for each strain and treatment, the samples with at least 500,000 reads.
+Count, for each strain and treatment, the samples with at least 500,000 inserts.
 
 ```{webr}
 #| exercise: ex_depth
-depth <- strain_reads %>%
+depth <- strain_inserts %>%
   group_by(genome, Treatment) %>%
   summarise(n_adequate = sum(______), .groups = "drop")
 
@@ -134,34 +136,34 @@ ggplot(depth, aes(Treatment, genome, fill = n_adequate)) +
   geom_tile(colour = "white") +
   geom_text(aes(label = n_adequate)) +
   scale_fill_gradient(low = "grey95", high = "steelblue", limits = c(0, 6)) +
-  labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k reads")
+  labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k inserts")
 ```
 
 ::: {.hint exercise="ex_depth"}
-`sum()` of a logical vector counts the `TRUE` values. Compare each sample's `reads` with `5e5`.
+`sum()` of a logical vector counts the `TRUE` values. Compare each sample's `inserts` with `5e5`.
 :::
 
 ::: {.solution exercise="ex_depth"}
 ```r
-depth <- strain_reads %>%
+depth <- strain_inserts %>%
   group_by(genome, Treatment) %>%
-  summarise(n_adequate = sum(reads >= 5e5), .groups = "drop")
+  summarise(n_adequate = sum(inserts >= 5e5), .groups = "drop")
 
 ggplot(depth, aes(Treatment, genome, fill = n_adequate)) +
   geom_tile(colour = "white") +
   geom_text(aes(label = n_adequate)) +
   scale_fill_gradient(low = "grey95", high = "steelblue", limits = c(0, 6)) +
-  labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k reads")
+  labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k inserts")
 ```
-Only I48 and YL32 have enough reads in all 12 samples. YL58 has enough in 8.
+Only I48 and YL32 have enough inserts in all 12 samples. YL58 has enough in 8.
 :::
 
 ```{webr}
 #| exercise: ex_depth
 #| check: true
-expected <- strain_reads %>%
+expected <- strain_inserts %>%
   group_by(genome, Treatment) %>%
-  summarise(n = sum(reads >= 5e5), .groups = "drop")
+  summarise(n = sum(inserts >= 5e5), .groups = "drop")
 ok <- is.data.frame(depth) && "n_adequate" %in% names(depth) &&
   isTRUE(all.equal(
     arrange(depth, genome, Treatment)$n_adequate,
@@ -172,21 +174,21 @@ if (ok) {
        message = "Right. Only I48 and YL32 are deep enough in every sample; we'll focus on them and YL58.")
 } else {
   list(correct = FALSE, type = "error",
-       message = "Not yet: n_adequate should count samples with reads >= 5e5.")
+       message = "Not yet: n_adequate should count samples with inserts >= 5e5.")
 }
 ```
 
 ::: {.callout-tip}
 ## What about the rare strains?
-With few reads, most genes have counts of 0 or 1, and nothing can be tested reliably. You can still describe them, but leave them out of differential expression, or sequence deeper.
+With few inserts, most genes have counts of 0 or 1, and nothing can be tested reliably. You can still describe them, but leave them out of differential expression, or sequence deeper.
 :::
 
 ## Step 3: normalising for exploration
 
 Raw counts can't be compared directly:
 
-1. **Gene length:** longer genes collect more reads at the same expression.
-2. **Depth:** each strain has a different number of reads in each sample.
+1. **Gene length:** longer genes collect more inserts at the same expression.
+2. **Depth:** each strain has a different number of inserts in each sample.
 3. **Compositionality:** counts are only meaningful relative to the other genes in the sample.
 
 For plots and PCA, we normalise **within each strain**: then a strain's depth or abundance doesn't matter, only the relative expression of its genes. (Differential expression in Part 3 uses its own normalisation.)
@@ -254,7 +256,7 @@ expr <- counts_long %>%
   mutate(tpm = calculate_tpm(count, length)) %>%
   ungroup()
 
-# Each strain's TPM adds up to a million in every sample (strains without reads give NaN)
+# Each strain's TPM adds up to a million in every sample
 expr %>%
   group_by(genome, sample_id) %>%
   summarise(total_tpm = sum(tpm), .groups = "drop") %>%
@@ -318,7 +320,72 @@ as.data.frame(pca$x) %>%
        x = paste0("PC1 (", explained[1], "%)"), y = paste0("PC2 (", explained[2], "%)"))
 ```
 
-In I48, the first axis largely separates LPS from PBS mice: treatment is the largest source of variation. Four mice sit in between: two LPS (AU657, AU658) and two PBS (AU648, AU649). Try `"YL32"`, `"YL58"` and `"KB18"`: in all of them, the first axis separates the treatments.
+In I48, the first axis largely separates LPS from PBS mice. But four mice sit in between: two LPS (AU657, AU658) and two PBS (AU648, AU649). Is treatment the only thing the first axis captures?
+
+### Exercise: what else drives the first axis?
+
+The samples were sequenced to very different depths. Compute the total number of inserts in each sample, and plot it against the first axis.
+
+```{webr}
+#| exercise: ex_pca_depth
+sample_depth <- counts_long %>%
+  group_by(sample_id) %>%
+  summarise(depth = ______)
+
+as.data.frame(pca$x) %>%
+  tibble::rownames_to_column("sample_id") %>%
+  left_join(samples, by = "sample_id") %>%
+  left_join(sample_depth, by = "sample_id") %>%
+  ggplot(aes(depth / 1e6, PC1, colour = Treatment, label = sample_id)) +
+  geom_point(size = 3) +
+  geom_text(vjust = -0.8, size = 3, show.legend = FALSE) +
+  scale_x_log10() +
+  labs(x = "Inserts in the sample (millions, log scale)", title = paste(strain, ": first axis against depth"))
+```
+
+::: {.hint exercise="ex_pca_depth"}
+The depth of a sample is the sum of the counts of all genes in it: `sum(count)`.
+:::
+
+::: {.solution exercise="ex_pca_depth"}
+```r
+sample_depth <- counts_long %>%
+  group_by(sample_id) %>%
+  summarise(depth = sum(count))
+
+as.data.frame(pca$x) %>%
+  tibble::rownames_to_column("sample_id") %>%
+  left_join(samples, by = "sample_id") %>%
+  left_join(sample_depth, by = "sample_id") %>%
+  ggplot(aes(depth / 1e6, PC1, colour = Treatment, label = sample_id)) +
+  geom_point(size = 3) +
+  geom_text(vjust = -0.8, size = 3, show.legend = FALSE) +
+  scale_x_log10() +
+  labs(x = "Inserts in the sample (millions, log scale)", title = paste(strain, ": first axis against depth"))
+```
+The samples fall into two groups: 3–6 million and 12–18 million inserts. The first axis follows depth closely, and the four "in-between" mice are exactly those whose depth is unusual for their treatment: AU657 and AU658 are deeply sequenced LPS mice, AU648 and AU649 shallow PBS mice.
+:::
+
+```{webr}
+#| exercise: ex_pca_depth
+#| check: true
+expected <- colSums(as.matrix(counts[, -1]))
+ok <- is.data.frame(sample_depth) && "depth" %in% names(sample_depth) &&
+  isTRUE(all.equal(sample_depth$depth[match(names(expected), sample_depth$sample_id)],
+                   unname(expected)))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct. The first axis mixes treatment with sequencing depth.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: depth should be the sum of all counts in each sample.")
+}
+```
+
+::: {.callout-warning}
+## Treatment and depth are partly confounded
+Four of the six LPS mice were sequenced shallowly, and four of the six PBS mice deeply. In shallow samples, more genes have zero or very few counts, which changes their profiles. So the first axis mixes the effect of LPS with the effect of depth, and you can't fully separate the two in this dataset. In your own experiments, **randomise samples across sequencing runs and depths**, so that technical differences can't line up with your groups. Try `"YL32"`, `"YL58"` and `"KB18"` too: the treatments separate less cleanly there.
+:::
 
 ### Sample correlations
 
@@ -326,8 +393,8 @@ A correlation heatmap shows the same thing differently: every pair of samples, a
 
 ```{webr}
 cor_matrix <- cor(t(clr_matrix), method = "spearman")
-order <- hclust(as.dist(1 - cor_matrix))$order
-sample_order <- rownames(cor_matrix)[order]
+ord <- hclust(as.dist(1 - cor_matrix))$order
+sample_order <- rownames(cor_matrix)[ord]
 
 as.data.frame(cor_matrix) %>%
   tibble::rownames_to_column("sample_1") %>%
@@ -345,7 +412,7 @@ Samples are ordered by hierarchical clustering. Replicates should correlate high
 
 ## Step 5: how fast are the strains growing?
 
-A growing cell needs many ribosomes, so it spends a large share of its transcription on **ribosomal proteins**. The share of a strain's transcripts that encode ribosomal proteins is a rough proxy for its growth rate.
+A growing cell needs many ribosomes, so it spends a large share of its transcription on **ribosomal proteins**. The share of a strain's transcripts that encode ribosomal proteins is a rough proxy for its growth rate. Because it's a share *within* the strain, the strain's abundance cancels out: more cells mean more ribosomal *and* more other transcripts. Compare it between samples of one strain, not between strains: their baselines differ (about 0.2–0.5% in YL32, 3–4% in I48).
 
 ```{webr}
 ribosomal_kos <- kegg_ko %>%
@@ -357,7 +424,7 @@ genes <- genes %>%
   mutate(is_ribosomal = vapply(strsplit(coalesce(KO, ""), ","),
                                function(k) any(k %in% ribosomal_kos), logical(1)))
 
-counts_long <- counts_long %>%
+counts_ribo <- counts_long %>%
   left_join(select(genes, locus_tag, is_ribosomal), by = "locus_tag")
 
 cat(length(ribosomal_kos), "ribosomal protein KOs;",
@@ -370,7 +437,7 @@ For each strain in each sample, compute the share of transcripts from ribosomal 
 
 ```{webr}
 #| exercise: ex_ribo
-ribo <- counts_long %>%
+ribo <- counts_ribo %>%
   filter(genome %in% c("I48", "YL32", "YL58")) %>%
   group_by(genome, sample_id, Treatment) %>%
   summarise(ribosomal_share = ______, .groups = "drop")
@@ -389,7 +456,7 @@ Sum the counts of the ribosomal protein genes only, `sum(count[is_ribosomal])`, 
 
 ::: {.solution exercise="ex_ribo"}
 ```r
-ribo <- counts_long %>%
+ribo <- counts_ribo %>%
   filter(genome %in% c("I48", "YL32", "YL58")) %>%
   group_by(genome, sample_id, Treatment) %>%
   summarise(ribosomal_share = sum(count[is_ribosomal]) / sum(count), .groups = "drop")
@@ -401,13 +468,13 @@ ggplot(ribo, aes(Treatment, ribosomal_share, colour = Treatment)) +
   scale_y_continuous(labels = scales::percent) +
   labs(y = "Transcripts from ribosomal proteins", x = NULL)
 ```
-The ribosomal protein share is lower in LPS mice in all three strains: the bacteria seem to grow more slowly when their host is inflamed. The difference is clear for YL32 and YL58 (Wilcoxon p ≈ 0.002), and a trend for I48 (p ≈ 0.09). Test it with `wilcox.test(ribosomal_share ~ Treatment, data = filter(ribo, genome == "YL32"))`.
+The ribosomal protein share is lower in LPS mice in all three strains, consistent with slower growth when the host is inflamed (another possibility: a sick host eats less, changing what the bacteria can feed on). The difference is clear for YL32 and YL58 (Wilcoxon p ≈ 0.002), and a trend for I48 (p ≈ 0.09). Test it with `wilcox.test(ribosomal_share ~ Treatment, data = filter(ribo, genome == "YL32"))`.
 :::
 
 ```{webr}
 #| exercise: ex_ribo
 #| check: true
-expected <- counts_long %>%
+expected <- counts_ribo %>%
   filter(genome == "I48") %>%
   group_by(sample_id) %>%
   summarise(share = sum(count[is_ribosomal]) / sum(count))
@@ -429,8 +496,8 @@ if (ok) {
 
 ```{ojs}
 //| echo: false
-quiz("Strain X has 50,000 reads in some samples and 3 million in others. Why do we normalise within each strain before PCA?", [
-  {text: "So that the PCA shows differences in gene expression, not in how many reads the strain got", correct: true, why: "Within-strain normalisation removes the strain's depth and abundance, leaving the relative expression of its genes."},
+quiz("Strain X has 50,000 inserts in some samples and 3 million in others. Why do we normalise within each strain before PCA?", [
+  {text: "So that the PCA shows differences in gene expression, not in how many inserts the strain got", correct: true, why: "Within-strain normalisation removes the strain's depth and abundance, leaving the relative expression of its genes."},
   {text: "Because PCA can't handle large numbers", correct: false, why: "PCA works with any numbers; the issue is what the differences mean."},
   {text: "To remove rare genes", correct: false, why: "Normalisation doesn't remove genes; filtering does."}
 ])
@@ -439,9 +506,9 @@ quiz("Strain X has 50,000 reads in some samples and 3 million in others. Why do 
 ## Key points
 
 - **Transcript share ≠ community composition:** it mixes abundance with activity.
-- **Check depth per strain,** not per sample. Analyse only strains with enough reads.
+- **Check depth per strain,** not per sample. Analyse only strains with enough inserts.
 - **Normalise within each strain** for exploration: TPM, then log or CLR.
 - **PCA and correlation heatmaps** show whether replicates agree and what drives the variation. Here: treatment.
-- **Ribosomal protein share** is a simple proxy for growth. In LPS mice, the main strains seem to grow more slowly.
+- **Ribosomal protein share** is a simple proxy for growth. In LPS mice it is lower, consistent with slower growth.
 
 [← 1. From reads to counts](01-reads-to-counts.qmd){.btn .btn-outline-secondary} [3. Differential expression →](03-differential-expression.qmd){.btn .btn-primary}

@@ -66,7 +66,7 @@ cat(n_distinct(per_cell$sample), "samples,", n_distinct(per_cell$KO), "KOs\n")
 
 ## Cold-shock protein: genes or expression?
 
-Cold-shock proteins such as **cspA** (K03704) help bacteria cope with low temperatures. Colder samples carry more cspA genes per cell:
+Cold-shock proteins such as **cspA** (K03704) help bacteria cope with low temperatures. K03704 covers the whole family of cold-shock proteins, and many bacteria carry several of them, so even warm-water samples have more than one copy per cell. Colder samples carry more:
 
 ```{webr}
 cspa_genes <- samples %>%
@@ -78,7 +78,7 @@ ggplot(cspa_genes, aes(Temperature, genes_per_cell, colour = polar)) +
   scale_y_log10() +
   labs(x = "Temperature (°C)", y = "cspA genes per cell (log scale)")
 
-cor.test(cspa_genes$genes_per_cell, cspa_genes$Temperature, method = "spearman")
+cor.test(cspa_genes$genes_per_cell, cspa_genes$Temperature, method = "spearman", exact = FALSE)
 ```
 
 But **more genes** doesn't necessarily mean **more activity**. The increase in transcripts could come from two sources:
@@ -102,7 +102,7 @@ ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
   scale_y_log10() +
   labs(x = "Temperature (°C)", y = "cspA expression per gene copy (log scale)")
 
-cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman")
+cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman", exact = FALSE)
 ```
 
 ::: {.hint exercise="ex_expression"}
@@ -121,7 +121,7 @@ ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
   scale_y_log10() +
   labs(x = "Temperature (°C)", y = "cspA expression per gene copy (log scale)")
 
-cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman")
+cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman", exact = FALSE)
 ```
 Expression per gene copy also rises in the cold (ρ ≈ −0.76). **Both** processes contribute: cold communities have more cspA genes, and each copy is more highly expressed.
 :::
@@ -129,9 +129,12 @@ Expression per gene copy also rises in the cold (ρ ≈ −0.76). **Both** proce
 ```{webr}
 #| exercise: ex_expression
 #| check: true
-expected <- with(cspa_both, transcripts_per_cell / genes_per_cell)
-ok <- is.data.frame(cspa_both) && "expression" %in% names(cspa_both) &&
-  isTRUE(all.equal(cspa_both$expression, expected))
+ok <- isTRUE(tryCatch(
+  is.data.frame(cspa_both) && "expression" %in% names(cspa_both) &&
+    isTRUE(all.equal(cspa_both$expression,
+                     cspa_both$transcripts_per_cell / cspa_both$genes_per_cell)),
+  error = function(e) FALSE
+))
 if (ok) {
   list(correct = TRUE, type = "success",
        message = "Correct: expression per copy also increases in the cold.")
@@ -164,9 +167,10 @@ paired <- samples %>%
 variance <- paired %>%
   group_by(KO) %>%
   summarise(
+    # covariance first: below, `genes` and `expression` are replaced by their variances
+    covariance = 2 * cov(log2(genes), log2(expression)),
     genes = var(log2(genes)),
-    expression = var(log2(expression)),
-    covariance = 2 * cov(log2(genes), log2(expression))
+    expression = var(log2(expression))
   ) %>%
   left_join(kos, by = "KO") %>%
   mutate(label = paste(KO, sub(";.*", "", Description)))
@@ -183,6 +187,55 @@ variance %>%
 
 - **Housekeeping genes** (tRNA synthetases, RNA polymerase, signal recognition particle): nearly every cell has one copy, so genes per cell hardly vary (blue). The little variation their transcripts have comes from **expression** (orange).
 - **cspA** varies far more than any of them. Most of that is regulation, but part is turnover: the cold-water community carries more copies of the gene.
+
+### Exercise: how much of cspA's variation is regulation?
+
+Use the `variance` table to compute, for each KO, the share of the variance of log transcripts that comes from expression. The variance of log transcripts is the sum of the three parts.
+
+```{webr}
+#| exercise: ex_share
+shares <- variance %>%
+  mutate(total = ______,
+         expression_share = expression / total) %>%
+  select(label, total, expression_share) %>%
+  arrange(desc(total))
+shares
+```
+
+::: {.hint exercise="ex_share"}
+The total is `genes + expression + covariance`.
+:::
+
+::: {.solution exercise="ex_share"}
+```r
+shares <- variance %>%
+  mutate(total = genes + expression + covariance,
+         expression_share = expression / total) %>%
+  select(label, total, expression_share) %>%
+  arrange(desc(total))
+shares
+```
+For cspA, about three quarters of the variation comes from expression, and the rest from gene copies and their covariance with expression. Since the two parts are positively correlated (covariance > 0), turnover and regulation push in the same direction: where there are more cspA genes, each copy is also expressed more.
+:::
+
+```{webr}
+#| exercise: ex_share
+#| check: true
+truth <- variance$genes + variance$expression + variance$covariance
+ok <- isTRUE(tryCatch({
+  cspa <- shares %>% filter(grepl("^K03704", label))
+  nrow(cspa) == 1 &&
+    isTRUE(all.equal(sort(shares$total), sort(truth))) &&
+    abs(cspa$expression_share - 0.76) < 0.02
+}, error = function(e) FALSE))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Correct: about 76% of cspA's variation is regulation.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet: total should be genes + expression + covariance.")
+}
+```
 
 ::: {.callout-note}
 ## A caveat about the marker genes

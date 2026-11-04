@@ -22,3 +22,4 @@ dependencies:
   - spades=4.3
   - biopython=1.88
   - bioconductor-keggrest=1.50
+  - r-jsonlite=2.0

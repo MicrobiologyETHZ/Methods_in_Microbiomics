@@ -41,7 +41,6 @@ genes <- annotations %>%
       vapply(function(p) paste(p[startsWith(p, "ko")], collapse = ";"), "") %>%
       na_if("")
   )
-write_csv(genes, file.path(out, "genes.csv.gz"))
 
 counts <- raw_counts %>%
   select(locus_tag, all_of(samples$sample_id)) %>%
@@ -67,12 +66,18 @@ pathway_names <- cache("kegg_pathways.csv", function() {
 
 used_kos <- unique(unlist(strsplit(na.omit(genes$KO), ",")))
 write_csv(filter(ko_names, KO %in% used_kos), file.path(out, "kegg_ko.csv"))
+# drop pathway IDs that KEGG has retired (they have no name any more)
+genes <- genes %>%
+  mutate(pathways = strsplit(coalesce(pathways, ""), ";") %>%
+           vapply(function(p) paste(p[p %in% pathway_names$pathway], collapse = ";"), "") %>%
+           na_if(""))
+write_csv(genes, file.path(out, "genes.csv.gz"))
 used_pathways <- unique(unlist(strsplit(na.omit(genes$pathways), ";")))
 write_csv(filter(pathway_names, pathway %in% used_pathways), file.path(out, "kegg_pathways.csv"))
 
-# --- Reference differential expression ----------------------------------------------------------
+# --- Differential expression results for Part 4 ---------------------------------------------------
 # The method taught in Part 3: one DESeq2 model, with size factors estimated within each genome
-# and passed in as normalisation factors (taxon-specific scaling).
+# and passed in as normalisation factors (taxon-specific scaling). Part 4 uses I48 only.
 de_genomes <- c("I48", "YL32", "YL58")
 
 m <- counts %>%
@@ -99,8 +104,8 @@ de <- results(dds, contrast = c("Treatment", "LPS", "PBS"), alpha = 0.01) %>%
   as.data.frame() %>%
   tibble::rownames_to_column("locus_tag") %>%
   mutate(genome = genome[match(locus_tag, rownames(m))], .after = locus_tag) %>%
-  select(locus_tag, genome, baseMean, log2FoldChange, lfcSE, pvalue, padj)
-write_csv(de, file.path(out, "de_reference.csv.gz"))
+  select(locus_tag, genome, baseMean, log2FoldChange, lfcSE, stat, pvalue, padj)
+write_csv(filter(de, genome == "I48"), file.path(out, "de_i48.csv.gz"))
 
 # --- Tara (Part 5) ------------------------------------------------------------------------------
 # Built by data-prep/gene-catalogs/tara_tables.R; copied so each lesson's data folder is complete.
@@ -113,8 +118,7 @@ jsonlite::write_json(
   list(
     source = "docs/downloads/metat_defined_community_data.tar.gz",
     deseq2_version = as.character(packageVersion("DESeq2")),
-    de_genomes = de_genomes,
-    built = format(Sys.Date())
+    de_genomes = de_genomes
   ),
   file.path(out, "provenance.json"), auto_unbox = TRUE, pretty = TRUE
 )

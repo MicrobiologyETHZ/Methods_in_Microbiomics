@@ -1,6 +1,5 @@
 {
   "source": "docs/downloads/metat_defined_community_data.tar.gz",
   "deseq2_version": "1.50.2",
-  "de_genomes": ["I48", "YL32", "YL58"],
-  "built": "2026-11-04"
+  "de_genomes": ["I48", "YL32", "YL58"]
 }

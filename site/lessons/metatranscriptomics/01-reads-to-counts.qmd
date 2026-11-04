@@ -64,12 +64,12 @@ featureCounts -T 4 -p --countReadPairs -s 2 \
 ```
 
 - `-t CDS -g locus_tag`: count coding sequences, one row per locus tag.
-- `-s 2`: the library is **stranded** (reverse), as with most RNA library kits. Check yours: the wrong setting loses most of your reads, which you'll see in featureCounts' summary.
+- `-s 2`: the library is **stranded**, and reads come from the opposite strand of the gene ("reverse"), as with dUTP-based kits. Other kits give `-s 1` (forward) or unstranded libraries (`-s 0`). If you're not sure, run featureCounts on one sample with `-s 0`, `-s 1` and `-s 2`, and keep the setting with the most reads in the "Assigned" line of its summary. Strandedness matters in bacteria: genes overlap, and many are transcribed in antisense, so counting both strands mixes them up.
 - `-p --countReadPairs`: count inserts, not individual reads.
 
 ::: {.callout-warning}
 ## Not every aligner and counter fit together
-featureCounts recognises reads with several alignments from the `NH` tag, which bowtie2 and BWA don't write. If you ask these aligners for multiple alignments per read, featureCounts can't tell, and counts such reads several times. We have tested BWA with our own counter, salmon, and bowtie2 with featureCounts; in our hands all of them give very similar results. Whatever you choose, test it on your data.
+featureCounts recognises reads with several alignments from the `NH` tag, which bowtie2 and BWA don't write. If you ask these aligners for multiple alignments per read, featureCounts can't tell, and counts such reads several times; add `--primary` to count only each read's primary alignment. We have tested BWA with our own counter, salmon, and bowtie2 with featureCounts; in our hands all of them give very similar results. Whatever you choose, test it on your data.
 :::
 
 ## The result

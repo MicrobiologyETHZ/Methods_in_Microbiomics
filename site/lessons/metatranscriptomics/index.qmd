@@ -19,6 +19,14 @@ By the end of this lesson you will be able to:
 4. Turn a list of genes into biological functions with enrichment analysis.
 5. Use matched metagenomes to separate gene abundance from gene expression.
 
+## Why metatranscriptomics?
+
+Metagenomes tell you which genes a community **has**: its potential. Metatranscriptomes tell you which genes it is **using**, at the moment of sampling. That's the most direct way to see what a community does, and how it responds to a change. It comes at a price:
+
+- **RNA is unstable.** Samples must be frozen or preserved immediately, or the transcripts you measure reflect the handling, not the environment.
+- **Most RNA isn't mRNA.** Ribosomal RNA, and in host-associated samples host RNA, must be depleted or filtered out.
+- **The analysis is less standardised** than for metagenomes, and changes in who is there are easily mistaken for changes in activity.
+
 ## One equation for the whole lesson
 
 A metatranscriptome counts the mRNA of every organism in a sample. How many transcripts of a gene you see depends on two things:
