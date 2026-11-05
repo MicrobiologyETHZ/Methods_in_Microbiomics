@@ -100,12 +100,18 @@ jobs:
       # DESeq2 (Part 3 of the metatranscriptomics lesson) needs locfit, which no public
       # repository builds for webR. Build it here and publish it with the site, at /wasm/.
       # Keep the webR version in step with the extension (site/_extensions/r-wasm/live/live.lua).
+      # rwasm is called directly, not through r-wasm/actions/build-rwasm, to pass
+      # `remotes = NULL`: resolving rwasm's built-in list of webR-patched packages currently
+      # fails ("`nrow(out)` must equal `1`"), and locfit needs none of them.
       - name: Build webR packages missing from public repositories
-        uses: r-wasm/actions/build-rwasm@v2
-        with:
-          packages: locfit
-          webr-image: ghcr.io/r-wasm/webr:v0.6.0
-          repo-path: site/_site/wasm
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work -e GITHUB_PAT="${{ github.token }}" \
+            ghcr.io/r-wasm/webr:v0.6.0 Rscript -e '
+              pak::pak("r-wasm/rwasm")
+              rwasm::add_pkg("locfit", repo_dir = "site/_site/wasm", remotes = NULL)
+            '
+          # rwasm only warns when a build fails, so check that locfit made it into the repo
+          grep -q '^Package: locfit$' site/_site/wasm/bin/emscripten/contrib/*/PACKAGES
 
       - name: Check links
         uses: lycheeverse/lychee-action@v2
