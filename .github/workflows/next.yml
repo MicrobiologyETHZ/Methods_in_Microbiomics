@@ -100,15 +100,21 @@ jobs:
       # DESeq2 (Part 3 of the metatranscriptomics lesson) needs locfit, which no public
       # repository builds for webR. Build it here and publish it with the site, at /wasm/.
       # Keep the webR version in step with the extension (site/_extensions/r-wasm/live/live.lua).
-      # rwasm is called directly, not through r-wasm/actions/build-rwasm, to pass
-      # `remotes = NULL`: resolving rwasm's built-in list of webR-patched packages currently
-      # fails ("`nrow(out)` must equal `1`"), and locfit needs none of them.
+      # rwasm is called directly, not through r-wasm/actions/build-rwasm, because two of its
+      # defaults need working around:
+      # - `remotes = NULL`: resolving rwasm's built-in list of webR-patched packages currently
+      #   fails ("`nrow(out)` must equal `1`"), and locfit needs none of them.
+      # - locfit asks for C17 (SystemRequirements: USE_C17), but rwasm's webr-vars.mk only
+      #   points CC at emcc, so C17 code went to the host gcc. rwasm includes
+      #   ~/.webr-vars.mk, so set the C17 compiler there, with the usual wasm C flags. (Not
+      #   `C17FLAGS = $(CFLAGS)`: R passes CFLAGS=$(C17FLAGS) to make, which would recurse.)
       - name: Build webR packages missing from public repositories
         run: |
           docker run --rm -v "$PWD:/work" -w /work -e GITHUB_PAT="${{ github.token }}" \
-            ghcr.io/r-wasm/webr:v0.6.0 Rscript -e '
-              pak::pak("r-wasm/rwasm")
-              rwasm::add_pkg("locfit", repo_dir = "site/_site/wasm", remotes = NULL)
+            --entrypoint bash ghcr.io/r-wasm/webr:v0.6.0 -c '
+              printf "\nCC17 = emcc\nC17FLAGS = \$(WASM_CFLAGS) -std=gnu17\n" >> ~/.webr-vars.mk
+              Rscript -e "pak::pak(\"r-wasm/rwasm\")" \
+                      -e "rwasm::add_pkg(\"locfit\", repo_dir = \"site/_site/wasm\", remotes = NULL)"
             '
           # rwasm only warns when a build fails, so check that locfit made it into the repo
           grep -q '^Package: locfit$' site/_site/wasm/bin/emscripten/contrib/*/PACKAGES
