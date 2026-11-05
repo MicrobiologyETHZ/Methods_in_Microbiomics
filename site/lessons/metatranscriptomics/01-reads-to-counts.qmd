@@ -46,10 +46,10 @@ bowtie2 -p 4 -x community -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz \
 
 ::: {.callout-important}
 ## Map competitively
-Map to **all genomes together**, not to each genome separately. Related strains share similar sequences. Mapped separately, a read from a shared region would be counted once for every genome it matches, inflating the counts. Mapped together, each read is assigned to its best match.
+Map to **all genomes together**, not to each genome separately. Related strains share similar sequences. Mapped separately, a read from a shared region would be counted once for every genome it matches, inflating the counts. Mapped together, each read goes to its best match, and a read that matches several genomes equally well is recognised as ambiguous instead of being counted for each of them.
 :::
 
-By default, bowtie2 reports one alignment per read. If a read matches several places equally well, it picks one at random, so such reads are spread evenly over their equally good matches.
+By default, bowtie2 reports one alignment per read. If a read matches several places equally well, it picks one at random, but gives the alignment a low mapping quality (MAPQ 0 or 1). We don't count these reads: in the next step we keep only reads that map uniquely, with a high mapping quality.
 
 ### 3. Count reads per gene
 
@@ -58,7 +58,7 @@ Combine the annotation of all genomes into one file, and count read pairs (inser
 ```{.bash .notest}
 cat annotations/*.gff > community.gff
 
-featureCounts -T 4 -p --countReadPairs -s 2 \
+featureCounts -T 4 -p --countReadPairs -s 2 -Q 10 \
   -t CDS -g locus_tag \
   -a community.gff -o counts.tsv sample*.bam
 ```
@@ -66,11 +66,14 @@ featureCounts -T 4 -p --countReadPairs -s 2 \
 - `-t CDS -g locus_tag`: count coding sequences, one row per locus tag.
 - `-s 2`: the library is **stranded**, and reads come from the opposite strand of the gene ("reverse"), as with dUTP-based kits. Other kits give `-s 1` (forward) or unstranded libraries (`-s 0`). If you're not sure, run featureCounts on one sample with `-s 0`, `-s 1` and `-s 2`, and keep the setting with the most reads in the "Assigned" line of its summary. Strandedness matters in bacteria: genes overlap, and many are transcribed in antisense, so counting both strands mixes them up.
 - `-p --countReadPairs`: count inserts, not individual reads.
+- `-Q 10`: count only reads with mapping quality of at least 10. This removes reads that map equally well to several places (multi-mapping reads), so each counted read comes from one known gene.
 
 ::: {.callout-warning}
 ## Not every aligner and counter fit together
-featureCounts recognises reads with several alignments from the `NH` tag, which bowtie2 and BWA don't write. If you ask these aligners for multiple alignments per read, featureCounts can't tell, and counts such reads several times; add `--primary` to count only each read's primary alignment. We have tested BWA with our own counter, salmon, and bowtie2 with featureCounts; in our hands all of them give very similar results. Whatever you choose, test it on your data.
+Be careful when combining aligners and counting tools: not all of them are fully compatible. For example, featureCounts can't recognise multi-mapping reads in alignment files made by BWA. Filtering on mapping quality, as above, takes care of this: BWA, like bowtie2, gives reads that map equally well to several places a mapping quality of 0, so `-Q 10` removes them.
 :::
+
+Other aligners and counters work for this step too. We have tested BWA with our own counter, salmon, and bowtie2 with featureCounts; in our hands all of them give very similar results. It's always best to test what works for your data.
 
 ## The result
 
@@ -85,7 +88,7 @@ import {quiz} from "../../assets/quiz.ojs"
 quiz("Two strains in your community share a 5-kb genomic island with identical sequence. You map each sample to each genome separately and add up the counts. What happens to reads from the island?", [
   {text: "They're counted twice, once for each strain", correct: true, why: "Each separate mapping finds them. Competitive mapping to the combined reference assigns each read once."},
   {text: "They're discarded as ambiguous", correct: false, why: "Separate mappings don't know about the other genome, so nothing is ambiguous to them."},
-  {text: "They're split between the two strains", correct: false, why: "That's what competitive mapping does, not separate mapping."}
+  {text: "They're split between the two strains", correct: false, why: "Not even with competitive mapping: there, these reads match both strains equally well, get a low mapping quality, and are removed by the quality filter."}
 ])
 ```
 
@@ -93,6 +96,7 @@ quiz("Two strains in your community share a 5-kb genomic island with identical s
 
 - Map to **all genomes at once**, so each read is counted only once.
 - Count **coding sequences**, with the right **strandedness**, and count inserts rather than reads.
+- Count only **uniquely mapping reads**, by filtering on mapping quality.
 - Check that your aligner and counter handle multi-mapping reads the way you think they do.
 
 [← Overview](index.qmd){.btn .btn-outline-secondary} [2. Explore the data →](02-explore.qmd){.btn .btn-primary}

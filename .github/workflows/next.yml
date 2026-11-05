@@ -97,6 +97,16 @@ jobs:
       - name: Render site
         run: quarto render site
 
+      # DESeq2 (Part 3 of the metatranscriptomics lesson) needs locfit, which no public
+      # repository builds for webR. Build it here and publish it with the site, at /wasm/.
+      # Keep the webR version in step with the extension (site/_extensions/r-wasm/live/live.lua).
+      - name: Build webR packages missing from public repositories
+        uses: r-wasm/actions/build-rwasm@v2
+        with:
+          packages: locfit
+          webr-image: ghcr.io/r-wasm/webr:v0.6.0
+          repo-path: site/_site/wasm
+
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:

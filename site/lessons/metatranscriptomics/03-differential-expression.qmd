@@ -12,6 +12,7 @@ webr:
     - DESeq2
   repos:
     - https://bioc.r-universe.dev
+    - https://microbiologyethz.github.io/Methods_in_Microbiomics/wasm   # locfit, built by CI
 resources:
   - data/samples.csv
   - data/genes.csv.gz

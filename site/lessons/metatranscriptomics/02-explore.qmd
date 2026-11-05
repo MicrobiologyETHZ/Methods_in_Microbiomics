@@ -80,7 +80,19 @@ genes
 counts
 ```
 
-About half of the genes have a KO, i.e. a known function. That will matter in Part 4.
+How many genes have a KO, i.e. a known function? Count them overall and per strain:
+
+```{webr}
+genes %>%
+  summarise(genes = n(), with_KO = sum(!is.na(KO)), share = mean(!is.na(KO)))
+
+genes %>%
+  group_by(genome) %>%
+  summarise(genes = n(), with_KO = sum(!is.na(KO)), share = mean(!is.na(KO))) %>%
+  arrange(share)
+```
+
+Only 46% of the genes have a KO, and this varies between strains, from 36% in I46 to 63% in I49. The rest have no known function, which will matter in Part 4.
 
 ## Step 1: who dominates the transcriptome?
 
@@ -295,19 +307,38 @@ TPM is dominated by a few very highly expressed genes. On the log and CLR scales
 
 ### PCA within one strain
 
-PCA summarises each sample's expression profile, over thousands of genes, in a few axes. Samples with similar profiles end up close together. Change `strain` and rerun to look at other strains.
+PCA summarises each sample's expression profile, over many genes, in a few axes. Samples with similar profiles end up close together. Change `strain` and rerun to look at other strains.
+
+We don't use all genes:
+
+1. **Drop genes that are barely detected.** A gene with almost no inserts tells us nothing about expression, only about chance and depth. We keep genes with at least 10 inserts in at least 6 samples (the size of one treatment group, so genes expressed in only one treatment are kept).
+2. **Keep the 500 most variable genes.** Genes whose expression barely changes between samples add noise but no information about how samples differ. This is also the default of `plotPCA()` in DESeq2.
 
 ```{webr}
 strain <- "I48"
 
-clr_matrix <- expr %>%
+# genes with at least 10 inserts in at least 6 samples
+detected <- counts_long %>%
   filter(genome == strain) %>%
+  group_by(locus_tag) %>%
+  summarise(n_samples = sum(count >= 10)) %>%
+  filter(n_samples >= 6) %>%
+  pull(locus_tag)
+
+clr_matrix <- expr %>%
+  filter(genome == strain, locus_tag %in% detected) %>%
   select(sample_id, locus_tag, clr) %>%
   pivot_wider(names_from = locus_tag, values_from = clr) %>%
   tibble::column_to_rownames("sample_id") %>%
   as.matrix()
 
-pca <- prcomp(clr_matrix)
+# the 500 genes whose CLR values vary most between samples
+top_genes <- names(sort(apply(clr_matrix, 2, var), decreasing = TRUE))[1:500]
+
+cat(length(detected), "of", n_distinct(expr$locus_tag[expr$genome == strain]),
+    strain, "genes are detected; the PCA uses the 500 most variable.\n")
+
+pca <- prcomp(clr_matrix[, top_genes])
 explained <- round(100 * summary(pca)$importance[2, 1:2])
 
 as.data.frame(pca$x) %>%
@@ -496,7 +527,7 @@ if (ok) {
 
 ```{ojs}
 //| echo: false
-quiz("Strain X has 50,000 inserts in some samples and 3 million in others. Why do we normalise within each strain before PCA?", [
+quiz("Strain X has 1 million inserts in some samples and 3 million in others. Why do we normalise within each strain before PCA?", [
   {text: "So that the PCA shows differences in gene expression, not in how many inserts the strain got", correct: true, why: "Within-strain normalisation removes the strain's depth and abundance, leaving the relative expression of its genes."},
   {text: "Because PCA can't handle large numbers", correct: false, why: "PCA works with any numbers; the issue is what the differences mean."},
   {text: "To remove rare genes", correct: false, why: "Normalisation doesn't remove genes; filtering does."}
