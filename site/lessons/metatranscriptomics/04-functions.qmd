@@ -12,6 +12,7 @@ webr:
     - fgsea
   repos:
     - https://bioc.r-universe.dev
+    - https://microbiologyethz.github.io/Methods_in_Microbiomics/wasm   # fastmatch, built by CI
 resources:
   - data/genes.csv.gz
   - data/de_i48.csv.gz

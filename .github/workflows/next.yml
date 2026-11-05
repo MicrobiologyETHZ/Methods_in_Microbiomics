@@ -97,8 +97,12 @@ jobs:
       - name: Render site
         run: quarto render site
 
-      # DESeq2 (Part 3 of the metatranscriptomics lesson) needs locfit, which no public
-      # repository builds for webR. Build it here and publish it with the site, at /wasm/.
+      # Packages the lessons need that no public repository builds for our webR version,
+      # built here and published with the site, at /wasm/. Pages that need them list that
+      # URL under `webr: repos`, before repo.r-wasm.org, so these builds are used first.
+      # - locfit (for DESeq2, metatranscriptomics Part 3): no webR build anywhere.
+      # - fastmatch (for fgsea, Part 4): repo.r-wasm.org's build fails to load in webR 0.6.0
+      #   ("R_registerRoutines": imported function does not match the expected type).
       # Keep the webR version in step with the extension (site/_extensions/r-wasm/live/live.lua).
       # rwasm is called directly, not through r-wasm/actions/build-rwasm, because two of its
       # defaults need working around:
@@ -114,10 +118,13 @@ jobs:
             --entrypoint bash ghcr.io/r-wasm/webr:v0.6.0 -c '
               printf "\nCC17 = emcc\nC17FLAGS = \$(WASM_CFLAGS) -std=gnu17\n" >> ~/.webr-vars.mk
               Rscript -e "pak::pak(\"r-wasm/rwasm\")" \
-                      -e "rwasm::add_pkg(\"locfit\", repo_dir = \"site/_site/wasm\", remotes = NULL)"
+                      -e "rwasm::add_pkg(c(\"locfit\", \"fastmatch\"), repo_dir = \"site/_site/wasm\", remotes = NULL)"
             '
-          # rwasm only warns when a build fails, so check that locfit made it into the repo
-          grep -q '^Package: locfit$' site/_site/wasm/bin/emscripten/contrib/*/PACKAGES
+          # rwasm only warns when a build fails, so check that every package made it into the repo
+          for pkg in locfit fastmatch; do
+            grep -q "^Package: $pkg$" site/_site/wasm/bin/emscripten/contrib/*/PACKAGES \
+              || { echo "::error::$pkg was not built for webR"; exit 1; }
+          done
 
       - name: Check links
         uses: lycheeverse/lychee-action@v2
