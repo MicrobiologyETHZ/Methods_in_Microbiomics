@@ -101,8 +101,11 @@ jobs:
       # built here and published with the site, at /wasm/. Pages that need them list that
       # URL under `webr: repos`, before repo.r-wasm.org, so these builds are used first.
       # - locfit (for DESeq2, metatranscriptomics Part 3): no webR build anywhere.
-      # - fastmatch (for fgsea, Part 4): repo.r-wasm.org's build fails to load in webR 0.6.0
-      #   ("R_registerRoutines": imported function does not match the expected type).
+      # - fastmatch (for fgsea, Part 4): its src/dummy.c, there only to satisfy CRAN checks,
+      #   declares `void R_registerRoutines(void)`. WebAssembly checks function signatures
+      #   at load time, so every webR build (repo.r-wasm.org's too) fails with
+      #   "R_registerRoutines": imported function does not match the expected type.
+      #   Build it from the CRAN source with dummy.c (and the MD5 list) removed.
       # Keep the webR version in step with the extension (site/_extensions/r-wasm/live/live.lua).
       # rwasm is called directly, not through r-wasm/actions/build-rwasm, because two of its
       # defaults need working around:
@@ -116,9 +119,13 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/work" -w /work -e GITHUB_PAT="${{ github.token }}" \
             --entrypoint bash ghcr.io/r-wasm/webr:v0.6.0 -c '
+              set -e
               printf "\nCC17 = emcc\nC17FLAGS = \$(WASM_CFLAGS) -std=gnu17\n" >> ~/.webr-vars.mk
+              Rscript -e "download.packages(\"fastmatch\", \"/tmp\", repos = \"https://cloud.r-project.org\")"
+              tar xzf /tmp/fastmatch_*.tar.gz -C /tmp
+              rm /tmp/fastmatch/src/dummy.c /tmp/fastmatch/MD5
               Rscript -e "pak::pak(\"r-wasm/rwasm\")" \
-                      -e "rwasm::add_pkg(c(\"locfit\", \"fastmatch\"), repo_dir = \"site/_site/wasm\", remotes = NULL)"
+                      -e "rwasm::add_pkg(c(\"locfit\", \"local::/tmp/fastmatch\"), repo_dir = \"site/_site/wasm\", remotes = NULL)"
             '
           # rwasm only warns when a build fails, so check that every package made it into the repo
           for pkg in locfit fastmatch; do
