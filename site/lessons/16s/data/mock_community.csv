@@ -1,0 +1,9 @@
+species,copies_16s,pct_genomic_dna,pct_16s,pct_cells,asv
+Pseudomonas aeruginosa,4,12,4.2,6.1,ASV_9
+Escherichia coli,7,12,10.1,8.5,MOCK_Escherichia_coli
+Salmonella enterica,7,12,10.4,8.8,ASV_4115
+Lactobacillus fermentum,5,12,18.4,21.9,ASV_697
+Enterococcus faecalis,4,12,9.9,14.6,ASV_134
+Staphylococcus aureus,6,12,15.5,15.3,ASV_2
+Listeria monocytogenes,6,12,14.1,13.9,MOCK_Listeria_monocytogenes
+Bacillus subtilis,10,12,17.4,10.3,ASV_7364

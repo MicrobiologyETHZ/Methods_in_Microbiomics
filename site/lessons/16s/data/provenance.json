@@ -1,0 +1,207 @@
+{
+  "simulated": true,
+  "source_table": "nccr-microbiomes-org/Advanced_methods_in_microbial_community_analysis 6_reproducibility/16s_example/ASV_table.tsv (zAMP output of Nassirnia et al. 2025, doi:10.1099/jmm.0.002079; ENA PRJEB41059)",
+  "real": "ASV sequences, taxonomy (EzBioCloud) and the composition of the base sputum profiles",
+  "simulated_parts": "samples, pairing, metadata, depths, DNA concentrations, contamination, negative controls, mock community reads",
+  "base_samples": [
+    "1804101094_S14_L001_R1_001",
+    "VD27P03-FROTTIS_S25_L001_R1_001",
+    "1706011951_S8_L001_R1_001",
+    "16-1031-1477_S9_L001_R1_001",
+    "1611092840_S23_L001_R1_001",
+    "1711151039_S22_L001_R1_001",
+    "1805082001_S25_L001_R1_001",
+    "1607121037_S25_L001_R1_001",
+    "1802082403_S44_L001_R1_001",
+    "1710162590_S51_L001_R1_001",
+    "1612052139_S44_L001_R1_001"
+  ],
+  "seed": 2026,
+  "parameters": {
+    "SEED": 2026,
+    "N_PATIENTS": 11,
+    "EXACERBATION_VISITS": 6,
+    "PATHOGEN_GENERA": [
+      "Pseudomonas",
+      "Staphylococcus",
+      "Haemophilus",
+      "Achromobacter",
+      "Stenotrophomonas",
+      "Moraxella"
+    ],
+    "THROAT_ORAL_SHARE": 0.45,
+    "THROAT_PATHOGEN_FACTOR": 0.35,
+    "EXACERBATION_PATHOGEN_FACTOR": 2.0,
+    "CONC_VISIT": 2000,
+    "CONC_VISIT2": 600,
+    "CONC_THROAT": 1500,
+    "DEPTH": {
+      "Sputum": [
+        60000,
+        0.35
+      ],
+      "Throat swab": [
+        35000,
+        0.35
+      ]
+    },
+    "DNA": {
+      "Sputum": [
+        25.0,
+        0.6
+      ],
+      "Throat swab": [
+        2.5,
+        0.6
+      ]
+    },
+    "CONTAM_K": 0.25,
+    "CONTAM_NOISE": 0.5,
+    "CONTAMINANTS": {
+      "ASV_2887": 6,
+      "ASV_7200": 5,
+      "ASV_633": 5,
+      "ASV_5247": 2,
+      "ASV_5580": 1,
+      "ASV_2832": 1,
+      "ASV_5517": 3,
+      "ASV_1423": 2,
+      "ASV_5242": 2,
+      "ASV_2610": 1,
+      "ASV_6156": 1,
+      "ASV_3016": 2,
+      "ASV_4020": 1,
+      "ASV_5629": 1,
+      "ASV_2769": 1
+    },
+    "BLANKS": {
+      "EB1": "Extraction blank",
+      "EB2": "Extraction blank",
+      "EB3": "Extraction blank",
+      "EB4": "Extraction blank",
+      "PCR1": "PCR blank",
+      "PCR2": "PCR blank"
+    },
+    "BLANK_CROSS": {
+      "Extraction blank": 0.08,
+      "PCR blank": 0.02
+    },
+    "ZYMO": [
+      [
+        "Pseudomonas aeruginosa",
+        4,
+        12,
+        4.2,
+        6.1
+      ],
+      [
+        "Escherichia coli",
+        7,
+        12,
+        10.1,
+        8.5
+      ],
+      [
+        "Salmonella enterica",
+        7,
+        12,
+        10.4,
+        8.8
+      ],
+      [
+        "Lactobacillus fermentum",
+        5,
+        12,
+        18.4,
+        21.9
+      ],
+      [
+        "Enterococcus faecalis",
+        4,
+        12,
+        9.9,
+        14.6
+      ],
+      [
+        "Staphylococcus aureus",
+        6,
+        12,
+        15.5,
+        15.3
+      ],
+      [
+        "Listeria monocytogenes",
+        6,
+        12,
+        14.1,
+        13.9
+      ],
+      [
+        "Bacillus subtilis",
+        10,
+        12,
+        17.4,
+        10.3
+      ]
+    ],
+    "ZYMO_TAX": {
+      "Pseudomonas aeruginosa": [
+        "Proteobacteria",
+        "Gammaproteobacteria",
+        "Pseudomonadales",
+        "Pseudomonadaceae",
+        "Pseudomonas"
+      ],
+      "Escherichia coli": [
+        "Proteobacteria",
+        "Gammaproteobacteria",
+        "Enterobacterales",
+        "Enterobacteriaceae",
+        "Escherichia"
+      ],
+      "Salmonella enterica": [
+        "Proteobacteria",
+        "Gammaproteobacteria",
+        "Enterobacterales",
+        "Enterobacteriaceae",
+        "Salmonella"
+      ],
+      "Lactobacillus fermentum": [
+        "Firmicutes",
+        "Bacilli",
+        "Lactobacillales",
+        "Lactobacillaceae",
+        "Lactobacillus"
+      ],
+      "Enterococcus faecalis": [
+        "Firmicutes",
+        "Bacilli",
+        "Lactobacillales",
+        "Enterococcaceae",
+        "Enterococcus"
+      ],
+      "Staphylococcus aureus": [
+        "Firmicutes",
+        "Bacilli",
+        "Bacillales",
+        "Staphylococcaceae",
+        "Staphylococcus"
+      ],
+      "Listeria monocytogenes": [
+        "Firmicutes",
+        "Bacilli",
+        "Bacillales",
+        "Listeriaceae",
+        "Listeria"
+      ],
+      "Bacillus subtilis": [
+        "Firmicutes",
+        "Bacilli",
+        "Bacillales",
+        "Bacillaceae",
+        "Bacillus"
+      ]
+    }
+  },
+  "mock_reference": "ZymoBIOMICS Microbial Community Standard D6300 protocol, Tables 1-2"
+}

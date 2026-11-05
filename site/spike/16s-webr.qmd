@@ -1,0 +1,76 @@
+---
+title: "Spike: 16S packages in WebR"
+subtitle: "Temporary page: which 16S packages install and load in the browser, and how long do they take?"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+---
+
+Run the cells in order and note what they print. Cell 1 takes a few minutes. This page is temporary and will be removed.
+
+## 1. Install and load each package
+
+```{webr}
+R.version.string
+repos <- c("https://bioc.r-universe.dev",
+           "https://microbiologyethz.github.io/Methods_in_Microbiomics/wasm",
+           "https://repo.r-wasm.org")
+pkgs <- c("vegan", "permute", "lme4", "decontam", "DirichletMultinomial",
+          "phyloseq", "microbiome", "maaslin3", "ANCOMBC", "ALDEx2", "dada2")
+
+try_pkg <- function(pkg) {
+  t0 <- Sys.time()
+  msg <- tryCatch({
+    webr::install(pkg, repos = repos, quiet = TRUE)
+    suppressPackageStartupMessages(library(pkg, character.only = TRUE))
+    "ok"
+  }, error = function(e) conditionMessage(e))
+  data.frame(package = pkg, seconds = round(as.numeric(difftime(Sys.time(), t0, units = "secs"))),
+             result = substr(msg, 1, 200))
+}
+res <- do.call(rbind, lapply(pkgs, try_pkg))
+res
+```
+
+## 2. Do the core functions run?
+
+```{webr}
+run <- function(label, expr) {
+  t0 <- Sys.time()
+  out <- tryCatch({ force(expr); "ok" }, error = function(e) conditionMessage(e))
+  cat(sprintf("%-22s %5.1f s  %s\n", label, as.numeric(difftime(Sys.time(), t0, units = "secs")), out))
+}
+
+set.seed(1)
+counts <- matrix(rnbinom(40 * 300, mu = 50, size = 0.5), nrow = 40,
+                 dimnames = list(sprintf("S%02d", 1:40), sprintf("ASV%03d", 1:300)))
+meta <- data.frame(row.names = rownames(counts),
+                   patient = rep(sprintf("P%02d", 1:20), each = 2),
+                   type = rep(c("Sputum", "Throat"), 20),
+                   dna = rlnorm(40, 2, 0.5),
+                   neg = c(rep(FALSE, 36), rep(TRUE, 4)))
+
+run("vegan adonis2", vegan::adonis2(vegan::vegdist(counts) ~ type, data = meta,
+    permutations = permute::how(nperm = 199, blocks = factor(meta$patient))))
+run("decontam frequency", decontam::isContaminant(counts, conc = meta$dna, method = "frequency"))
+run("decontam prevalence", decontam::isContaminant(counts, neg = meta$neg, method = "prevalence"))
+run("DMM k = 1..3", lapply(1:3, function(k) DirichletMultinomial::dmn(counts[, 1:50], k, verbose = FALSE)))
+run("maaslin3", maaslin3::maaslin3(as.data.frame(counts), meta, output = tempfile(),
+    formula = "~ type + (1 | patient)", plot_summary_plot = FALSE, plot_associations = FALSE,
+    save_models = FALSE, verbosity = "ERROR"))
+run("ALDEx2", ALDEx2::aldex(t(counts[1:36, ]), meta$type[1:36], mc.samples = 16, verbose = FALSE))
+```
+
+## 3. dada2 on its bundled example reads
+
+```{webr}
+fq <- sort(list.files(system.file("extdata", package = "dada2"), pattern = "sam.*F.fastq.gz", full.names = TRUE))
+fq
+run("plotQualityProfile", print(dada2::plotQualityProfile(fq[1:2])))
+filt <- file.path(tempdir(), basename(fq))
+run("filterAndTrim", dada2::filterAndTrim(fq, filt, truncLen = 240, maxEE = 2))
+run("learnErrors", err <<- dada2::learnErrors(filt, multithread = FALSE, verbose = FALSE))
+run("dada", dd <<- dada2::dada(filt, err = err, multithread = FALSE, verbose = FALSE))
+```

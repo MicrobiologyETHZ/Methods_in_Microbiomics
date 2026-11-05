@@ -1,0 +1,52 @@
+sample_id,patient,visit,sample_type,sample_group,clinical_status,age,fev1,dna_ng_ul
+P01_V1_SPU,P01,V1,Sputum,sample,Regular follow-up,8.7,90.0,20.34
+P01_V1_THR,P01,V1,Throat swab,sample,Regular follow-up,8.7,90.0,3.148
+P01_V2_SPU,P01,V2,Sputum,sample,Regular follow-up,9.2,53.0,49.054
+P01_V2_THR,P01,V2,Throat swab,sample,Regular follow-up,9.2,53.0,4.663
+P02_V1_SPU,P02,V1,Sputum,sample,Regular follow-up,7.1,87.0,19.179
+P02_V1_THR,P02,V1,Throat swab,sample,Regular follow-up,7.1,87.0,4.958
+P02_V2_SPU,P02,V2,Sputum,sample,Regular follow-up,7.6,87.0,16.317
+P02_V2_THR,P02,V2,Throat swab,sample,Regular follow-up,7.6,87.0,4.465
+P03_V1_SPU,P03,V1,Sputum,sample,Regular follow-up,6.2,85.0,43.658
+P03_V1_THR,P03,V1,Throat swab,sample,Regular follow-up,6.2,85.0,2.863
+P03_V2_SPU,P03,V2,Sputum,sample,Pulmonary exacerbation,6.7,55.0,130.856
+P03_V2_THR,P03,V2,Throat swab,sample,Pulmonary exacerbation,6.7,55.0,2.885
+P04_V1_SPU,P04,V1,Sputum,sample,Regular follow-up,5.4,,19.988
+P04_V1_THR,P04,V1,Throat swab,sample,Regular follow-up,5.4,,8.559
+P04_V2_SPU,P04,V2,Sputum,sample,Regular follow-up,5.9,,42.678
+P04_V2_THR,P04,V2,Throat swab,sample,Regular follow-up,5.9,,2.775
+P05_V1_SPU,P05,V1,Sputum,sample,Regular follow-up,9.9,74.0,23.379
+P05_V1_THR,P05,V1,Throat swab,sample,Regular follow-up,9.9,74.0,6.411
+P05_V2_SPU,P05,V2,Sputum,sample,Regular follow-up,10.4,101.0,48.609
+P05_V2_THR,P05,V2,Throat swab,sample,Regular follow-up,10.4,101.0,5.025
+P06_V1_SPU,P06,V1,Sputum,sample,Regular follow-up,8.5,93.0,31.924
+P06_V1_THR,P06,V1,Throat swab,sample,Regular follow-up,8.5,93.0,2.916
+P06_V2_SPU,P06,V2,Sputum,sample,Regular follow-up,9.0,91.0,27.097
+P06_V2_THR,P06,V2,Throat swab,sample,Regular follow-up,9.0,91.0,1.657
+P07_V1_SPU,P07,V1,Sputum,sample,Regular follow-up,11.9,82.0,30.85
+P07_V1_THR,P07,V1,Throat swab,sample,Regular follow-up,11.9,82.0,5.182
+P07_V2_SPU,P07,V2,Sputum,sample,Pulmonary exacerbation,12.4,62.0,35.532
+P07_V2_THR,P07,V2,Throat swab,sample,Pulmonary exacerbation,12.4,62.0,3.125
+P08_V1_SPU,P08,V1,Sputum,sample,Regular follow-up,2.2,,9.527
+P08_V1_THR,P08,V1,Throat swab,sample,Regular follow-up,2.2,,4.129
+P08_V2_SPU,P08,V2,Sputum,sample,Regular follow-up,2.7,,45.796
+P08_V2_THR,P08,V2,Throat swab,sample,Regular follow-up,2.7,,2.358
+P09_V1_SPU,P09,V1,Sputum,sample,Pulmonary exacerbation,8.7,42.0,18.732
+P09_V1_THR,P09,V1,Throat swab,sample,Pulmonary exacerbation,8.7,42.0,4.472
+P09_V2_SPU,P09,V2,Sputum,sample,Pulmonary exacerbation,9.2,94.0,19.881
+P09_V2_THR,P09,V2,Throat swab,sample,Pulmonary exacerbation,9.2,94.0,1.235
+P10_V1_SPU,P10,V1,Sputum,sample,Regular follow-up,7.5,99.0,40.986
+P10_V1_THR,P10,V1,Throat swab,sample,Regular follow-up,7.5,99.0,2.251
+P10_V2_SPU,P10,V2,Sputum,sample,Regular follow-up,8.0,86.0,27.2
+P10_V2_THR,P10,V2,Throat swab,sample,Regular follow-up,8.0,86.0,2.013
+P11_V1_SPU,P11,V1,Sputum,sample,Pulmonary exacerbation,4.9,,28.8
+P11_V1_THR,P11,V1,Throat swab,sample,Pulmonary exacerbation,4.9,,1.919
+P11_V2_SPU,P11,V2,Sputum,sample,Pulmonary exacerbation,5.4,,26.578
+P11_V2_THR,P11,V2,Throat swab,sample,Pulmonary exacerbation,5.4,,2.681
+EB1,,,Extraction blank,negative_control,,,,0.14
+EB2,,,Extraction blank,negative_control,,,,0.018
+EB3,,,Extraction blank,negative_control,,,,0.044
+EB4,,,Extraction blank,negative_control,,,,0.067
+PCR1,,,PCR blank,negative_control,,,,0.015
+PCR2,,,PCR blank,negative_control,,,,0.016
+MOCK,,,Mock community,positive_control,,,,10.0
