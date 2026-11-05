@@ -206,14 +206,48 @@ Each vertical line is a ribosome gene in the ranking. They pile up at the right 
 
 ## STRING: how do the genes work together?
 
-[STRING](https://string-db.org) collects known and predicted interactions between proteins. It knows the I48 genome by its locus tags. Print the down-regulated genes:
+[STRING](https://string-db.org) collects known and predicted interactions between proteins. It knows the I48 genome (*Bacteroides caecimuris*) by its locus tags. Select the down-regulated genes, and run the cell to send them to STRING:
 
 ```{webr}
+#| define:
+#|   - down_all
 down_all <- i48 %>% filter(padj < 0.01, log2FoldChange < -1) %>% pull(locus_tag)
-writeLines(down_all)
+length(down_all)
 ```
 
-Copy the list, open [string-db.org](https://string-db.org), choose **Multiple proteins**, paste the list, enter *Bacteroides caecimuris* as the organism, and press **Search**. Genes that are connected in the network often work together, such as the enzymes of one pathway, or the subunits of a transporter.
+```{ojs}
+//| echo: false
+down_all = null   // replaced by the R cell above when you run it
+```
+
+```{ojs}
+//| echo: false
+string_query = down_all === null ? null : new URLSearchParams({
+  identifiers: [].concat(down_all).join("\r"),
+  species: 1796613,                 // Bacteroides caecimuris I48
+  hide_disconnected_nodes: 1,
+  caller_identity: "methods_in_microbiomics"
+}).toString()
+
+string_link = string_query === null ? null :
+  fetch(`https://string-db.org/api/json/get_link?${string_query}`)
+    .then(r => r.json()).then(d => d[0]).catch(() => "https://string-db.org")
+
+string_query === null
+  ? html`<p class="text-muted"><em>Run the cell above to draw the STRING network.</em></p>`
+  : html`<figure>
+      <img src="https://string-db.org/api/image/network?${string_query}"
+           alt="STRING network of the genes down-regulated in I48" style="width: 100%">
+      <figcaption>STRING network of the ${[].concat(down_all).length} genes down in LPS mice;
+        genes without any interaction are hidden. Loading the image takes a few seconds.
+        <a href="${string_link}" target="_blank" rel="noopener">Open it in STRING</a>
+        to click on genes and see the evidence for each interaction.</figcaption>
+    </figure>`
+```
+
+Genes that are connected in the network often work together, such as the enzymes of one pathway, or the subunits of a complex. The colours of the lines show the kind of evidence: for example, genes next to each other in many genomes, co-expression, or experiments. Look for the tight cluster of *leu* and *ilv* genes: the biosynthesis of leucine, isoleucine and valine, the amino acid biosynthesis that ORA and GSEA found above.
+
+Change the filter (for example `log2FoldChange > 1` for the up-regulated genes) and rerun the cell to draw another network.
 
 ## Running this on your own computer
 
