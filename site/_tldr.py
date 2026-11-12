@@ -3,8 +3,8 @@
 
 For each part (site/lessons/<lesson>/0*.qmd) it collects, in page order and under the
 nearest `## heading`:
-- every ```bash block (the ones tests/page_commands.py runs), without `./check` lines;
-  {.bash .notest} blocks are left out;
+- every shell block, ```bash or ```{.bash ...}, tested in CI or not (.notest), without
+  `./check` lines; blocks with the class .notldr are left out;
 - every ```{webr} cell tagged `#| tldr: true`; for an exercise, its solution is used.
 
 It writes _tldr/<part>.md (a folded callout, or nothing if the part has no steps) and
@@ -21,7 +21,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-BLOCK = re.compile(r"^(?P<indent>[ \t]*)```(?P<info>bash|\{webr\})[ \t]*\n(?P<code>.*?)^[ \t]*```", re.S | re.M)
+BLOCK = re.compile(r"^(?P<indent>[ \t]*)```(?P<info>bash|\{\.bash[^}\n]*\}|\{webr\})[ \t]*\n(?P<code>.*?)^[ \t]*```", re.S | re.M)
 HEADING = re.compile(r"^## +(.+?)\s*$", re.M)
 SOLUTION = re.compile(r'^::: \{\.solution exercise="([^"]+)"\}\n```r\n(.*?)^```', re.S | re.M)
 CALLOUT_END = re.compile(r"^:::+ *\{\.callout[^\n]*\n\Z", re.M)
@@ -68,7 +68,9 @@ def steps(page):
     out = []
     for m in BLOCK.finditer(text):
         code = dedent(m.group("code"))
-        if m.group("info") == "bash":
+        if "bash" in m.group("info"):
+            if ".notldr" in m.group("info"):
+                continue
             lang = "bash"
             code = "\n".join(l for l in code.splitlines() if not l.startswith("./check")).strip("\n")
         else:

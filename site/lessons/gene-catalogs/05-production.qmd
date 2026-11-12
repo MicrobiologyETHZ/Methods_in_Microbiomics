@@ -33,7 +33,7 @@ Check the **mapping rate** (Part C) of your samples to an existing catalog first
 
 On a Slurm cluster, per-sample steps fit naturally into a **job array**. A template for gene calling, with one task per line of `samples.txt`:
 
-```{.bash .notest}
+```{.bash .notest .notldr}
 #!/bin/bash
 #SBATCH --job-name=prodigal
 #SBATCH --array=1-100            # one task per sample

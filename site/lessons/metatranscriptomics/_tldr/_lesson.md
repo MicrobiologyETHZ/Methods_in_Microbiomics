@@ -4,6 +4,23 @@ The commands of every part, in order, without the explanations. Each part has it
 
 ::: {.callout-tip collapse="true" title="Show all the commands"}
 
+**Terminal (bash)**
+
+```bash
+# ---- 1. From reads to counts: The workflow
+cat genomes/*.fna > community.fna
+bowtie2-build --threads 4 community.fna community
+
+bowtie2 -p 4 -x community -1 sample_R1.fastq.gz -2 sample_R2.fastq.gz \
+  | samtools sort -@ 4 -o sample.bam
+
+cat annotations/*.gff > community.gff
+
+featureCounts -T 4 -p --countReadPairs -s 2 -Q 10 \
+  -t CDS -g locus_tag \
+  -a community.gff -o counts.tsv sample*.bam
+```
+
 **R**
 
 ```r
@@ -392,4 +409,4 @@ shares
 
 :::
 
-Parts: [2. Explore the data](02-explore.qmd) · [3. Differential expression](03-differential-expression.qmd) · [4. From genes to functions](04-functions.qmd) · [5. When you have metagenomes](05-with-metagenomes.qmd)
+Parts: [1. From reads to counts](01-reads-to-counts.qmd) · [2. Explore the data](02-explore.qmd) · [3. Differential expression](03-differential-expression.qmd) · [4. From genes to functions](04-functions.qmd) · [5. When you have metagenomes](05-with-metagenomes.qmd)

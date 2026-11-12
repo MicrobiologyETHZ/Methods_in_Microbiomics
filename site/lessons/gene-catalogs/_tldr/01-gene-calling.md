@@ -4,6 +4,10 @@ For coming back later. Each step is explained in the section it links to.
 **The data** [↗](#the-data)
 
 ```bash
+metaspades.py -t 4 -m 12 --only-assembler \
+  --pe1-1 reads/metag1.1.fq.gz --pe1-2 reads/metag1.2.fq.gz -o asm/metag1
+python scaffold_filter.py metag1 scaffolds asm/metag1/scaffolds.fasta asm/metag1 META
+
 grep ">" data/scaffolds/metag1.scaffolds.min500.fasta | head -3
 grep -c ">" data/scaffolds/*.fasta
 ```

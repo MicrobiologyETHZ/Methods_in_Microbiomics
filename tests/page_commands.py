@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Run the terminal commands of lesson pages in a fresh copy of the workshop directory.
 
-All ```bash blocks are run in page order, exactly as a learner would paste them, then
-`./check` runs for every part. Blocks marked ```{.bash .notest} are skipped.
+All shell blocks (```bash and ```{.bash ...}) are run in page order, exactly as a learner
+would paste them, then `./check` runs for every part. Blocks with the class .notest are
+skipped; other classes (such as .notldr, which only keeps a block out of the "At a glance"
+summary) don't change what runs.
 
 MMSEQS_DEV_ARGS (development only, machines with < 16 GB RAM) is appended to the
 mmseqs cluster command, as in data-prep/gene-catalogs/prepare.sh.
@@ -17,13 +19,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-BLOCK = re.compile(r"^```bash\n(.*?)^```", re.S | re.M)
+BLOCK = re.compile(r"^[ \t]*```(bash|\{\.bash[^}\n]*\})[ \t]*\n(.*?)^[ \t]*```", re.S | re.M)
 
 
 def main(workshop, pages):
     script = ["set -eu  # no pipefail: learners paste `cmd | head`, and ./check catches broken pipelines"]
     for page in map(Path, pages):
-        for block in BLOCK.findall(page.read_text()):
+        for info, block in BLOCK.findall(page.read_text()):
+            if ".notest" in info:
+                continue
             # pages are indented inside list items sometimes; strip common indentation
             lines = block.splitlines()
             indent = min((len(l) - len(l.lstrip()) for l in lines if l.strip()), default=0)
