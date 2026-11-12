@@ -110,6 +110,8 @@ jobs:
       #   at load time, so every webR build (repo.r-wasm.org's too) fails with
       #   "R_registerRoutines": imported function does not match the expected type.
       #   Build it from the CRAN source with dummy.c (and the MD5 list) removed.
+      # - rootSolve (for ANCOMBC::ancombc2, 16S Part 5): ancombc2 needs it at run time, and
+      #   no webR repository builds it (C and Fortran; the webR image has flang).
       # Keep the webR version in step with the extension (site/_extensions/r-wasm/live/live.lua).
       # rwasm is called directly, not through r-wasm/actions/build-rwasm, because two of its
       # defaults need working around:
@@ -129,10 +131,10 @@ jobs:
               tar xzf /tmp/fastmatch_*.tar.gz -C /tmp
               rm /tmp/fastmatch/src/dummy.c /tmp/fastmatch/MD5
               Rscript -e "pak::pak(\"r-wasm/rwasm\")" \
-                      -e "rwasm::add_pkg(c(\"locfit\", \"local::/tmp/fastmatch\"), repo_dir = \"site/_site/wasm\", remotes = NULL)"
+                      -e "rwasm::add_pkg(c(\"locfit\", \"local::/tmp/fastmatch\", \"rootSolve\"), repo_dir = \"site/_site/wasm\", remotes = NULL)"
             '
           # rwasm only warns when a build fails, so check that every package made it into the repo
-          for pkg in locfit fastmatch; do
+          for pkg in locfit fastmatch rootSolve; do
             grep -q "^Package: $pkg$" site/_site/wasm/bin/emscripten/contrib/*/PACKAGES \
               || { echo "::error::$pkg was not built for webR"; exit 1; }
           done
