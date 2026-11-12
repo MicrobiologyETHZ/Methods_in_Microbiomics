@@ -1,0 +1,73 @@
+---
+title: "16S amplicon sequencing: overview"
+subtitle: "Who is in a microbial community, and does the way you sample change the answer?"
+---
+
+::: {.lesson-meta}
+<span>⏱ **About 4 hours** in total</span>
+<span>🎯 **Level:** first-year graduate students</span>
+<span>🧰 **You need:** basic R (dplyr, ggplot2); nothing to install</span>
+:::
+
+::: {.callout-warning}
+## This lesson is being written
+The parts below go online one at a time. Parts marked *coming soon* only list what they will cover. Until then, the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site has the lab's protocol.
+:::
+
+## What you'll learn
+
+By the end of this lesson you will be able to:
+
+1. Choose a primer pair for your samples, and explain why read counts aren't cell counts.
+2. Turn raw amplicon reads into a table of amplicon sequence variants (ASVs) with DADA2.
+3. Assign taxonomy to ASVs, and judge how far to trust it.
+4. Find and remove contaminants in low-biomass samples, using negative controls and a mock community.
+5. Compare samples with alpha and beta diversity, taking a paired design into account.
+6. Find taxa that differ between groups, and see why different methods disagree.
+7. Group samples into community types.
+
+## Why 16S?
+
+Sequencing one marker gene from every bacterium in a sample is the cheapest way to see **who is there**. The 16S rRNA gene works as a marker because it has conserved regions, where PCR primers can bind in almost all bacteria, between variable regions that differ from taxon to taxon. You amplify one or two variable regions, sequence the products, and count the sequences.
+
+It's cheap and works on samples with very little bacterial DNA, but every step leaves its mark on the result: the primers you pick, the number of 16S copies in each genome, contaminating DNA, how you denoise the reads and which database names them. Each part of this lesson deals with one of these.
+
+## The study
+
+The lesson follows one question through all its parts. Children with **cystic fibrosis** (CF) get chronic lung infections, so their airway microbiota are monitored. The best sample is **sputum**, coughed up from the lungs, but young children often can't produce it. A **throat swab** is easy to take. **Can a throat swab replace sputum?**
+
+To answer this, sputum and a throat swab were taken at the same visit from the same child. This **paired design** matters for every analysis: two samples from the same child are more alike than samples from different children, and the tests have to know that.
+
+| | |
+|---|---|
+| Children | 11, each seen at 2 visits |
+| Samples per visit | 1 sputum, 1 throat swab |
+| Clinical status | regular follow-up or pulmonary exacerbation |
+| Controls | 4 extraction blanks, 2 PCR blanks, 1 mock community (ZymoBIOMICS) |
+| Sequencing | V3–V4 region, Illumina MiSeq |
+
+::: {.callout-important}
+## This dataset is simulated
+The ASV sequences, their taxonomy and the composition of the sputum samples are real: they come from the public ASV table of a CF study by [Nassirnia et al. (2025)](https://doi.org/10.1099/jmm.0.002079). The rest is **simulated**: which samples are paired, the metadata, sequencing depths, DNA concentrations, contamination, negative controls and the mock community. That way you can check your results against what was put in. The simulation script is [`data-prep/16s/simulate.py`](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/blob/next/data-prep/16s/simulate.py).
+:::
+
+## The lesson at a glance
+
+| Part | Where it runs | Time |
+|---|---|---|
+| [0. Before sequencing](00-before-sequencing.qmd) *(coming soon)* | Reading, with exercises | 30 min |
+| [1. From reads to ASVs](01-reads-to-asvs.qmd) *(coming soon)* | This site (R in your browser) | 45 min |
+| [2. Taxonomy](02-taxonomy.qmd) *(coming soon)* | This site | 30 min |
+| [3. Contamination](03-contamination.qmd) *(coming soon)* | This site | 30 min |
+| [4. Diversity](04-diversity.qmd) *(coming soon)* | This site | 45 min |
+| [5. Differential abundance](05-differential-abundance.qmd) *(coming soon)* | This site | 30 min |
+| [6. Community types](06-community-types.qmd) *(coming soon)* | This site | 30 min |
+| [7. Going to production: zAMP](07-production.qmd) *(coming soon)* | Reading | 10 min |
+
+Parts 2–6 build on each other, in the order of a real analysis. Part 1 uses DADA2's own example reads, because the study's reads are too large for the browser.
+
+## Credits
+
+The lesson follows the 16S session of the NCCR Microbiomes winter course [Advanced methods in microbial community analysis](https://github.com/nccr-microbiomes-org/Advanced_methods_in_microbial_community_analysis) (January 2026): the same study, the same questions, in the same order. The text and code are written anew, with some methods updated.
+
+[Go to Part 0 →](00-before-sequencing.qmd){.btn .btn-primary}

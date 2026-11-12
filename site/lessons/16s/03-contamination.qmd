@@ -1,0 +1,16 @@
+---
+title: "3. Contamination"
+subtitle: "Find contaminants in low-biomass samples with negative controls and a mock community"
+---
+
+::: {.callout-note}
+## This part is being written
+It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+:::
+
+## What this part will cover
+
+- Why low-biomass samples such as throat swabs are hit hardest by contamination.
+- Why removing every taxon seen in a blank is too blunt.
+- decontam's prevalence method (with blanks) and frequency method (with DNA concentration).
+- Checking the pipeline against the known mock community.

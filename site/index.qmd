@@ -28,6 +28,13 @@ Every lesson is something you **do**, not just read:
 [Start the lesson →](lessons/metatranscriptomics/index.qmd)
 :::
 
+::: {.path-card}
+### I have 16S amplicon data
+**16S amplicon sequencing: from reads to community types.** Turn amplicon reads into ASVs, deal with contamination in low-biomass samples, and compare communities in a paired study. *Being written: parts go online one at a time.*
+
+[Start the lesson →](lessons/16s/index.qmd)
+:::
+
 ::: {.callout-note}
 ## This is a preview of the new site
 Methods in Microbiomics is moving to this new format one lesson at a time. The current site, with all protocols, is still at [methods-in-microbiomics.readthedocs.io](https://methods-in-microbiomics.readthedocs.io/).

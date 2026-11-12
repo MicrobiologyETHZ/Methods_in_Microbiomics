@@ -1,0 +1,17 @@
+---
+title: "0. Before sequencing"
+subtitle: "Primers, variable regions and 16S copy number: choices that shape the result before you have any data"
+---
+
+::: {.callout-note}
+## This part is being written
+It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+:::
+
+## What this part will cover
+
+- The 16S gene, its nine variable regions, and why 18S and ITS are used for eukaryotes and fungi.
+- What influences the outcome of a 16S study, from sampling to the reference database.
+- The lab's primer table (V1–V3, V3–V4, V4, V4–V5), and why no primer pair is universal.
+- 16S copy number: why the share of reads isn't the share of cells, tried out on a mock community.
+- Relative vs absolute abundance, and how to measure the latter.

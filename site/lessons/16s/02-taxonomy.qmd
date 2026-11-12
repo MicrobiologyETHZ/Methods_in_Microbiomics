@@ -1,0 +1,17 @@
+---
+title: "2. Taxonomy"
+subtitle: "Name the ASVs, and judge how far to trust the names"
+---
+
+::: {.callout-note}
+## This part is being written
+It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+:::
+
+## What this part will cover
+
+- Assigning taxonomy with `assignTaxonomy`, and IDTAXA as an alternative.
+- Confidence per rank, and what to do with unassigned ASVs.
+- Removing mitochondria and chloroplasts.
+- Why the reference database matters.
+- Comparing the composition of each sputum and throat swab pair.

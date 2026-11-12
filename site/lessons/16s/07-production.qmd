@@ -1,0 +1,15 @@
+---
+title: "7. Going to production: zAMP"
+subtitle: "Run a full 16S analysis on your own data with the lab's pipeline"
+---
+
+::: {.callout-note}
+## This part is being written
+It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/zAMP.html) on the old site.
+:::
+
+## What this part will cover
+
+- What zAMP does: classifiers, database preparation, normalisation, outputs.
+- In-silico validation: can your primers and database detect the pathogens you care about?
+- What changes between this lesson and a real project.

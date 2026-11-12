@@ -1,6 +1,9 @@
 project:
   type: website
   output-dir: _site
+  # the 16S data aren't listed by any page yet; the spike page downloads them
+  resources:
+    - lessons/16s/data/*
 
 website:
   title: "Methods in Microbiomics"
@@ -21,6 +24,8 @@ website:
             text: Gene catalogs
           - href: lessons/metatranscriptomics/index.qmd
             text: Metatranscriptomics
+          - href: lessons/16s/index.qmd
+            text: 16S amplicon sequencing
       - href: contribute.qmd
         text: Contribute
   sidebar:
@@ -42,6 +47,18 @@ website:
         - lessons/metatranscriptomics/03-differential-expression.qmd
         - lessons/metatranscriptomics/04-functions.qmd
         - lessons/metatranscriptomics/05-with-metagenomes.qmd
+    - title: "16S amplicon sequencing"
+      style: docked
+      contents:
+        - lessons/16s/index.qmd
+        - lessons/16s/00-before-sequencing.qmd
+        - lessons/16s/01-reads-to-asvs.qmd
+        - lessons/16s/02-taxonomy.qmd
+        - lessons/16s/03-contamination.qmd
+        - lessons/16s/04-diversity.qmd
+        - lessons/16s/05-differential-abundance.qmd
+        - lessons/16s/06-community-types.qmd
+        - lessons/16s/07-production.qmd
   page-footer:
     left: "Methods in Microbiomics · Sunagawa group, ETH Zürich · content CC BY 4.0"
     right: "[Report a problem](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/issues/new)"

@@ -74,3 +74,32 @@ run("filterAndTrim", dada2::filterAndTrim(fq, filt, truncLen = 240, maxEE = 2))
 run("learnErrors", err <<- dada2::learnErrors(filt, multithread = FALSE, verbose = FALSE))
 run("dada", dd <<- dada2::dada(filt, err = err, multithread = FALSE, verbose = FALSE))
 ```
+
+## 4. Differential abundance and DMM at the lesson's size
+
+The lesson's real table: 44 samples, aggregated to genera present in at least 10% of samples. Run cells 1 and 2 first (cell 2 defines `run()`). For a fair cold-load time, open this page in a private window.
+
+```{webr}
+base <- "https://microbiologyethz.github.io/Methods_in_Microbiomics/lessons/16s/data/"
+for (f in c("asv_counts.csv.gz", "taxonomy.csv.gz", "samples.csv")) download.file(paste0(base, f), f, quiet = TRUE)
+counts <- as.matrix(read.csv("asv_counts.csv.gz", row.names = 1, check.names = FALSE))
+tax <- read.csv("taxonomy.csv.gz", row.names = 1)
+smp <- read.csv("samples.csv", row.names = 1)
+smp <- smp[smp$sample_group == "sample", ]
+counts <- counts[, rownames(smp)]
+g <- tax[rownames(counts), "Genus"]
+g[is.na(g) | g == ""] <- "unassigned"
+genus <- rowsum(counts, g)
+genus <- genus[rowMeans(genus > 0) >= 0.1, ]
+dim(genus)
+
+run("ANCOM-BC2", anc <<- ANCOMBC::ancombc2(
+  phyloseq::phyloseq(phyloseq::otu_table(genus, taxa_are_rows = TRUE), phyloseq::sample_data(smp)),
+  fix_formula = "sample_type", rand_formula = "(1 | patient)",
+  p_adj_method = "holm", prv_cut = 0, n_cl = 1, verbose = FALSE))
+head(anc$res[, 1:6])
+run("maaslin3", maaslin3::maaslin3(as.data.frame(t(genus)), smp, output = tempfile(),
+    formula = "~ sample_type + (1 | patient)", plot_summary_plot = FALSE, plot_associations = FALSE,
+    save_models = FALSE, verbosity = "ERROR"))
+run("DMM k = 1..5", lapply(1:5, function(k) DirichletMultinomial::dmn(t(genus), k, verbose = FALSE)))
+```

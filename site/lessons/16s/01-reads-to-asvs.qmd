@@ -1,0 +1,17 @@
+---
+title: "1. From reads to ASVs"
+subtitle: "Remove primers, filter, denoise and merge reads with DADA2"
+---
+
+::: {.callout-note}
+## This part is being written
+It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+:::
+
+## What this part will cover
+
+- Finding primers in both orientations, and removing them.
+- Reading quality profiles, and choosing where to truncate reads so the pairs still overlap.
+- Error models, including NovaSeq's binned quality scores.
+- Pooling modes, merging read pairs and removing chimeras.
+- Tracking how many reads survive each step.

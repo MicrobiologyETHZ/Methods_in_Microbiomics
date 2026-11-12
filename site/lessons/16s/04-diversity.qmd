@@ -1,0 +1,16 @@
+---
+title: "4. Diversity"
+subtitle: "Compare samples within and between, taking the paired design into account"
+---
+
+::: {.callout-note}
+## This part is being written
+It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+:::
+
+## What this part will cover
+
+- Rarefaction curves, and the debate about rarefying.
+- Alpha diversity (Shannon, Chao1) with a paired test.
+- Beta diversity: Aitchison and Jaccard distances, ordination.
+- PERMANOVA with permutations within each child, dispersion, and effect sizes.
