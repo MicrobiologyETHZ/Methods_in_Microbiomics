@@ -101,8 +101,8 @@ jobs:
       - name: Check the "At a glance" summaries are up to date
         run: |
           python3 site/_tldr.py
-          if [ -n "$(git status --porcelain -- 'site/lessons/*/_tldr')" ]; then
-            git status --short -- 'site/lessons/*/_tldr'
+          if [ -n "$(git status --porcelain -- 'site/lessons/*/_tldr/*')" ]; then
+            git status --short -- 'site/lessons/*/_tldr/*'
             echo "::error::Run python3 site/_tldr.py and commit site/lessons/*/_tldr/"
             exit 1
           fi
