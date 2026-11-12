@@ -96,6 +96,17 @@ jobs:
       - name: Test the "At a glance" R summaries
         run: python tests/webr_cells.py --tldr site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd
 
+      # The summaries are committed (Quarto resolves includes before pre-render scripts run),
+      # so check they match the pages
+      - name: Check the "At a glance" summaries are up to date
+        run: |
+          python3 site/_tldr.py
+          if [ -n "$(git status --porcelain -- 'site/lessons/*/_tldr')" ]; then
+            git status --short -- 'site/lessons/*/_tldr'
+            echo "::error::Run python3 site/_tldr.py and commit site/lessons/*/_tldr/"
+            exit 1
+          fi
+
       - uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Render site

@@ -11,7 +11,11 @@ It writes _tldr/<part>.md (a folded callout, or nothing if the part has no steps
 _tldr/_lesson.md (the whole lesson as one bash and one R block), which the pages include.
 The R summary must run on its own: tests/webr_cells.py --tldr checks that.
 
-Usage: python3 _tldr.py   (from site/; Quarto runs it before every render)
+The _tldr/ files are committed, because Quarto resolves includes before it runs
+pre-render scripts: a fresh checkout without them doesn't render. After changing a page's
+code, render it (or run this script) and commit _tldr/ with the page; CI checks they match.
+
+Usage: python3 site/_tldr.py   (Quarto also runs it before every render)
 """
 import re
 import unicodedata
