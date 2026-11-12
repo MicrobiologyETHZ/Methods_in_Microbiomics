@@ -1,7 +1,7 @@
 ::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**How were the assemblies made?** [↗](#how-were-the-assemblies-made)
+**The data** [↗](#the-data)
 
 ```bash
 grep ">" data/scaffolds/metag1.scaffolds.min500.fasta | head -3

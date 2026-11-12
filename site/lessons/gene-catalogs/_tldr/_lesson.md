@@ -7,7 +7,7 @@ The commands of every part, in order, without the explanations. Each part has it
 **Terminal (bash)**
 
 ```bash
-# ---- A. Gene calling: How were the assemblies made?
+# ---- A. Gene calling: The data
 grep ">" data/scaffolds/metag1.scaffolds.min500.fasta | head -3
 grep -c ">" data/scaffolds/*.fasta
 
@@ -128,7 +128,6 @@ inserts <- alignments %>%
 
 inserts %>% count(n_genes)
 
-# ---- C. Quantification: What about multi-mapping inserts?
 inserts %>%
   filter(n_genes == 1) %>%
   count(gene, sort = TRUE)
@@ -145,7 +144,7 @@ kos <- read_csv("data/tara_kos.csv", show_col_types = FALSE)
 genes <- read_csv("data/tara_gene_slice.csv.gz", show_col_types = FALSE)
 cat("Loaded", nrow(samples), "samples and", nrow(genes), "gene counts.\n")
 
-# ---- D. Downstream analysis: Why divide before summing?
+# ---- D. Downstream analysis: Step 1: gene length
 ko_sums <- read_csv("data/tara_ko_sums.csv", show_col_types = FALSE)
 
 ko_sums %>%
@@ -173,7 +172,6 @@ mg_median %>%
   labs(x = "Sequencing depth (million reads)",
        y = "Median marker gene abundance\n(inserts per bp)")
 
-# ---- D. Downstream analysis: Why the median of 10 genes?
 per_cell <- ko_sums %>%
   inner_join(mg_median, by = "sample") %>%
   mutate(per_cell = inserts_per_bp / mg_median)

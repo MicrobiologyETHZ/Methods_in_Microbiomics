@@ -69,11 +69,7 @@ inserts <- alignments %>%
   summarise(n_genes = n_distinct(gene), gene = first(gene), .groups = "drop")
 
 inserts %>% count(n_genes)
-```
 
-**What about multi-mapping inserts?** [↗](#what-about-multi-mapping-inserts)
-
-```r
 inserts %>%
   filter(n_genes == 1) %>%
   count(gene, sort = TRUE)

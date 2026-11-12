@@ -24,6 +24,7 @@ from pathlib import Path
 BLOCK = re.compile(r"^(?P<indent>[ \t]*)```(?P<info>bash|\{webr\})[ \t]*\n(?P<code>.*?)^[ \t]*```", re.S | re.M)
 HEADING = re.compile(r"^## +(.+?)\s*$", re.M)
 SOLUTION = re.compile(r'^::: \{\.solution exercise="([^"]+)"\}\n```r\n(.*?)^```', re.S | re.M)
+CALLOUT_END = re.compile(r"^:::+ *\{\.callout[^\n]*\n\Z", re.M)
 TITLE = re.compile(r'^title:\s*"?(.*?)"?\s*$', re.M)
 
 
@@ -56,7 +57,9 @@ def steps(page):
     """[(heading, anchor, language, code)] for one page, in page order."""
     text = page.read_text()
     solutions = dict(SOLUTION.findall(text))
-    headings = [(m.start(), m.group(1)) for m in HEADING.finditer(text)]
+    # a `## ` line that opens a callout is its title, not a section: Quarto gives it no anchor
+    headings = [(m.start(), m.group(1)) for m in HEADING.finditer(text)
+                if not CALLOUT_END.search(text, 0, m.start())]
     seen, anchors = {}, {}
     for _, h in headings:
         base = slug(h)

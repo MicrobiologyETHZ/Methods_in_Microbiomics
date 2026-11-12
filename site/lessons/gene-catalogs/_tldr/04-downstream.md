@@ -16,7 +16,7 @@ genes <- read_csv("data/tara_gene_slice.csv.gz", show_col_types = FALSE)
 cat("Loaded", nrow(samples), "samples and", nrow(genes), "gene counts.\n")
 ```
 
-**Why divide before summing?** [↗](#why-divide-before-summing)
+**Step 1: gene length** [↗](#step-1-gene-length)
 
 ```r
 ko_sums <- read_csv("data/tara_ko_sums.csv", show_col_types = FALSE)
@@ -48,11 +48,7 @@ mg_median %>%
   geom_point(alpha = 0.6) +
   labs(x = "Sequencing depth (million reads)",
        y = "Median marker gene abundance\n(inserts per bp)")
-```
 
-**Why the median of 10 genes?** [↗](#why-the-median-of-10-genes)
-
-```r
 per_cell <- ko_sums %>%
   inner_join(mg_median, by = "sample") %>%
   mutate(per_cell = inserts_per_bp / mg_median)
