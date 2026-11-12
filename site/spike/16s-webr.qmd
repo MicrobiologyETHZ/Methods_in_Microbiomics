@@ -75,9 +75,9 @@ run("learnErrors", err <<- dada2::learnErrors(filt, multithread = FALSE, verbose
 run("dada", dd <<- dada2::dada(filt, err = err, multithread = FALSE, verbose = FALSE))
 ```
 
-## 4. Differential abundance and DMM at the lesson's size
+## 4. DMM at the lesson's size
 
-The lesson's real table: 44 samples, aggregated to genera present in at least 10% of samples. Run cells 1 and 2 first (they define `repos` and `run()`), then the three cells below in order. For a fair cold-load time, open this page in a private window.
+The lesson's real table: 44 samples, aggregated to genera present in at least 10% of samples. Run cells 1 and 2 first (they define `repos` and `run()`), then the two cells below. (ANCOM-BC2 and maaslin3 are precomputed in Part 5, so they aren't timed here.) For a fair cold-load time, open this page in a private window.
 
 ```{webr}
 base <- "https://microbiologyethz.github.io/Methods_in_Microbiomics/lessons/16s/data/"
@@ -92,20 +92,6 @@ g[is.na(g) | g == ""] <- "unassigned"
 genus <- rowsum(counts, g)
 genus <- genus[rowMeans(genus > 0) >= 0.1, ]
 dim(genus)
-```
-
-```{webr}
-# ANCOMBC::ancombc2 needs rootSolve at run time; our /wasm repo (in `repos`, cell 1) builds it
-run("install rootSolve", webr::install("rootSolve", repos = repos, quiet = TRUE))
-cat("rootSolve", tryCatch(as.character(packageVersion("rootSolve")), error = function(e) "not installed"), "\n")
-run("ANCOM-BC2", anc <<- ANCOMBC::ancombc2(
-  phyloseq::phyloseq(phyloseq::otu_table(genus, taxa_are_rows = TRUE), phyloseq::sample_data(smp)),
-  fix_formula = "sample_type", rand_formula = "(1 | patient)",
-  p_adj_method = "holm", prv_cut = 0, n_cl = 1, verbose = FALSE))
-if (exists("anc")) print(head(anc$res[, 1:6]))
-run("maaslin3", maaslin3::maaslin3(as.data.frame(t(genus)), smp, output = tempfile(),
-    formula = "~ sample_type + (1 | patient)", plot_summary_plot = FALSE, plot_associations = FALSE,
-    save_models = FALSE, verbosity = "ERROR"))
 ```
 
 ```{webr}
