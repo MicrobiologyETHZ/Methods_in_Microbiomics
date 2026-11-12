@@ -24,6 +24,8 @@ resources:
 <span>📦 **Data:** Tara Oceans gene catalog subset</span>
 :::
 
+{{< include _tldr/04-downstream.md >}}
+
 ## What you'll learn
 
 - Why raw insert counts can't be compared between genes or between samples.
@@ -55,6 +57,7 @@ To keep the page fast, we use a subset of 12 KEGG orthologs (KOs):
 | `tara_cspa.csv` | cspA abundance per cell (already normalised as you'll learn below) |
 
 ```{webr}
+#| tldr: true
 #| autorun: true
 #| edit: false
 library(dplyr)
@@ -165,6 +168,7 @@ A KO usually contains many catalog genes of different lengths, from different or
 The file `tara_ko_sums.csv` contains exactly this calculation (`inserts_per_bp`, summed per KO) for all 258 samples. Let's check the ratio across all metagenomes:
 
 ```{webr}
+#| tldr: true
 ko_sums <- read_csv("data/tara_ko_sums.csv", show_col_types = FALSE)
 
 ko_sums %>%
@@ -191,6 +195,7 @@ Both are solved by one trick. **Universal single-copy marker genes** (MGs) occur
 First, check that the marker genes behave as promised: their abundance should follow sequencing depth.
 
 ```{webr}
+#| tldr: true
 marker_kos <- c("K06942", "K01889", "K01887", "K01875", "K01883",
                 "K01869", "K01873", "K01409", "K03106", "K03110")
 
@@ -219,6 +224,7 @@ Any single marker gene can be mis-annotated or poorly covered in some samples. T
 Compute copies **per cell** for every KO in every sample: divide `inserts_per_bp` by the sample's `mg_median`. If it worked, single-copy genes such as rpoB should come out at about **1 per cell**.
 
 ```{webr}
+#| tldr: true
 #| exercise: ex_percell
 per_cell <- ko_sums %>%
   inner_join(mg_median, by = "sample") %>%
@@ -308,6 +314,7 @@ In the relative view, taxa B–E seem to **decline** as A blooms, although their
 The marker genes are single-copy, but each catalog gene comes from a particular organism. So the **gene-level** profile of marker genes reflects **who** is in the community, a bit like a taxonomic profile. Let's compare samples with it.
 
 ```{webr}
+#| tldr: true
 top <- read_csv("data/tara_top_genes.csv.gz", show_col_types = FALSE)
 
 # genes per cell for each marker gene in each metagenome, as a sample x gene matrix
@@ -325,6 +332,7 @@ dim(profile_matrix)
 We measure how different two samples are with the **Bray–Curtis dissimilarity**: 0 when the profiles are identical, 1 when they share nothing. It's simple enough to write ourselves:
 
 ```{webr}
+#| tldr: true
 bray_curtis <- function(x) {
   n <- nrow(x)
   d <- matrix(0, n, n, dimnames = list(rownames(x), rownames(x)))
@@ -342,6 +350,7 @@ dissimilarity <- bray_curtis(profile_matrix)
 A **principal coordinates analysis** (PCoA) places the samples in 2D so that distances in the plot approximate the dissimilarities:
 
 ```{webr}
+#| tldr: true
 pcoa <- cmdscale(dissimilarity, k = 2, eig = TRUE)
 explained <- round(100 * pcoa$eig[1:2] / sum(pcoa$eig[pcoa$eig > 0]))
 
@@ -388,6 +397,7 @@ Temperature is almost perfectly correlated with the first axis (ρ ≈ −0.95).
 `tara_cspa.csv` has cspA copies per cell, computed exactly as you did above.
 
 ```{webr}
+#| tldr: true
 cspa <- read_csv("data/tara_cspa.csv", show_col_types = FALSE)
 
 cspa_genes <- samples %>%

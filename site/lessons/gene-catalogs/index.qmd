@@ -81,6 +81,8 @@ flowchart LR
 
 Part D uses a separate, real dataset, so you can do it on its own, without finishing A–C.
 
+{{< include _tldr/_lesson.md >}}
+
 ## Set up your workspace (Parts A–C)
 
 Parts A–C run real bioinformatics tools. Instead of installing them, you'll use a **GitHub Codespace**: a Linux computer in the cloud that opens in your browser, with the tools and data ready.

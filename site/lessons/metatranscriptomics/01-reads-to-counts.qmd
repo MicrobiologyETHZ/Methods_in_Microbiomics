@@ -8,6 +8,8 @@ subtitle: "How a defined-community metatranscriptome becomes a count table"
 <span>💻 **Hands-on version:** coming soon as a Codespace exercise</span>
 :::
 
+{{< include _tldr/01-reads-to-counts.md >}}
+
 ## What you'll learn
 
 - The steps from sequenced RNA to a table of counts per gene.

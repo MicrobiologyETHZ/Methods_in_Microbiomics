@@ -432,6 +432,7 @@ docs/downloads/metatranscriptomics_tutorial.zip
 site/_site/
 site/.quarto/
 site/_freeze/
+site/lessons/*/_tldr/
 workshop/gene-catalogs/data/reads/
 workshop/gene-catalogs/genes/
 workshop/gene-catalogs/catalog/

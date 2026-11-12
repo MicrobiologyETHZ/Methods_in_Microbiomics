@@ -22,6 +22,8 @@ resources:
 <span>📦 **Data:** Tara Oceans, 129 paired metagenomes and metatranscriptomes</span>
 :::
 
+{{< include _tldr/05-with-metagenomes.md >}}
+
 ## What you'll learn
 
 - How matched metagenomes let you compute **expression per gene copy**.
@@ -38,6 +40,7 @@ $$
 The data come from [Salazar et al. (2019)](https://doi.org/10.1016/j.cell.2019.10.014). You normalised the metagenomes in [Part D of the gene-catalog lesson](../gene-catalogs/04-downstream.qmd): divide inserts by gene length, then by the median of 10 single-copy marker genes, to get **copies per cell**. The metatranscriptomes are normalised the same way, giving **transcripts per cell**. The setup cell does both:
 
 ```{webr}
+#| tldr: true
 #| autorun: true
 #| edit: false
 library(dplyr)
@@ -69,6 +72,7 @@ cat(n_distinct(per_cell$sample), "samples,", n_distinct(per_cell$KO), "KOs\n")
 Cold-shock proteins such as **cspA** (K03704) help bacteria cope with low temperatures. K03704 covers the whole family of cold-shock proteins, and many bacteria carry several of them, so even warm-water samples have more than one copy per cell. Colder samples carry more:
 
 ```{webr}
+#| tldr: true
 cspa_genes <- samples %>%
   inner_join(filter(per_cell, KO == "K03704"), by = c("sample_metag" = "sample")) %>%
   rename(genes_per_cell = per_cell)
@@ -91,6 +95,7 @@ But **more genes** doesn't necessarily mean **more activity**. The increase in t
 Join the metatranscriptome values (`sample_metat`) to `cspa_genes`, compute expression per copy, and test whether it also correlates with temperature.
 
 ```{webr}
+#| tldr: true
 #| exercise: ex_expression
 cspa_both <- cspa_genes %>%
   inner_join(filter(per_cell, KO == "K03704"), by = c("sample_metat" = "sample", "KO")) %>%
@@ -155,6 +160,7 @@ $$
 So the variation of transcripts across samples splits into the variation of genes, the variation of expression, and a term for how the two vary together (their covariance). Let's compute this for every KO in the data:
 
 ```{webr}
+#| tldr: true
 paired <- samples %>%
   select(sample_metag, sample_metat, Temperature) %>%
   inner_join(per_cell, by = c("sample_metag" = "sample")) %>%
@@ -193,6 +199,7 @@ variance %>%
 Use the `variance` table to compute, for each KO, the share of the variance of log transcripts that comes from expression. The variance of log transcripts is the sum of the three parts.
 
 ```{webr}
+#| tldr: true
 #| exercise: ex_share
 shares <- variance %>%
   mutate(total = ______,

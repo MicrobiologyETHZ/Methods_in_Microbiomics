@@ -25,6 +25,8 @@ resources:
 <span>📦 **Data:** Oligo-MM12 mice, LPS vs PBS</span>
 :::
 
+{{< include _tldr/03-differential-expression.md >}}
+
 ## What you'll learn
 
 - Why a change in a strain's abundance looks like a change in expression of all of its genes.
@@ -111,6 +113,7 @@ In terms of the equation, transcripts = gene copies × expression: per-strain sc
 ## The data
 
 ```{webr}
+#| tldr: true
 #| autorun: true
 #| edit: false
 library(dplyr)
@@ -204,6 +207,7 @@ if (ok) {
 Now compute size factors once for all genes together (global), and once for each strain:
 
 ```{webr}
+#| tldr: true
 sf <- data.frame(sample_id = colnames(count_matrix),
                  global = estimateSizeFactorsForMatrix(count_matrix))
 for (s in strains) {
@@ -227,6 +231,7 @@ If all strains kept the same proportions, each strain's points would lie on one 
 DESeq2 accepts a matrix of **normalisation factors**, one per gene and sample, in place of one size factor per sample. We give every gene its own strain's size factors:
 
 ```{webr}
+#| tldr: true
 norm_factors <- matrix(1, nrow(count_matrix), ncol(count_matrix),
                        dimnames = dimnames(count_matrix))
 for (s in strains) {
@@ -286,6 +291,7 @@ With global size factors, I48's fold changes are shifted to the right (more of i
 A **volcano plot** shows each gene's fold change against its significance:
 
 ```{webr}
+#| tldr: true
 res %>%
   filter(!is.na(padj)) %>%
   mutate(call = case_when(

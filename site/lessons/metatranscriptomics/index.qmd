@@ -94,4 +94,6 @@ Parts 2–4 build on each other. Part 5 stands on its own.
 
 Slides from the lecture that goes with this lesson: [METAT_lecture_slides.pdf](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/raw/main/docs/downloads/METAT_lecture_slides.pdf).
 
+{{< include _tldr/_lesson.md >}}
+
 [Start Part 1 →](01-reads-to-counts.qmd){.btn .btn-primary}

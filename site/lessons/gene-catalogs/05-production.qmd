@@ -7,6 +7,8 @@ subtitle: "What changes when you leave the teaching data behind"
 <span>⏱ **About 10 min** reading</span>
 :::
 
+{{< include _tldr/05-production.md >}}
+
 The workshop ran in seconds on three tiny metagenomes. A real study has tens to hundreds of samples, each with millions of reads. The steps stay the same; what changes is how you run them.
 
 ## Before you start: do you need your own catalog?
@@ -31,7 +33,7 @@ Check the **mapping rate** (Part C) of your samples to an existing catalog first
 
 On a Slurm cluster, per-sample steps fit naturally into a **job array**. A template for gene calling, with one task per line of `samples.txt`:
 
-```bash
+```{.bash .notest}
 #!/bin/bash
 #SBATCH --job-name=prodigal
 #SBATCH --array=1-100            # one task per sample

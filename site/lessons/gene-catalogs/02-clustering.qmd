@@ -20,6 +20,8 @@ resources:
 <span>🔧 **Tool:** [MMseqs2](https://github.com/soedinglab/MMseqs2) Release 18-8cc5c</span>
 :::
 
+{{< include _tldr/02-clustering.md >}}
+
 ## What you'll learn
 
 - Why genes from different samples must be clustered before counting.

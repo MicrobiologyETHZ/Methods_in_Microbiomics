@@ -66,6 +66,8 @@ The ASV sequences, their taxonomy and the composition of the sputum samples are 
 
 Parts 2–6 build on each other, in the order of a real analysis. Part 1 uses DADA2's own example reads, because the study's reads are too large for the browser.
 
+{{< include _tldr/_lesson.md >}}
+
 ## Credits
 
 The lesson follows the 16S session of the NCCR Microbiomes winter course [Advanced methods in microbial community analysis](https://github.com/nccr-microbiomes-org/Advanced_methods_in_microbial_community_analysis) (January 2026): the same study, the same questions, in the same order. The text and code are written anew, with some methods updated.

@@ -4,7 +4,10 @@
 Cells run in page order. Each exercise is replaced by its solution, and each exercise
 check runs after it and must report correct = TRUE. Exits non-zero on any failure.
 
-Usage: python tests/webr_cells.py site/lessons/gene-catalogs/04-downstream.qmd [...]
+With --tldr, only the cells tagged `#| tldr: true` run (exercises as their solutions):
+the page's "At a glance" summary (site/_tldr.py) must run on its own.
+
+Usage: python tests/webr_cells.py [--tldr] site/lessons/gene-catalogs/04-downstream.qmd [...]
 """
 import re
 import subprocess
@@ -25,7 +28,7 @@ def options(code):
     return opts
 
 
-def build_script(qmd):
+def build_script(qmd, tldr=False):
     text = qmd.read_text()
     solutions = dict(SOLUTION.findall(text))
     parts = ["options(warn = 1)\n"]
@@ -34,6 +37,8 @@ def build_script(qmd):
         opts = options(code)
         body = "\n".join(l for l in code.splitlines() if not l.startswith("#|"))
         exercise = opts.get("exercise")
+        if tldr and (opts.get("tldr") != "true" or opts.get("check") == "true"):
+            continue
         if exercise and opts.get("check") == "true":
             parts.append(
                 f'cat("\\n## check {exercise}\\n")\n'
@@ -49,10 +54,12 @@ def build_script(qmd):
     return "\n".join(parts)
 
 
-def main(paths):
+def main(args):
+    tldr = "--tldr" in args
+    paths = [a for a in args if a != "--tldr"]
     failed = False
     for path in map(Path, paths):
-        script = build_script(path)
+        script = build_script(path, tldr)
         out = path.parent / f".{path.stem}.test.R"
         out.write_text(script)
         result = subprocess.run(["Rscript", out.name], cwd=path.parent,

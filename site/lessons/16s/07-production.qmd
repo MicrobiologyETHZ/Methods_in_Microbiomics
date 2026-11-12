@@ -3,6 +3,8 @@ title: "7. Going to production: zAMP"
 subtitle: "Run a full 16S analysis on your own data with the lab's pipeline"
 ---
 
+{{< include _tldr/07-production.md >}}
+
 ::: {.callout-note}
 ## This part is being written
 It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/zAMP.html) on the old site.

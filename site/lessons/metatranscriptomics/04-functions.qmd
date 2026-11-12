@@ -25,6 +25,8 @@ resources:
 <span>📦 **Data:** differential expression results from Part 3</span>
 :::
 
+{{< include _tldr/04-functions.md >}}
+
 ## What you'll learn
 
 - How **over-representation analysis** (ORA) tests whether a pathway has more responding genes than expected by chance.
@@ -38,6 +40,7 @@ Part 3 found hundreds of genes that respond to LPS in each strain. A list of loc
 To save you from running DESeq2 again, `de_i48.csv.gz` has the Part 3 results for I48, computed with exactly the same method.
 
 ```{webr}
+#| tldr: true
 #| autorun: true
 #| edit: false
 library(dplyr)
@@ -68,6 +71,7 @@ cat(nrow(i48), "I48 genes tested;", n_distinct(pathway_genes$locus_tag),
 Only about a quarter of the genes are in a KEGG pathway. Enrichment can only say something about those, so they are our **universe**: the genes that could have been picked.
 
 ```{webr}
+#| tldr: true
 universe <- unique(pathway_genes$locus_tag)
 down <- i48 %>% filter(padj < 0.01, log2FoldChange < -1) %>% pull(locus_tag) %>% intersect(universe)
 up <- i48 %>% filter(padj < 0.01, log2FoldChange > 1) %>% pull(locus_tag) %>% intersect(universe)
@@ -139,6 +143,7 @@ if (ok) {
 The same test for every pathway with at least 10 genes. Since we run many tests, we adjust the p-values for multiple testing (Benjamini–Hochberg):
 
 ```{webr}
+#| tldr: true
 ora <- function(selected) {
   pathway_genes %>%
     group_by(pathway) %>%
@@ -175,6 +180,7 @@ ORA needs a cut-off (here: adjusted p < 0.01 and a fold change above 2), and ign
 We rank genes by DESeq2's **Wald statistic** (`stat`): the fold change divided by its standard error. Ranking by the fold change itself would put lowly expressed genes, whose fold changes are large but noisy, at the extremes. We use the fast implementation in `fgsea`:
 
 ```{webr}
+#| tldr: true
 library(fgsea)
 
 ranks <- i48 %>%

@@ -1,6 +1,8 @@
 project:
   type: website
   output-dir: _site
+  # writes the "At a glance" command summaries (lessons/*/_tldr/) that the pages include
+  pre-render: _tldr.py
   # the 16S data aren't listed by any page yet; the spike page downloads them
   resources:
     - lessons/16s/data/*

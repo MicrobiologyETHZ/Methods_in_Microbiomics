@@ -18,6 +18,8 @@ resources:
 <span>🔧 **Tool:** [Prodigal](https://github.com/hyattpd/Prodigal)</span>
 :::
 
+{{< include _tldr/01-gene-calling.md >}}
+
 ## What you'll learn
 
 - How to predict genes in metagenomic assemblies, and why metagenomes need a special mode.

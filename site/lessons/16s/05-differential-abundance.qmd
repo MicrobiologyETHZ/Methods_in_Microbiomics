@@ -3,6 +3,8 @@ title: "5. Differential abundance"
 subtitle: "Which taxa differ between sputum and throat swabs, and why do methods disagree?"
 ---
 
+{{< include _tldr/05-differential-abundance.md >}}
+
 ::: {.callout-note}
 ## This part is being written
 It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.

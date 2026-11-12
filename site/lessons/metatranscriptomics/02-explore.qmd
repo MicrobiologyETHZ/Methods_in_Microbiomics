@@ -22,6 +22,8 @@ resources:
 <span>📦 **Data:** Oligo-MM12 mice, LPS vs PBS</span>
 :::
 
+{{< include _tldr/02-explore.md >}}
+
 ## What you'll learn
 
 - Why the share of the transcriptome isn't the share of the community.
@@ -44,6 +46,7 @@ The grey boxes are live R. Edit the code and press **Run Code**. The first run t
 | `kegg_ko.csv` | Names of the KEGG orthologs |
 
 ```{webr}
+#| tldr: true
 #| autorun: true
 #| edit: false
 library(dplyr)
@@ -99,6 +102,7 @@ Only 46% of the genes have a KO, and this varies between strains, from 36% in I4
 Sum the counts of each strain's genes in each sample, and divide by the sample's total:
 
 ```{webr}
+#| tldr: true
 strain_inserts <- counts_long %>%
   group_by(sample_id, Treatment, genome) %>%
   summarise(inserts = sum(count), .groups = "drop") %>%
@@ -139,6 +143,7 @@ A sample with 10 million inserts might have 8 million from one strain and only 5
 Count, for each strain and treatment, the samples with at least 500,000 inserts.
 
 ```{webr}
+#| tldr: true
 #| exercise: ex_depth
 depth <- strain_inserts %>%
   group_by(genome, Treatment) %>%
@@ -258,6 +263,7 @@ if (ok) {
 Now apply it to every strain in every sample:
 
 ```{webr}
+#| tldr: true
 calculate_tpm <- function(counts, lengths) {
   rpk <- counts / (lengths / 1000)
   rpk / sum(rpk) * 1e6
@@ -283,6 +289,7 @@ Expression values span several orders of magnitude, so we look at them on a log 
 - **CLR (centred log-ratio):** each gene's log value minus the mean log value of all of the strain's genes in that sample. It's made for compositional data: it compares each gene to the strain's "average gene".
 
 ```{webr}
+#| tldr: true
 expr <- expr %>%
   group_by(genome, sample_id) %>%
   mutate(
@@ -315,6 +322,7 @@ We don't use all genes:
 2. **Keep the 500 most variable genes.** Genes whose expression barely changes between samples add noise but no information about how samples differ. This is also the default of `plotPCA()` in DESeq2.
 
 ```{webr}
+#| tldr: true
 strain <- "I48"
 
 # genes with at least 10 inserts in at least 6 samples
@@ -446,6 +454,7 @@ Samples are ordered by hierarchical clustering. Replicates should correlate high
 A growing cell needs many ribosomes, so it spends a large share of its transcription on **ribosomal proteins**. The share of a strain's transcripts that encode ribosomal proteins is a rough proxy for its growth rate. Because it's a share *within* the strain, the strain's abundance cancels out: more cells mean more ribosomal *and* more other transcripts. Compare it between samples of one strain, not between strains: their baselines differ (about 0.2–0.5% in YL32, 3–4% in I48).
 
 ```{webr}
+#| tldr: true
 ribosomal_kos <- kegg_ko %>%
   filter(grepl("subunit ribosomal protein", name)) %>%
   pull(KO)
@@ -467,6 +476,7 @@ cat(length(ribosomal_kos), "ribosomal protein KOs;",
 For each strain in each sample, compute the share of transcripts from ribosomal protein genes. Plot it for the three main strains.
 
 ```{webr}
+#| tldr: true
 #| exercise: ex_ribo
 ribo <- counts_ribo %>%
   filter(genome %in% c("I48", "YL32", "YL58")) %>%

@@ -3,6 +3,8 @@ title: "0. Before sequencing"
 subtitle: "Primers, variable regions and 16S copy number: choices that shape the result before you have any data"
 ---
 
+{{< include _tldr/00-before-sequencing.md >}}
+
 ::: {.callout-note}
 ## This part is being written
 It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.

@@ -92,6 +92,10 @@ jobs:
       - name: Test live R cells and exercise checks
         run: python tests/webr_cells.py site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd
 
+      # The "At a glance" R summary of each page (cells tagged `#| tldr: true`) must run on its own
+      - name: Test the "At a glance" R summaries
+        run: python tests/webr_cells.py --tldr site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd
+
       - uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Render site
@@ -136,7 +140,7 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --no-progress --accept 200,403,429 'site/_site/**/*.html'
+          args: --no-progress --include-fragments --accept 200,403,429 'site/_site/**/*.html'
           fail: true
 
       - uses: actions/upload-pages-artifact@v3
