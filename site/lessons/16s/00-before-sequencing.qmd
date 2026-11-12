@@ -1,19 +1,290 @@
 ---
 title: "0. Before sequencing"
 subtitle: "Primers, variable regions and 16S copy number: choices that shape the result before you have any data"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - readr
+    - ggplot2
+resources:
+  - data/mock_community.csv
+  - data/asv_counts.csv.gz
 ---
+
+::: {.lesson-meta}
+<span>⏱ **About 30 min**</span>
+<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
+<span>📦 **Data:** a mock community of 8 bacteria</span>
+:::
 
 {{< include _tldr/00-before-sequencing.md >}}
 
+## What you'll learn
+
+- What the 16S rRNA gene is, and why it works as a marker.
+- How to choose a primer pair, and why no pair is universal.
+- Why the share of reads isn't the share of cells: **16S copy number**.
+- The difference between **relative** and **absolute** abundance.
+
+## The 16S rRNA gene
+
+The 16S rRNA gene, about 1,500 bp long, encodes the RNA of the small ribosomal subunit of bacteria and archaea. Every prokaryote has it, and it changes slowly, so it can be compared across the whole tree of life. Along its length, **conserved regions** alternate with **nine variable regions** (V1–V9):
+
+- the conserved regions are nearly identical in all bacteria, so PCR primers that bind there amplify almost everyone;
+- the variable regions differ between taxa, so their sequence tells you who the amplicon came from.
+
+Short-read sequencing can't read the whole gene, so a study amplifies one or two neighbouring variable regions, for example V4 or V3–V4.
+
 ::: {.callout-note}
-## This part is being written
-It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+## Eukaryotes and fungi
+Most 16S primers (see the table below) only amplify prokaryotes. For eukaryotes, the **18S** rRNA gene is used instead. For fungi, the **ITS** (internal transcribed spacer) between the rRNA genes, usually ITS1 or ITS2, resolves species better than 18S.
 :::
 
-## What this part will cover
+## What shapes the result
 
-- The 16S gene, its nine variable regions, and why 18S and ITS are used for eukaryotes and fungi.
-- What influences the outcome of a 16S study, from sampling to the reference database.
-- The lab's primer table (V1–V3, V3–V4, V4, V4–V5), and why no primer pair is universal.
-- 16S copy number: why the share of reads isn't the share of cells, tried out on a mock community.
-- Relative vs absolute abundance, and how to measure the latter.
+16S sequencing is cheap and powerful, but many choices change its outcome, and they make studies hard to compare. Each part of this lesson deals with some of them:
+
+| Choice | Where in this lesson |
+|---|---|
+| Sampling and storage; low biomass and contamination | [Part 3](03-contamination.qmd) |
+| Which variable region is targeted, and how well the primers bind | This page |
+| 16S copy number | This page |
+| Library preparation and sequencing | [Part 1](01-reads-to-asvs.qmd) |
+| Bioinformatic processing: OTUs or ASVs, filtering, chimeras | [Part 1](01-reads-to-asvs.qmd) |
+| The database used for taxonomy | [Part 2](02-taxonomy.qmd) |
+
+## Choosing primers
+
+These are commonly used 16S primer pairs. Sequences are 5'→3'. The letters other than A, C, G and T are **degenerate bases**: each stands for several nucleotides (Y = C or T, M = A or C, W = A or T, R = A or G, H = A, C or T, V = A, C or G, N = any), so one primer matches several variants of its binding site.
+
+| Region | Primers | Forward / reverse sequence | Amplifies | Amplicon (bp) | Reference |
+|---|---|---|---|---|---|
+| V1–V3 | 27F / 534R | `AGAGTTTGATYMTGGCTCAG` / `ATTACCGCGGCTGCTGG` | Bacteria, archaea | 507 | [Walker et al. 2015](https://doi.org/10.1186/s40168-015-0087-4) |
+| V3–V4 | 341F / 785R | `CCTACGGGNGGCWGCAG` / `GACTACHVGGGTATCTAATCC` | Bacteria, archaea | 465 | [Klindworth et al. 2013](https://doi.org/10.1093/nar/gks808) |
+| V4 | 515F / 806R | `GTGCCAGCMGCCGCGGTAA` / `GGACTACHVGGGTWTCTAAT` | Bacteria, archaea | 291 | [Caporaso et al. 2011](https://doi.org/10.1073/pnas.1000080107) |
+| V4 | 515F-Y / 806R | `GTGYCAGCMGCCGCGGTAA` / `GGACTACHVGGGTWTCTAAT` | Bacteria, archaea | 291 | [Parada et al. 2016](https://doi.org/10.1111/1462-2920.13023) |
+| V4 | 515F / 806RB | `GTGCCAGCMGCCGCGGTAA` / `GGACTACNVGGGTWTCTAAT` | Bacteria, archaea | 291 | [Apprill et al. 2015](https://doi.org/10.3354/ame01753) |
+| V4–V5 | 515F / 926R | `GTGCCAGCMGCCGCGGTAA` / `CCGYCAATTYMTTTRAGTTT` | Bacteria, archaea **and eukaryotes** | 411 | [Parada et al. 2016](https://doi.org/10.1111/1462-2920.13023) |
+
+The CF study in this lesson amplified **V3–V4** with 341F and the reverse primer of the table's second row. Papers name that primer **785R** or **805R**: it's the same sequence.
+
+::: {.callout-warning}
+## No primer pair is universal
+- The original V4 primers of the [Earth Microbiome Project](https://earthmicrobiome.org/protocols-and-standards/16s/) (515F/806R) are biased against some clades, notably Crenarchaeota/Thaumarchaeota and the marine SAR11 clade ([Walters et al. 2016](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5069754/)). Parada et al. (515F-Y) and Apprill et al. (806RB) changed one base each to reduce these biases.
+- 515F/926R also amplifies the 18S gene of **eukaryotes**. That's useful in the ocean, where it captures phytoplankton and other protists too, but in host-associated samples it can spend reads on host DNA.
+- A primer that misses a group makes that group look absent, and no analysis can bring it back.
+
+So: **choose primers that are known to work for your environment** (check what comparable studies used), and **keep the same primers across a study**. Results from different regions or primers can't be compared directly.
+:::
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("You want to compare your new V4 (515F/806R) study of throat swabs with a published V3–V4 study of the same kind of samples. What can you compare directly?", [
+  {text: "The relative abundance of each genus", correct: false, why: "Different primers amplify taxa with different efficiency, so the same community gives different profiles."},
+  {text: "The ASVs: the same ASV means the same organism", correct: false, why: "V4 and V3–V4 amplicons are different stretches of the gene, so their ASVs can't be matched at all."},
+  {text: "Broad patterns only, such as which samples differ, analysed in each study separately", correct: true, why: "Analyse each study on its own and compare the conclusions, not the numbers."}
+])
+```
+
+## 16S copy number: reads aren't cells
+
+A genome can carry anything from **1 to about 15 copies** of the 16S gene. Each copy is amplified, so a species with 10 copies per genome gives about 10 times more reads per cell than a species with one copy. **The share of reads is the share of 16S copies, not the share of cells.**
+
+A **mock community** shows this well: a mix of known bacteria, sequenced like a sample. This lesson uses the ZymoBIOMICS Microbial Community Standard: 8 bacteria, mixed in equal amounts of genomic DNA (12% each; two yeasts make up the rest, and 16S primers don't amplify them). The manufacturer gives each species' share of cells and of 16S copies.
+
+::: {.callout-note}
+## How the code cells work
+The grey boxes are live R. Edit the code and press **Run Code**. The first run takes a few seconds while R starts in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
+:::
+
+```{webr}
+#| autorun: true
+#| edit: false
+library(dplyr)
+library(tidyr)
+library(readr)
+library(ggplot2)
+theme_set(theme_bw())
+
+mock <- read_csv("data/mock_community.csv", show_col_types = FALSE)
+mock
+```
+
+The same mix, measured three ways:
+
+```{webr}
+mock %>%
+  select(species, `genomic DNA` = pct_genomic_dna, cells = pct_cells, `16S copies` = pct_16s) %>%
+  pivot_longer(-species, names_to = "measure", values_to = "percent") %>%
+  mutate(measure = factor(measure, levels = c("genomic DNA", "cells", "16S copies"))) %>%
+  ggplot(aes(percent, species, fill = measure)) +
+  geom_col(position = "dodge") +
+  labs(x = "% of the community", y = NULL, fill = NULL)
+```
+
+*Bacillus subtilis* has 10 copies per genome: 10% of the cells, but 17% of the 16S copies. *Pseudomonas aeruginosa* has 4: 6% of the cells, 4% of the copies.
+
+### Exercise: from cells to 16S copies
+
+Each species contributes `cells × copies per genome` 16S copies. Compute each species' expected share of 16S copies from `pct_cells` and `copies_16s`, and compare it with the manufacturer's `pct_16s`.
+
+```{webr}
+#| exercise: ex_expected
+expected <- mock %>%
+  mutate(weight = pct_cells * ______,
+         share_16s = 100 * weight / sum(weight)) %>%
+  select(species, pct_cells, copies_16s, share_16s, pct_16s)
+expected
+```
+
+::: {.hint exercise="ex_expected"}
+The number of 16S copies a species contributes is its number of cells times the number of copies in each genome.
+:::
+
+::: {.solution exercise="ex_expected"}
+```r
+expected <- mock %>%
+  mutate(weight = pct_cells * copies_16s,
+         share_16s = 100 * weight / sum(weight)) %>%
+  select(species, pct_cells, copies_16s, share_16s, pct_16s)
+expected
+```
+:::
+
+```{webr}
+#| exercise: ex_expected
+#| check: true
+ok <- exists("expected") && is.data.frame(expected) && "share_16s" %in% names(expected) &&
+  isTRUE(max(abs(expected$share_16s - mock$pct_16s)) < 0.3)
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Your shares match the manufacturer's 16S shares: copy number alone explains the difference from the cell shares.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet. Multiply each species' cells by its copies per genome, then turn the result into percentages.")
+}
+```
+
+### What the sequencer saw
+
+The mock community was sequenced alongside the CF samples. Here is its share of reads per species:
+
+```{webr}
+counts <- read_csv("data/asv_counts.csv.gz", show_col_types = FALSE)
+
+observed <- counts %>%
+  select(asv, reads = MOCK) %>%
+  mutate(read_share = 100 * reads / sum(reads)) %>%
+  inner_join(mock, by = "asv") %>%
+  select(species, copies_16s, pct_cells, pct_16s, read_share)
+observed
+```
+
+The read shares follow the **16S** shares, not the cell shares. (They add up to a little under 100%: the rest are contaminants, which [Part 3](03-contamination.qmd) deals with.)
+
+### Exercise: correct for copy number
+
+If you know each species' copy number, you can undo the effect: divide each read share by the copy number, and rescale to 100%. Do that, and compare your estimate with the true cell shares.
+
+```{webr}
+#| exercise: ex_correct
+corrected <- observed %>%
+  mutate(cells_est = read_share / ______,
+         cells_est = 100 * cells_est / sum(cells_est))
+corrected %>% select(species, read_share, cells_est, pct_cells)
+```
+
+::: {.hint exercise="ex_correct"}
+Each cell of a species contributes `copies_16s` copies, so divide by that.
+:::
+
+::: {.solution exercise="ex_correct"}
+```r
+corrected <- observed %>%
+  mutate(cells_est = read_share / copies_16s,
+         cells_est = 100 * cells_est / sum(cells_est))
+corrected %>% select(species, read_share, cells_est, pct_cells)
+```
+:::
+
+```{webr}
+#| exercise: ex_correct
+#| check: true
+ok <- exists("corrected") && is.data.frame(corrected) && "cells_est" %in% names(corrected) &&
+  isTRUE(max(abs(corrected$cells_est - corrected$pct_cells)) < 2)
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = "Every species is now within about 1 percentage point of its true share of cells.")
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet. Divide read_share by copies_16s before rescaling to 100%.")
+}
+```
+
+```{webr}
+corrected %>%
+  select(species, `reads` = read_share, `corrected` = cells_est, `true cells` = pct_cells) %>%
+  pivot_longer(-species, names_to = "measure", values_to = "percent") %>%
+  mutate(measure = factor(measure, levels = c("reads", "corrected", "true cells"))) %>%
+  ggplot(aes(percent, species, colour = measure)) +
+  geom_point(size = 3) +
+  labs(x = "% of the community", y = NULL, colour = NULL)
+```
+
+### Then why not correct every study?
+
+In the mock community, the copy numbers are known exactly, from complete genomes. In a real sample they aren't: most ASVs come from organisms without a sequenced genome, so tools **predict** their copy number from relatives in the tree. Those predictions are often wrong, especially for taxa far from any sequenced genome, and copy numbers can differ even within a genus. Corrections with predicted copy numbers have been shown to add about as much error as they remove ([Louca et al. 2018](https://doi.org/10.1186/s40168-018-0420-9); [Starke et al. 2021](https://doi.org/10.1007/s00248-020-01586-7)).
+
+What to do instead:
+
+- **Say what you measured.** Read shares are shares of 16S copies; write "relative abundance of 16S reads", not "of cells".
+- **Compare a taxon with itself.** A genus's copy number is the same in every sample, so comparing *Pseudomonas* between sputum and throat swabs is fair. Comparing *Pseudomonas* with *Streptococcus* in one sample is not.
+- **Measure cells another way** when the numbers matter: qPCR of a specific gene, flow cytometry, or culture.
+
+## Relative and absolute abundance
+
+16S sequencing gives **relative** abundances: every sample is scaled to the same total, whatever its bacterial load. Two sputum samples with the same profile, 60% *Pseudomonas* and 40% *Streptococcus*, look identical, even if one holds 100 times more bacteria than the other.
+
+This matters whenever the load changes. If a treatment kills half the *Streptococcus* and leaves *Pseudomonas* alone, *Pseudomonas* goes **up** in relative abundance, though not a single *Pseudomonas* cell was added.
+
+To get **absolute** abundances, measure the total load and multiply:
+
+- **qPCR of the 16S gene** on the same DNA (counts 16S copies, so copy number still applies);
+- **flow cytometry**, which counts cells;
+- **spike-ins**: a known amount of cells or DNA of an organism that can't be in your samples, added before extraction; its share of reads tells you how much DNA the rest of the sample had.
+
+Low-biomass samples, like throat swabs, have a further problem: a small amount of contaminating DNA becomes a large share of the reads. That's [Part 3](03-contamination.qmd).
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+quiz("In a sample, Bacillus (10 16S copies per genome) and Pseudomonas (4 copies) each get 20% of the reads. Which statement is right?", [
+  {text: "They have the same number of cells", correct: false, why: "Equal reads mean equal 16S copies. Bacillus has 2.5 times more copies per cell, so it has fewer cells."},
+  {text: "Pseudomonas has about 2.5 times more cells than Bacillus", correct: true, why: "Divide reads by copies per genome: 20/4 = 5 and 20/10 = 2, a ratio of 2.5."},
+  {text: "Bacillus has about 2.5 times more cells than Pseudomonas", correct: false, why: "It's the other way round: more copies per genome means more reads per cell."}
+])
+```
+
+```{ojs}
+//| echo: false
+quiz("In a patient's sputum, Pseudomonas rises from 30% to 60% of the reads after treatment. What can you conclude?", [
+  {text: "Pseudomonas grew during treatment", correct: false, why: "Not necessarily: the other bacteria may have died, which raises Pseudomonas' share without adding cells."},
+  {text: "Its share of the community grew; whether it grew in number needs the total load", correct: true, why: "Relative abundance can't tell growth of one taxon from loss of the others. Measure the load, e.g. with qPCR."},
+  {text: "The treatment failed", correct: false, why: "If the treatment killed everything else, Pseudomonas' share would rise even if its number fell."}
+])
+```
+
+## Key points
+
+- The 16S gene has conserved regions for primers and **variable regions** to tell taxa apart; studies amplify one or two variable regions.
+- **No primer pair is universal.** Pick primers proven for your environment and keep them across a study.
+- **Reads are 16S copies, not cells.** Copy number ranges from 1 to about 15 per genome; correcting with predicted copy numbers is unreliable, so report what you measured and compare each taxon with itself.
+- 16S gives **relative** abundances. For absolute numbers, measure the total load (qPCR, flow cytometry, spike-ins).
+
+[← Overview](index.qmd){.btn .btn-outline-secondary} [1. From reads to ASVs →](01-reads-to-asvs.qmd){.btn .btn-primary}

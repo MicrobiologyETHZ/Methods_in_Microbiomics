@@ -55,7 +55,7 @@ The ASV sequences, their taxonomy and the composition of the sputum samples are 
 
 | Part | Where it runs | Time |
 |---|---|---|
-| [0. Before sequencing](00-before-sequencing.qmd) *(coming soon)* | Reading, with exercises | 30 min |
+| [0. Before sequencing](00-before-sequencing.qmd) | This site (R in your browser) | 30 min |
 | [1. From reads to ASVs](01-reads-to-asvs.qmd) *(coming soon)* | This site (R in your browser) | 45 min |
 | [2. Taxonomy](02-taxonomy.qmd) *(coming soon)* | This site | 30 min |
 | [3. Contamination](03-contamination.qmd) *(coming soon)* | This site | 30 min |
