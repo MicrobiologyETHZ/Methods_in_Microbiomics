@@ -19,19 +19,23 @@ resources:
   - data/kegg_pathways.csv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 30 min**</span>
-<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
-<span>📦 **Data:** differential expression results from Part 3</span>
-:::
-
-{{< include _tldr/04-functions.md >}}
+{{< include _tldr/04-functions.progress.md >}}
 
 ## What you'll learn
 
 - How **over-representation analysis** (ORA) tests whether a pathway has more responding genes than expected by chance.
 - How **gene set enrichment analysis** (GSEA) does the same without a significance cut-off.
 - How to look up interactions between genes in STRING.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 30 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** R in your browser, nothing to install</span>
+<span><span aria-hidden="true">📦</span> **Data:** differential expression results from Part 3</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/04-functions.md >}}
 
 ## The data
 
@@ -66,6 +70,7 @@ pathway_genes <- i48 %>%
 
 cat(nrow(i48), "I48 genes tested;", n_distinct(pathway_genes$locus_tag),
     "of them are in at least one KEGG pathway\n")
+cat("Ready: packages and data are loaded.\n")
 ```
 
 Only about a quarter of the genes are in a KEGG pathway. Enrichment can only say something about those, so they are our **universe**: the genes that could have been picked.
@@ -297,5 +302,3 @@ quiz("A pathway has 3 of its 10 genes among your down-regulated genes, with an a
 - **GSEA** uses the whole ranking, and finds pathways whose genes shift together, even by small amounts.
 - In I48, inflammation of the host switches down **ribosomes** and **amino acid biosynthesis**. That's consistent with slower growth, but other explanations are possible: a sick host eats less, which changes the bacteria's food supply.
 - Enrichment can only see annotated genes; in bacteria, that's often less than half of them.
-
-[← 3. Differential expression](03-differential-expression.qmd){.btn .btn-outline-secondary} [5. When you have metagenomes →](05-with-metagenomes.qmd){.btn .btn-primary}

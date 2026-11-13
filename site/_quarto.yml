@@ -26,6 +26,8 @@ website:
             text: Metatranscriptomics
           - href: lessons/16s/index.qmd
             text: 16S amplicon sequencing
+      - href: how-it-works.qmd
+        text: How this site works
       - href: contribute.qmd
         text: Contribute
   sidebar:
@@ -53,12 +55,18 @@ website:
         - lessons/16s/index.qmd
         - lessons/16s/00-before-sequencing.qmd
         - lessons/16s/01-reads-to-asvs.qmd
-        - lessons/16s/02-taxonomy.qmd
-        - lessons/16s/03-contamination.qmd
-        - lessons/16s/04-diversity.qmd
-        - lessons/16s/05-differential-abundance.qmd
-        - lessons/16s/06-community-types.qmd
-        - lessons/16s/07-production.qmd
+        - href: lessons/16s/02-taxonomy.qmd
+          text: "2. Taxonomy (coming soon)"
+        - href: lessons/16s/03-contamination.qmd
+          text: "3. Contamination (coming soon)"
+        - href: lessons/16s/04-diversity.qmd
+          text: "4. Diversity (coming soon)"
+        - href: lessons/16s/05-differential-abundance.qmd
+          text: "5. Differential abundance (coming soon)"
+        - href: lessons/16s/06-community-types.qmd
+          text: "6. Community types (coming soon)"
+        - href: lessons/16s/07-production.qmd
+          text: "7. Going to production: zAMP (coming soon)"
   page-footer:
     left: "Methods in Microbiomics · Sunagawa group, ETH Zürich · content CC BY 4.0"
     right: "[Report a problem](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/issues/new)"

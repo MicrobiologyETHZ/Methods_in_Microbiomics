@@ -7,8 +7,9 @@ nearest `## heading`:
   `./check` lines; blocks with the class .notldr are left out;
 - every ```{webr} cell tagged `#| tldr: true`; for an exercise, its solution is used.
 
-It writes _tldr/<part>.md (a folded callout, or nothing if the part has no steps) and
-_tldr/_lesson.md (the whole lesson as one bash and one R block), which the pages include.
+It writes _tldr/<part>.md (a folded callout, or nothing if the part has no steps),
+_tldr/<part>.progress.md (the "Page 2 of 5" line under the title) and _tldr/_lesson.md
+(the whole lesson as one bash and one R block), which the pages include.
 The R summary must run on its own: tests/webr_cells.py --tldr checks that.
 
 The _tldr/ files are committed, because Quarto resolves includes before it runs
@@ -103,12 +104,13 @@ def grouped(found):
 def part_box(found):
     if not found:
         return ""
-    lines = ['::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}',
+    lines = ['::: {.callout-note .callout-glance appearance="simple" collapse="true" '
+             'title="At a glance: the commands of this part"}',
              "For coming back later. Each step is explained in the section it links to.", ""]
     last = object()
     for heading, anchor, lang, code in grouped(found):
         if heading != last and heading:
-            lines += [f"**{heading}** [↗](#{anchor})", ""]
+            lines += [f"**[{heading}](#{anchor})**", ""]
         last = heading
         lines += [f"```{lang}", code, "```", ""]
     lines.append(":::")
@@ -138,6 +140,14 @@ def lesson_block(parts):
     return "\n".join(lines) + "\n"
 
 
+def progress(name, i, n):
+    """The "Page 2 of 5" line under a part's title, with a small progress bar."""
+    return ("::: {.part-progress}\n"
+            f"[{name}](index.qmd) · Page {i} of {n} "
+            f'[]{{.part-bar style="--done: {round(100 * i / n)}%" aria-hidden="true"}}\n'
+            ":::\n")
+
+
 def write(path, text):
     # only touch files that changed, so `quarto preview` doesn't re-render everything
     if not path.exists() or path.read_text() != text:
@@ -153,8 +163,10 @@ def main():
         out = lesson / "_tldr"
         out.mkdir(exist_ok=True)
         parts = [(p, steps(p)) for p in pages]
-        for page, found in parts:
+        name = TITLE.search((lesson / "index.qmd").read_text()).group(1).removesuffix(": overview")
+        for i, (page, found) in enumerate(parts, 1):
             write(out / f"{page.stem}.md", part_box(found))
+            write(out / f"{page.stem}.progress.md", progress(name, i, len(parts)))
         write(out / "_lesson.md", lesson_block(parts))
 
 

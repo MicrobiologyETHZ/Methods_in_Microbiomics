@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The data** [↗](#the-data)
+**[The data](#the-data)**
 
 ```r
 library(dplyr)
@@ -27,7 +27,7 @@ gene_strain <- genes$genome[match(rownames(count_matrix), genes$locus_tag)]
 cat(nrow(count_matrix), "genes from", length(strains), "strains in", ncol(count_matrix), "samples\n")
 ```
 
-**Step 1: size factors** [↗](#step-1-size-factors)
+**[Step 1: size factors](#step-1-size-factors)**
 
 ```r
 sf <- data.frame(sample_id = colnames(count_matrix),
@@ -46,7 +46,7 @@ sf %>%
   labs(x = "Global size factor", y = "Per-strain size factor")
 ```
 
-**Step 2: DESeq2 with per-strain size factors** [↗](#step-2-deseq2-with-per-strain-size-factors)
+**[Step 2: DESeq2 with per-strain size factors](#step-2-deseq2-with-per-strain-size-factors)**
 
 ```r
 norm_factors <- matrix(1, nrow(count_matrix), ncol(count_matrix),
@@ -69,7 +69,7 @@ res <- results(dds, contrast = c("Treatment", "LPS", "PBS"), alpha = 0.01) %>%
 res %>% arrange(padj) %>% head()
 ```
 
-**Step 3: look at the results** [↗](#step-3-look-at-the-results)
+**[Step 3: look at the results](#step-3-look-at-the-results)**
 
 ```r
 res %>%

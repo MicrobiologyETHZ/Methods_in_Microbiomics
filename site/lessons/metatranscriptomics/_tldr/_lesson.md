@@ -49,6 +49,7 @@ strain_colours <- c(
 )
 cat("Loaded", nrow(genes), "genes from", n_distinct(genes$genome), "strains and",
     nrow(samples), "samples.\n")
+cat("Ready: packages and data are loaded.\n")
 
 # ---- 2. Explore the data: Step 1: who dominates the transcriptome?
 strain_inserts <- counts_long %>%
@@ -275,6 +276,7 @@ pathway_genes <- i48 %>%
 
 cat(nrow(i48), "I48 genes tested;", n_distinct(pathway_genes$locus_tag),
     "of them are in at least one KEGG pathway\n")
+cat("Ready: packages and data are loaded.\n")
 
 universe <- unique(pathway_genes$locus_tag)
 down <- i48 %>% filter(padj < 0.01, log2FoldChange < -1) %>% pull(locus_tag) %>% intersect(universe)

@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**Build the catalog with MMseqs2** [↗](#build-the-catalog-with-mmseqs2)
+**[Build the catalog with MMseqs2](#build-the-catalog-with-mmseqs2)**
 
 ```bash
 mkdir -p catalog
@@ -31,7 +31,7 @@ mmseqs version > mmseqs.version
 cd ..
 ```
 
-**Name the clusters and write the catalog** [↗](#name-the-clusters-and-write-the-catalog)
+**[Name the clusters and write the catalog](#name-the-clusters-and-write-the-catalog)**
 
 ```bash
 Rscript solutions/name_clusters.R catalog/genes.cluster.tsv catalog/genes.fna.gz catalog/clusters.tsv

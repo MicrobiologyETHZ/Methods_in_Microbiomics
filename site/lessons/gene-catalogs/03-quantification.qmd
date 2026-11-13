@@ -15,13 +15,7 @@ resources:
   - data/gene_counts.tsv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 40 min**</span>
-<span>💻 **Runs in:** your Codespace terminal, plus R in this page</span>
-<span>🔧 **Tools:** [BWA](https://github.com/lh3/bwa), [samtools](https://www.htslib.org/), R</span>
-:::
-
-{{< include _tldr/03-quantification.md >}}
+{{< include _tldr/03-quantification.progress.md >}}
 
 ## What you'll learn
 
@@ -30,8 +24,21 @@ resources:
 - How to count **inserts** per gene, and what to do with inserts that match several genes.
 - How to judge how much of a community the catalog captures.
 
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 40 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in:** your Codespace terminal, plus R in this page</span>
+<span><span aria-hidden="true">🔧</span> **Tools:** [BWA](https://github.com/lh3/bwa), [samtools](https://www.htslib.org/), R</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include ../../_partials/codespace.md >}}
+
+{{< include _tldr/03-quantification.md >}}
+
 ::: {.compact-diagram}
 ```{mermaid}
+%%| fig-alt: "Flowchart: reads of each sample are aligned to the catalog with bwa mem -a, filtered (at least 45 bp aligned, 95% identity), and unique inserts are counted per gene into a genes by samples table."
 flowchart LR
   R["Reads<br/>per sample"] --> A["Align to catalog<br/>bwa mem -a"]
   A --> F["Filter<br/>≥ 45 bp aligned<br/>≥ 95% identity"]
@@ -109,6 +116,7 @@ library(readr)
 library(ggplot2)
 theme_set(theme_bw())
 alignments <- read_csv("data/alignments_metag1_sample.csv", show_col_types = FALSE)
+cat("Ready: packages and data are loaded.\n")
 ```
 
 ```{webr}
@@ -277,5 +285,3 @@ quiz("Here the mapping rate is above 96%. In a real study, mapping to a publishe
 - The **mapping rate** tells you how much of the community the catalog captures.
 
 The counts are raw: they still depend on gene length and sequencing depth. Part D shows how to normalise them, on a real dataset.
-
-[← B. Clustering](02-clustering.qmd){.btn .btn-outline-secondary} [D. Downstream analysis →](04-downstream.qmd){.btn .btn-primary}

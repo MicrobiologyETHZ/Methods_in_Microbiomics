@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The data** [↗](#the-data)
+**[The data](#the-data)**
 
 ```bash
 metaspades.py -t 4 -m 12 --only-assembler \
@@ -12,7 +12,7 @@ grep ">" data/scaffolds/metag1.scaffolds.min500.fasta | head -3
 grep -c ">" data/scaffolds/*.fasta
 ```
 
-**Predict genes with Prodigal** [↗](#predict-genes-with-prodigal)
+**[Predict genes with Prodigal](#predict-genes-with-prodigal)**
 
 ```bash
 mkdir -p genes
@@ -24,7 +24,7 @@ done
 ls genes
 ```
 
-**Look at the output** [↗](#look-at-the-output)
+**[Look at the output](#look-at-the-output)**
 
 ```bash
 grep -c ">" genes/*.faa

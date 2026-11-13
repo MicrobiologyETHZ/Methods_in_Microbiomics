@@ -1,0 +1,37 @@
+---
+title: "How this site works"
+subtitle: "Live R in your browser, Codespaces for the command line, and how to check yourself"
+---
+
+Every lesson is something you do, not just read. This page explains the pieces you'll meet.
+
+## Live R cells
+
+Grey boxes with a **Run Code** button are live R. R runs **in your browser** (with [webR](https://docs.r-wasm.org/webr/latest/)): nothing is installed on your computer and nothing is sent to a server.
+
+- **The first run is slow.** R itself, and then the packages a page needs, are downloaded when you open the page. That can take from a few seconds to a minute or more for pages with large packages, such as DESeq2 or DADA2. After that, cells run quickly. Your browser keeps the downloads, so the next visit is faster.
+- **Some cells run by themselves** when the page opens: usually the first one, which loads the packages and data. Wait until it shows its output before you run anything else.
+- **Run the cells in order.** Cells build on each other, like a script. If a cell says `object 'x' not found`, a cell above it hasn't run yet (or the page was reloaded, which starts a fresh R session): run the cells above it, from the top.
+- **Edit freely.** Change the code and run it again. To get the original back, reload the page.
+
+## Exercises and quizzes
+
+- **Exercises** are live cells with a blank (`______`) to fill in. **Show Hint** gives a nudge, **Show Solution** the answer. Some exercises check your result when you run them, and tell you whether it's right.
+- **Quizzes** are multiple-choice questions. Pick an answer to see whether it's right and why.
+- **Check yourself** and **Key points** at the end of each part sum up what to take away.
+
+## The command line: GitHub Codespaces
+
+Some parts run real bioinformatics tools in a terminal. Instead of installing them, you use a **GitHub Codespace**: a Linux computer in the cloud that opens in your browser, with the tools and data ready. The lesson's overview has the button to create it.
+
+- Grey boxes labelled **Terminal** are commands to copy into the Codespace terminal (use the copy button at their top right).
+- Each part ends with `./check`, which compares your results with a reference run.
+- **Stop the Codespace** when you take a break: free GitHub accounts have a monthly allowance. Your files are kept, and you can **Resume** it later. Codespaces you haven't used for 30 days are deleted.
+
+## "At a glance" boxes
+
+Each part starts with a folded **At a glance** box: the commands of that part, without the explanations, with links to the sections that explain them. They're meant for coming back to a lesson later. Each lesson's overview has the whole pipeline in one place.
+
+## Something doesn't work?
+
+[Report a problem](https://github.com/MicrobiologyETHZ/Methods_in_Microbiomics/issues/new): say which page, what you did, and what you saw (a screenshot of the error helps).

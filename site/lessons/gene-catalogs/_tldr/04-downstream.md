@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The data** [↗](#the-data)
+**[The data](#the-data)**
 
 ```r
 library(dplyr)
@@ -16,7 +16,7 @@ genes <- read_csv("data/tara_gene_slice.csv.gz", show_col_types = FALSE)
 cat("Loaded", nrow(samples), "samples and", nrow(genes), "gene counts.\n")
 ```
 
-**Step 1: gene length** [↗](#step-1-gene-length)
+**[Step 1: gene length](#step-1-gene-length)**
 
 ```r
 ko_sums <- read_csv("data/tara_ko_sums.csv", show_col_types = FALSE)
@@ -31,7 +31,7 @@ ko_sums %>%
   )
 ```
 
-**Step 2: sequencing depth and cells** [↗](#step-2-sequencing-depth-and-cells)
+**[Step 2: sequencing depth and cells](#step-2-sequencing-depth-and-cells)**
 
 ```r
 marker_kos <- c("K06942", "K01889", "K01887", "K01875", "K01883",
@@ -60,7 +60,7 @@ per_cell %>%
   left_join(kos, by = "KO")
 ```
 
-**Step 4: comparing samples** [↗](#step-4-comparing-samples)
+**[Step 4: comparing samples](#step-4-comparing-samples)**
 
 ```r
 top <- read_csv("data/tara_top_genes.csv.gz", show_col_types = FALSE)
@@ -101,7 +101,7 @@ ggplot(ordination, aes(PC1, PC2, colour = Layer)) +
   labs(x = paste0("PCo1 (", explained[1], "%)"), y = paste0("PCo2 (", explained[2], "%)"))
 ```
 
-**Step 5: a biological question** [↗](#step-5-a-biological-question)
+**[Step 5: a biological question](#step-5-a-biological-question)**
 
 ```r
 cspa <- read_csv("data/tara_cspa.csv", show_col_types = FALSE)

@@ -3,8 +3,10 @@ title: "E. Going to real projects"
 subtitle: "What changes when you leave the teaching data behind"
 ---
 
+{{< include _tldr/05-production.progress.md >}}
+
 ::: {.lesson-meta}
-<span>⏱ **About 10 min** reading</span>
+<span><span aria-hidden="true">⏱</span> **About 10 min** reading</span>
 :::
 
 {{< include _tldr/05-production.md >}}
@@ -65,5 +67,3 @@ Our lab is releasing **mCATs**, a tool that builds and profiles gene catalogs: P
 - [ ] Keep sample metadata (sequencing depth, environment) next to the count tables.
 - [ ] Report the mapping rate of every sample.
 - [ ] Deposit raw reads in a public archive ([ENA](https://www.ebi.ac.uk/ena/browser/home) or SRA) with good metadata.
-
-[← D. Downstream analysis](04-downstream.qmd){.btn .btn-outline-secondary} [Back to overview](index.qmd){.btn .btn-primary}

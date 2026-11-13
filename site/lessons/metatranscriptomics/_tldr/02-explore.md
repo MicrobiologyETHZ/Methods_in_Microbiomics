@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The data** [↗](#the-data)
+**[The data](#the-data)**
 
 ```r
 library(dplyr)
@@ -28,9 +28,10 @@ strain_colours <- c(
 )
 cat("Loaded", nrow(genes), "genes from", n_distinct(genes$genome), "strains and",
     nrow(samples), "samples.\n")
+cat("Ready: packages and data are loaded.\n")
 ```
 
-**Step 1: who dominates the transcriptome?** [↗](#step-1-who-dominates-the-transcriptome)
+**[Step 1: who dominates the transcriptome?](#step-1-who-dominates-the-transcriptome)**
 
 ```r
 strain_inserts <- counts_long %>%
@@ -49,7 +50,7 @@ ggplot(strain_inserts, aes(sample_id, share, fill = genome)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
 ```
 
-**Step 2: is there enough data for each strain?** [↗](#step-2-is-there-enough-data-for-each-strain)
+**[Step 2: is there enough data for each strain?](#step-2-is-there-enough-data-for-each-strain)**
 
 ```r
 depth <- strain_inserts %>%
@@ -63,7 +64,7 @@ ggplot(depth, aes(Treatment, genome, fill = n_adequate)) +
   labs(x = NULL, y = NULL, fill = "Samples with\n≥ 500k inserts")
 ```
 
-**Step 3: normalising for exploration** [↗](#step-3-normalising-for-exploration)
+**[Step 3: normalising for exploration](#step-3-normalising-for-exploration)**
 
 ```r
 calculate_tpm <- function(counts, lengths) {
@@ -100,7 +101,7 @@ expr %>%
   labs(title = "I48 in one sample: the same genes on three scales", x = NULL, y = "Genes")
 ```
 
-**Step 4: do replicates agree?** [↗](#step-4-do-replicates-agree)
+**[Step 4: do replicates agree?](#step-4-do-replicates-agree)**
 
 ```r
 strain <- "I48"
@@ -139,7 +140,7 @@ as.data.frame(pca$x) %>%
        x = paste0("PC1 (", explained[1], "%)"), y = paste0("PC2 (", explained[2], "%)"))
 ```
 
-**Step 5: how fast are the strains growing?** [↗](#step-5-how-fast-are-the-strains-growing)
+**[Step 5: how fast are the strains growing?](#step-5-how-fast-are-the-strains-growing)**
 
 ```r
 ribosomal_kos <- kegg_ko %>%

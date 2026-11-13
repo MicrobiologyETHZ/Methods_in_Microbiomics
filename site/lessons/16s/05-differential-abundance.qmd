@@ -3,6 +3,8 @@ title: "5. Differential abundance"
 subtitle: "Which taxa differ between sputum and throat swabs, and why do methods disagree?"
 ---
 
+{{< include _tldr/05-differential-abundance.progress.md >}}
+
 {{< include _tldr/05-differential-abundance.md >}}
 
 ::: {.callout-note}

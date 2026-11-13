@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**Map the reads** [↗](#map-the-reads)
+**[Map the reads](#map-the-reads)**
 
 ```bash
 mkdir -p alignments
@@ -15,7 +15,7 @@ for s in metag1 metag2 metag3; do
 done
 ```
 
-**Pull out what we need** [↗](#pull-out-what-we-need)
+**[Pull out what we need](#pull-out-what-we-need)**
 
 ```bash
 for s in metag1 metag2 metag3; do
@@ -29,7 +29,7 @@ done
 head -6 alignments/metag1.r1.tsv
 ```
 
-**Filter: keep only confident alignments** [↗](#filter-keep-only-confident-alignments)
+**[Filter: keep only confident alignments](#filter-keep-only-confident-alignments)**
 
 ```r
 library(dplyr)
@@ -38,6 +38,7 @@ library(readr)
 library(ggplot2)
 theme_set(theme_bw())
 alignments <- read_csv("data/alignments_metag1_sample.csv", show_col_types = FALSE)
+cat("Ready: packages and data are loaded.\n")
 
 aligned_length <- function(cigar) {
   ops <- regmatches(cigar, gregexpr("[0-9]+[MIDNSHP=X]", cigar))[[1]]
@@ -60,7 +61,7 @@ ggplot(alignments, aes(aln_length, identity, colour = passed)) +
   labs(x = "Aligned length (bp)", y = "Identity")
 ```
 
-**Count inserts per gene** [↗](#count-inserts-per-gene)
+**[Count inserts per gene](#count-inserts-per-gene)**
 
 ```r
 inserts <- alignments %>%
@@ -75,7 +76,7 @@ inserts %>%
   count(gene, sort = TRUE)
 ```
 
-**Run it for all samples** [↗](#run-it-for-all-samples)
+**[Run it for all samples](#run-it-for-all-samples)**
 
 ```bash
 Rscript solutions/count_genes.R alignments data/reads counts

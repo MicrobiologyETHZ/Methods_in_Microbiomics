@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The workflow** [↗](#the-workflow)
+**[The workflow](#the-workflow)**
 
 ```bash
 cat genomes/*.fna > community.fna

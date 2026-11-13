@@ -3,6 +3,8 @@ title: "6. Community types"
 subtitle: "Group samples into community types with Dirichlet multinomial mixtures"
 ---
 
+{{< include _tldr/06-community-types.progress.md >}}
+
 {{< include _tldr/06-community-types.md >}}
 
 ::: {.callout-note}

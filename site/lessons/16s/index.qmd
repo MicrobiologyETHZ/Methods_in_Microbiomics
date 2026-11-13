@@ -4,9 +4,9 @@ subtitle: "Who is in a microbial community, and does the way you sample change t
 ---
 
 ::: {.lesson-meta}
-<span>⏱ **About 4 hours** in total</span>
-<span>🎯 **Level:** first-year graduate students</span>
-<span>🧰 **You need:** basic R (dplyr, ggplot2); nothing to install</span>
+<span><span aria-hidden="true">⏱</span> **About 4 hours** in total</span>
+<span><span aria-hidden="true">🎯</span> **Level:** first-year graduate students</span>
+<span><span aria-hidden="true">🧰</span> **You need:** basic R (dplyr, ggplot2); nothing to install</span>
 :::
 
 ::: {.callout-warning}

@@ -3,6 +3,8 @@ title: "4. Diversity"
 subtitle: "Compare samples within and between, taking the paired design into account"
 ---
 
+{{< include _tldr/04-diversity.progress.md >}}
+
 {{< include _tldr/04-diversity.md >}}
 
 ::: {.callout-note}

@@ -16,18 +16,22 @@ resources:
   - data/tara_cspa.csv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 30 min**</span>
-<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
-<span>📦 **Data:** Tara Oceans, 129 paired metagenomes and metatranscriptomes</span>
-:::
-
-{{< include _tldr/05-with-metagenomes.md >}}
+{{< include _tldr/05-with-metagenomes.progress.md >}}
 
 ## What you'll learn
 
 - How matched metagenomes let you compute **expression per gene copy**.
 - How to tell whether a change in transcripts comes from **community turnover** or from **regulation**.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 30 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** R in your browser, nothing to install</span>
+<span><span aria-hidden="true">📦</span> **Data:** Tara Oceans, 129 paired metagenomes and metatranscriptomes</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/05-with-metagenomes.md >}}
 
 ## From strains to whole communities
 
@@ -275,5 +279,3 @@ quiz("A gene's transcripts per cell are 4 times higher in sample 1 than in sampl
 - With matched metagenomes, **expression per copy = transcripts per cell ÷ genes per cell**.
 - On a log scale, the variation of transcripts splits into **turnover** (genes) and **regulation** (expression).
 - Housekeeping genes vary little; environmental response genes such as cspA vary through both.
-
-[← 4. From genes to functions](04-functions.qmd){.btn .btn-outline-secondary} [Back to overview](index.qmd){.btn .btn-primary}

@@ -19,19 +19,23 @@ resources:
   - data/counts.csv.gz
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 45 min**</span>
-<span>💻 **Runs in this page:** R in your browser, including DESeq2. Loading it takes a moment the first time.</span>
-<span>📦 **Data:** Oligo-MM12 mice, LPS vs PBS</span>
-:::
-
-{{< include _tldr/03-differential-expression.md >}}
+{{< include _tldr/03-differential-expression.progress.md >}}
 
 ## What you'll learn
 
 - Why a change in a strain's abundance looks like a change in expression of all of its genes.
 - How **size factors** normalise samples, and why they must be computed **within each strain**.
 - How to run DESeq2 with per-strain normalisation, and read volcano and MA plots.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 45 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** R in your browser, including DESeq2. Loading it takes a moment the first time.</span>
+<span><span aria-hidden="true">📦</span> **Data:** Oligo-MM12 mice, LPS vs PBS</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/03-differential-expression.md >}}
 
 ## The problem: a strain blooms
 
@@ -400,5 +404,3 @@ quiz("With global size factors, 80% of strain X's genes come out as induced in t
 - In this experiment, thousands of genes respond to the host's inflammation, in all three strains.
 
 Further reading: [Zhang et al. 2021](https://doi.org/10.1093/bioinformatics/btab327) compare statistical methods for differential expression in metatranscriptomes, with and without metagenomes.
-
-[← 2. Explore the data](02-explore.qmd){.btn .btn-outline-secondary} [4. From genes to functions →](04-functions.qmd){.btn .btn-primary}

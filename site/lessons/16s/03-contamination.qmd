@@ -3,6 +3,8 @@ title: "3. Contamination"
 subtitle: "Find contaminants in low-biomass samples with negative controls and a mock community"
 ---
 
+{{< include _tldr/03-contamination.progress.md >}}
+
 {{< include _tldr/03-contamination.md >}}
 
 ::: {.callout-note}

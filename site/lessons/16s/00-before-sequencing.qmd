@@ -14,13 +14,7 @@ resources:
   - data/asv_counts.csv.gz
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 30 min**</span>
-<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
-<span>📦 **Data:** a mock community of 8 bacteria</span>
-:::
-
-{{< include _tldr/00-before-sequencing.md >}}
+{{< include _tldr/00-before-sequencing.progress.md >}}
 
 ## What you'll learn
 
@@ -28,6 +22,16 @@ resources:
 - How to choose a primer pair, and why no pair is universal.
 - Why the share of reads isn't the share of cells: **16S copy number**.
 - The difference between **relative** and **absolute** abundance.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 30 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** R in your browser, nothing to install</span>
+<span><span aria-hidden="true">📦</span> **Data:** a mock community of 8 bacteria</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/00-before-sequencing.md >}}
 
 ## The 16S rRNA gene
 
@@ -97,11 +101,6 @@ A genome can carry anything from **1 to about 15 copies** of the 16S gene. Each 
 
 A **mock community** shows this well: a mix of known bacteria, sequenced like a sample. This lesson uses the ZymoBIOMICS Microbial Community Standard: 8 bacteria, mixed in equal amounts of genomic DNA (12% each; two yeasts make up the rest, and 16S primers don't amplify them). The manufacturer gives each species' share of cells and of 16S copies.
 
-::: {.callout-note}
-## How the code cells work
-The grey boxes are live R. Edit the code and press **Run Code**. The first run takes a few seconds while R starts in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
-:::
-
 ```{webr}
 #| autorun: true
 #| edit: false
@@ -113,6 +112,7 @@ theme_set(theme_bw())
 
 mock <- read_csv("data/mock_community.csv", show_col_types = FALSE)
 mock
+cat("Ready: packages and data are loaded.\n")
 ```
 
 The same mix, measured three ways:
@@ -286,5 +286,3 @@ quiz("In a patient's sputum, Pseudomonas rises from 30% to 60% of the reads afte
 - **No primer pair is universal.** Pick primers proven for your environment and keep them across a study.
 - **Reads are 16S copies, not cells.** Copy number ranges from 1 to about 15 per genome; correcting with predicted copy numbers is unreliable, so report what you measured and compare each taxon with itself.
 - 16S gives **relative** abundances. For absolute numbers, measure the total load (qPCR, flow cytometry, spike-ins).
-
-[← Overview](index.qmd){.btn .btn-outline-secondary} [1. From reads to ASVs →](01-reads-to-asvs.qmd){.btn .btn-primary}

@@ -2,10 +2,12 @@
 // options: array of {text, correct, why}
 function quiz(question, options) {
   const form = Inputs.radio(options, {format: (d) => d.text});
-  const feedback = html`<div class="quiz-feedback"></div>`;
+  // role="status": screen readers announce the feedback when it changes
+  const feedback = html`<div class="quiz-feedback" role="status" aria-live="polite"></div>`;
   form.addEventListener("input", () => {
     const d = form.value;
-    feedback.innerHTML = d.correct ? `✅ ${d.why}` : `❌ ${d.why}`;
+    feedback.className = "quiz-feedback " + (d.correct ? "quiz-correct" : "quiz-wrong");
+    feedback.innerHTML = `<strong>${d.correct ? "Correct." : "Not quite."}</strong> ${d.why}`;
   });
-  return html`<div class="quiz"><p class="quiz-question">${question}</p>${form}${feedback}</div>`;
+  return html`<fieldset class="quiz"><legend class="quiz-question">${question}</legend>${form}${feedback}</fieldset>`;
 }

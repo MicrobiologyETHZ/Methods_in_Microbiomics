@@ -3,6 +3,8 @@ title: "2. Taxonomy"
 subtitle: "Name the ASVs, and judge how far to trust the names"
 ---
 
+{{< include _tldr/02-taxonomy.progress.md >}}
+
 {{< include _tldr/02-taxonomy.md >}}
 
 ::: {.callout-note}

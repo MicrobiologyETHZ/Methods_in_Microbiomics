@@ -14,19 +14,25 @@ resources:
   - data/clusters.tsv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 30 min**</span>
-<span>💻 **Runs in:** your Codespace terminal, plus R in this page</span>
-<span>🔧 **Tool:** [MMseqs2](https://github.com/soedinglab/MMseqs2) Release 18-8cc5c</span>
-:::
-
-{{< include _tldr/02-clustering.md >}}
+{{< include _tldr/02-clustering.progress.md >}}
 
 ## What you'll learn
 
 - Why genes from different samples must be clustered before counting.
 - How greedy clustering works, and what the 95% identity / 90% coverage thresholds mean.
 - How to run MMseqs2 to build the catalog, and how to read its output.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 30 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in:** your Codespace terminal, plus R in this page</span>
+<span><span aria-hidden="true">🔧</span> **Tool:** [MMseqs2](https://github.com/soedinglab/MMseqs2) Release 18-8cc5c</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include ../../_partials/codespace.md >}}
+
+{{< include _tldr/02-clustering.md >}}
 
 ## Why cluster?
 
@@ -246,6 +252,7 @@ library(ggplot2)
 theme_set(theme_bw())
 clusters <- read_tsv("data/genes.cluster.tsv", col_names = c("representative", "member"),
                      show_col_types = FALSE)
+cat("Ready: packages and data are loaded.\n")
 ```
 
 ```{webr}
@@ -322,5 +329,3 @@ ggplot(catalog, aes(size)) +
 - Cluster genes from all samples so that each gene is counted once.
 - Greedy, longest-first clustering: every member is ≥95% identical to its representative over ≥90% of its own length; no chaining.
 - Use the exact flags and **record the MMseqs2 version**: catalogs are only reproducible with the same release.
-
-[← A. Gene calling](01-gene-calling.qmd){.btn .btn-outline-secondary} [C. Quantification →](03-quantification.qmd){.btn .btn-primary}

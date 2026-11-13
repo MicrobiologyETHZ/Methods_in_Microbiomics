@@ -3,12 +3,7 @@ title: "1. From reads to counts"
 subtitle: "How a defined-community metatranscriptome becomes a count table"
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 15 min** reading</span>
-<span>💻 **Hands-on version:** coming soon as a Codespace exercise</span>
-:::
-
-{{< include _tldr/01-reads-to-counts.md >}}
+{{< include _tldr/01-reads-to-counts.progress.md >}}
 
 ## What you'll learn
 
@@ -16,12 +11,20 @@ subtitle: "How a defined-community metatranscriptome becomes a count table"
 - Why reads are mapped to **all genomes at once**.
 - Which choices in these steps change your results.
 
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 15 min** reading</span>
+<span><span aria-hidden="true">💻</span> **Hands-on version:** coming soon as a Codespace exercise</span>
+:::
+
+{{< include _tldr/01-reads-to-counts.md >}}
+
 ## The workflow
 
 For a defined community, the genomes are known, so this is close to ordinary RNA-seq of a single organism, with a few differences.
 
 ::: {.compact-diagram}
 ```{mermaid}
+%%| fig-alt: "Flowchart: RNA reads go through quality control and rRNA removal, are mapped to all genomes with bowtie2, and counted per gene with featureCounts into a count table."
 flowchart LR
   R["RNA reads"] --> Q["Quality control<br/>rRNA removal"]
   Q --> A["Map to all genomes<br/>bowtie2"]
@@ -100,5 +103,3 @@ quiz("Two strains in your community share a 5-kb genomic island with identical s
 - Count **coding sequences**, with the right **strandedness**, and count inserts rather than reads.
 - Count only **uniquely mapping reads**, by filtering on mapping quality.
 - Check that your aligner and counter handle multi-mapping reads the way you think they do.
-
-[← Overview](index.qmd){.btn .btn-outline-secondary} [2. Explore the data →](02-explore.qmd){.btn .btn-primary}

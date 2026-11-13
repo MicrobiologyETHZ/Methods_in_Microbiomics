@@ -4,9 +4,9 @@ subtitle: "Which genes is a microbial community expressing, and what changes the
 ---
 
 ::: {.lesson-meta}
-<span>⏱ **About 3 hours** in total</span>
-<span>🎯 **Level:** first-year graduate students</span>
-<span>🧰 **You need:** basic R (dplyr, ggplot2); nothing to install</span>
+<span><span aria-hidden="true">⏱</span> **About 3 hours** in total</span>
+<span><span aria-hidden="true">🎯</span> **Level:** first-year graduate students</span>
+<span><span aria-hidden="true">🧰</span> **You need:** basic R (dplyr, ggplot2); nothing to install</span>
 :::
 
 ## What you'll learn
@@ -39,6 +39,7 @@ If a strain doubles in abundance, all of its transcripts double, even though no 
 
 ::: {.compact-diagram}
 ```{mermaid}
+%%| fig-alt: "Decision chart: if you know who is there (a defined community, Parts 2 to 4), map to the genomes and normalise within each genome; if you have metagenomes instead (Part 5), map to a gene catalog and compute expression as transcripts divided by genes; with neither, interpret with care, because changes mix abundance and expression."
 flowchart LR
   Q{"Do you know<br/>who is there?"} -->|"Yes: defined community<br/>(Parts 2–4)"| D["Map to the genomes<br/>normalise within each genome"]
   Q -->|"No, but you have<br/>metagenomes (Part 5)"| M["Map to a gene catalog<br/>expression = transcripts ÷ genes"]

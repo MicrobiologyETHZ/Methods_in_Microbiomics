@@ -3,6 +3,8 @@ title: "7. Going to production: zAMP"
 subtitle: "Run a full 16S analysis on your own data with the lab's pipeline"
 ---
 
+{{< include _tldr/07-production.progress.md >}}
+
 {{< include _tldr/07-production.md >}}
 
 ::: {.callout-note}

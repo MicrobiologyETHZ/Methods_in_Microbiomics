@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The reads on this page** [↗](#the-reads-on-this-page)
+**[The reads on this page](#the-reads-on-this-page)**
 
 ```r
 library(dada2)
@@ -16,9 +16,10 @@ fnFs <- sort(list.files(path, pattern = "^sam.*F\\.fastq\\.gz$", full.names = TR
 fnRs <- sort(list.files(path, pattern = "^sam.*R\\.fastq\\.gz$", full.names = TRUE))
 sample_names <- sub("F\\.fastq\\.gz$", "", basename(fnFs))
 sample_names
+cat("Ready: packages and data are loaded.\n")
 ```
 
-**Step 1: primers** [↗](#step-1-primers)
+**[Step 1: primers](#step-1-primers)**
 
 ```r
 fwd_primer <- "GTGCCAGCMGCCGCGGTAA"   # 515F
@@ -58,7 +59,7 @@ for s in $(cat samples.txt); do
 done
 ```
 
-**Step 3: filter and truncate** [↗](#step-3-filter-and-truncate)
+**[Step 3: filter and truncate](#step-3-filter-and-truncate)**
 
 ```r
 filtFs <- file.path(tempdir(), "filtered", basename(fnFs))
@@ -70,7 +71,7 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
 out
 ```
 
-**Step 4: learn the error rates** [↗](#step-4-learn-the-error-rates)
+**[Step 4: learn the error rates](#step-4-learn-the-error-rates)**
 
 ```r
 errF <- learnErrors(filtFs, multithread = FALSE, verbose = FALSE)
@@ -78,7 +79,7 @@ errR <- learnErrors(filtRs, multithread = FALSE, verbose = FALSE)
 plotErrors(errF, nominalQ = TRUE)
 ```
 
-**Step 5: denoise** [↗](#step-5-denoise)
+**[Step 5: denoise](#step-5-denoise)**
 
 ```r
 ddF <- dada(filtFs, err = errF, multithread = FALSE, verbose = FALSE)
@@ -86,7 +87,7 @@ ddR <- dada(filtRs, err = errR, multithread = FALSE, verbose = FALSE)
 ddF[[1]]
 ```
 
-**Step 6: merge read pairs** [↗](#step-6-merge-read-pairs)
+**[Step 6: merge read pairs](#step-6-merge-read-pairs)**
 
 ```r
 mergers <- mergePairs(ddF, filtFs, ddR, filtRs, verbose = FALSE)
@@ -95,7 +96,7 @@ dim(seqtab)                           # samples x ASVs
 table(nchar(getSequences(seqtab)))    # ASV lengths
 ```
 
-**Step 7: remove chimeras** [↗](#step-7-remove-chimeras)
+**[Step 7: remove chimeras](#step-7-remove-chimeras)**
 
 ```r
 seqtab_nochim <- removeBimeraDenovo(seqtab, method = "consensus",
@@ -104,7 +105,7 @@ c(ASVs_before = ncol(seqtab), ASVs_after = ncol(seqtab_nochim),
   reads_kept = sum(seqtab_nochim) / sum(seqtab))
 ```
 
-**Step 8: how many reads made it?** [↗](#step-8-how-many-reads-made-it)
+**[Step 8: how many reads made it?](#step-8-how-many-reads-made-it)**
 
 ```r
 getN <- function(x) sum(getUniques(x))

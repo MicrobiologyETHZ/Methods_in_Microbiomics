@@ -103,6 +103,7 @@ library(readr)
 library(ggplot2)
 theme_set(theme_bw())
 alignments <- read_csv("data/alignments_metag1_sample.csv", show_col_types = FALSE)
+cat("Ready: packages and data are loaded.\n")
 
 aligned_length <- function(cigar) {
   ops <- regmatches(cigar, gregexpr("[0-9]+[MIDNSHP=X]", cigar))[[1]]

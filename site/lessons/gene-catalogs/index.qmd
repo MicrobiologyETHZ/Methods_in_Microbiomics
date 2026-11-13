@@ -4,9 +4,9 @@ subtitle: "Build, quantify and analyse a gene catalog from shotgun metagenomes"
 ---
 
 ::: {.lesson-meta}
-<span>⏱ **About 3 hours** in total</span>
-<span>🎯 **Level:** first-year graduate students</span>
-<span>🧰 **You need:** a GitHub account, basic shell and R</span>
+<span><span aria-hidden="true">⏱</span> **About 3 hours** in total</span>
+<span><span aria-hidden="true">🎯</span> **Level:** first-year graduate students</span>
+<span><span aria-hidden="true">🧰</span> **You need:** a GitHub account, basic shell and R</span>
 :::
 
 ## What you'll learn
@@ -26,6 +26,7 @@ Gene profiles show a community's **functional potential** and diversity. They le
 
 ::: {.compact-diagram}
 ```{mermaid}
+%%| fig-alt: "Flowchart: the assemblies of three samples each go through gene calling with Prodigal; the genes are pooled and clustered with MMseqs2 (95% identity, 90% coverage) into a gene catalog."
 flowchart LR
   A["Assembly<br/>sample 1"] --> G1["Gene calling<br/>prodigal"]
   B["Assembly<br/>sample 2"] --> G2["Gene calling<br/>prodigal"]
@@ -66,6 +67,7 @@ quiz("Two samples contain the same bacterial strain. Its gene for RNA polymerase
 
 ::: {.compact-diagram}
 ```{mermaid}
+%%| fig-alt: "Flowchart of the lesson: A. Gene calling, B. Clustering, C. Quantification, D. Analysis, E. Real projects."
 flowchart LR
   A["A. Gene calling"] --> B["B. Clustering"] --> C["C. Quantification"] --> D["D. Analysis"] --> E["E. Real projects"]
 ```
@@ -87,10 +89,15 @@ Part D uses a separate, real dataset, so you can do it on its own, without finis
 
 Parts A–C run real bioinformatics tools. Instead of installing them, you'll use a **GitHub Codespace**: a Linux computer in the cloud that opens in your browser, with the tools and data ready.
 
+::: {.callout-important}
+## Choose the 4-core / 16 GB machine
+MMseqs2, the clustering tool in Part B, needs more than 8 GB of memory even for small inputs. The Codespace asks for 4 cores and 16 GB by default; don't downgrade it. Free GitHub accounts include a monthly Codespaces allowance, and **stopping the Codespace when you take a break** saves it.
+:::
+
 1. Sign in to [GitHub](https://github.com) (create a free account if needed).
 2. Click the button below. Creating the Codespace takes a few minutes the first time.
 
-   <a class="codespace-button" href="{{< var codespace_url >}}" target="_blank">Open in GitHub Codespaces</a>
+   <a class="codespace-button" href="{{< var codespace_url >}}" target="_blank">Open in GitHub Codespaces <span aria-hidden="true">↗</span><span class="visually-hidden">(opens in a new tab)</span></a>
 
 3. When it's ready, open a terminal if there isn't one (menu ☰ → **Terminal → New Terminal**). It starts in `workshop/gene-catalogs/`; if your prompt doesn't end in `gene-catalogs`, run `cd /workspaces/Methods_in_Microbiomics/workshop/gene-catalogs`. Check that everything is there:
 
@@ -98,11 +105,6 @@ Parts A–C run real bioinformatics tools. Instead of installing them, you'll us
    ls data/scaffolds data/reads
    prodigal -v
    ```
-
-::: {.callout-important}
-## Choose the 4-core / 16 GB machine
-MMseqs2, the clustering tool in Part B, needs more than 8 GB of memory even for small inputs. The Codespace asks for 4 cores and 16 GB by default; don't downgrade it. Free GitHub accounts include a monthly Codespaces allowance, and **stopping the Codespace when you take a break** saves it.
-:::
 
 ::: {.callout-note}
 ## Coming back later?
@@ -115,7 +117,7 @@ Your Codespace keeps your files when it stops. To pick up where you left off, cl
 //| echo: false
 provenance = FileAttachment("data/provenance.json").json()
 provenance.provisional
-  ? html`<div class="callout callout-style-default callout-warning"><div class="callout-body"><p>⚠️ <strong>Preview data:</strong> the numbers shown in this lesson come from a provisional run (MMseqs2 ${provenance.mmseqs_version} with <code>${provenance.mmseqs_dev_args}</code>). They will change slightly when the official data are built.</p></div></div>`
+  ? html`<div class="callout callout-style-default callout-warning" role="note"><div class="callout-body"><p>⚠️ <strong>Preview data:</strong> the numbers shown in this lesson come from a provisional run (MMseqs2 ${provenance.mmseqs_version} with <code>${provenance.mmseqs_dev_args}</code>). They will change slightly when the official data are built.</p></div></div>`
   : html``
 ```
 

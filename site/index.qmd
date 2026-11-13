@@ -4,6 +4,11 @@ subtitle: "Hands-on lessons for analysing microbiome sequencing data"
 toc: false
 ---
 
+::: {.callout-note}
+## This is a preview of the new site
+Methods in Microbiomics is moving to this new format one lesson at a time. The current site, with all protocols, is still at [methods-in-microbiomics.readthedocs.io](https://methods-in-microbiomics.readthedocs.io/).
+:::
+
 Lessons and best practices for robust, reproducible analysis of microbiome sequencing data, written by people who use these methods daily in the [Sunagawa group](https://micro.biol.ethz.ch/research/sunagawa.html) and the NCCR Microbiomes.
 
 Every lesson is something you **do**, not just read:
@@ -12,30 +17,43 @@ Every lesson is something you **do**, not just read:
 - **Analysis steps** run in R **directly in this page**. Edit the code, run it, and check yourself with exercises.
 - Each lesson ends with what changes when you go from the teaching data to a real project.
 
+New here? Read [how this site works](how-it-works.qmd) first.
+
 ## Learning paths
 
-::: {.path-card}
+:::: {.grid}
+
+::: {.g-col-12 .g-col-md-4 .path-card}
 ### I have shotgun metagenomes
 **Gene catalogs: build, quantify, analyse.** Find the genes in your samples, measure how abundant they are per cell, and relate them to the environment.
+
+[Complete]{.status-badge .status-complete}
+
+[About 3 hours · Codespace + browser · needs a GitHub account]{.card-facts}
 
 [Start the lesson →](lessons/gene-catalogs/index.qmd)
 :::
 
-::: {.path-card}
+::: {.g-col-12 .g-col-md-4 .path-card}
 ### I have metatranscriptomes
 **Metatranscriptomics: from counts to functions.** Find out which genes a community expresses and what changes them, without being fooled by changes in who is there. Builds on the gene-catalog lesson, but you can start here.
+
+[Complete]{.status-badge .status-complete}
+
+[About 3 hours · in your browser, nothing to install]{.card-facts}
 
 [Start the lesson →](lessons/metatranscriptomics/index.qmd)
 :::
 
-::: {.path-card}
+::: {.g-col-12 .g-col-md-4 .path-card}
 ### I have 16S amplicon data
-**16S amplicon sequencing: from reads to community types.** Turn amplicon reads into ASVs, deal with contamination in low-biomass samples, and compare communities in a paired study. *Being written: parts go online one at a time.*
+**16S amplicon sequencing: from reads to community types.** Turn amplicon reads into ASVs, deal with contamination in low-biomass samples, and compare communities in a paired study.
+
+[In progress: 2 of 8 parts]{.status-badge .status-progress}
+
+[About 4 hours · in your browser, nothing to install]{.card-facts}
 
 [Start the lesson →](lessons/16s/index.qmd)
 :::
 
-::: {.callout-note}
-## This is a preview of the new site
-Methods in Microbiomics is moving to this new format one lesson at a time. The current site, with all protocols, is still at [methods-in-microbiomics.readthedocs.io](https://methods-in-microbiomics.readthedocs.io/).
-:::
+::::

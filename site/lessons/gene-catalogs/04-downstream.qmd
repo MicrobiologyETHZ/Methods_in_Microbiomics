@@ -18,13 +18,7 @@ resources:
   - data/tara_samples.csv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 60 min**</span>
-<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
-<span>📦 **Data:** Tara Oceans gene catalog subset</span>
-:::
-
-{{< include _tldr/04-downstream.md >}}
+{{< include _tldr/04-downstream.progress.md >}}
 
 ## What you'll learn
 
@@ -33,10 +27,15 @@ resources:
 - Why relative abundances are **compositional**, and what that means for interpreting them.
 - How to compare samples with an ordination, and test a hypothesis with gene abundances.
 
-::: {.callout-note}
-## How the code cells work
-The grey boxes are live R. Edit the code and press **Run Code**. The first run takes a few seconds while R starts in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 60 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** R in your browser, nothing to install</span>
+<span><span aria-hidden="true">📦</span> **Data:** Tara Oceans gene catalog subset</span>
 :::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/04-downstream.md >}}
 
 ## The data
 
@@ -444,5 +443,3 @@ quiz("You compare a gene between two samples using raw insert counts. Sample 1 h
 - **Depth and genome size:** divide by the median abundance of 10 single-copy marker genes to get **copies per cell**.
 - **Compositionality:** relative abundances can't increase independently; prefer per-cell values, or compositional methods.
 - **Genes vs transcripts:** metagenomes tell you a community's functional potential; for its activity, see the [metatranscriptomics lesson](../metatranscriptomics/index.qmd).
-
-[← C. Quantification](03-quantification.qmd){.btn .btn-outline-secondary} [E. Going to real projects →](05-production.qmd){.btn .btn-primary}

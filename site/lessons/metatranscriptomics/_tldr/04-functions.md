@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**The data** [↗](#the-data)
+**[The data](#the-data)**
 
 ```r
 library(dplyr)
@@ -27,6 +27,7 @@ pathway_genes <- i48 %>%
 
 cat(nrow(i48), "I48 genes tested;", n_distinct(pathway_genes$locus_tag),
     "of them are in at least one KEGG pathway\n")
+cat("Ready: packages and data are loaded.\n")
 
 universe <- unique(pathway_genes$locus_tag)
 down <- i48 %>% filter(padj < 0.01, log2FoldChange < -1) %>% pull(locus_tag) %>% intersect(universe)
@@ -34,7 +35,7 @@ up <- i48 %>% filter(padj < 0.01, log2FoldChange > 1) %>% pull(locus_tag) %>% in
 cat(length(universe), "genes in the universe;", length(down), "down and", length(up), "up in LPS mice\n")
 ```
 
-**Over-representation analysis** [↗](#over-representation-analysis)
+**[Over-representation analysis](#over-representation-analysis)**
 
 ```r
 ora <- function(selected) {
@@ -57,7 +58,7 @@ ora(down) %>% head(8)
 ora(up) %>% head(8)
 ```
 
-**Gene set enrichment analysis** [↗](#gene-set-enrichment-analysis)
+**[Gene set enrichment analysis](#gene-set-enrichment-analysis)**
 
 ```r
 library(fgsea)

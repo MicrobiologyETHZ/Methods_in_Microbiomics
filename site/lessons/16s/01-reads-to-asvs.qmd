@@ -13,13 +13,7 @@ webr:
     - https://bioc.r-universe.dev
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 45 min**</span>
-<span>💻 **Runs in this page:** DADA2 in your browser, nothing to install</span>
-<span>📦 **Data:** DADA2's two example samples (V4, 2 × 250 bp MiSeq)</span>
-:::
-
-{{< include _tldr/01-reads-to-asvs.md >}}
+{{< include _tldr/01-reads-to-asvs.progress.md >}}
 
 ## What you'll learn
 
@@ -27,6 +21,16 @@ webr:
 - How to check for primers, and why their orientation matters.
 - How to choose truncation lengths from the quality profiles **and** the amplicon length.
 - What DADA2's error model, pooling and chimera removal do, and how to check that you didn't lose too many reads.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 45 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** DADA2 in your browser, nothing to install</span>
+<span><span aria-hidden="true">📦</span> **Data:** DADA2's two example samples (V4, 2 × 250 bp MiSeq)</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/01-reads-to-asvs.md >}}
 
 ## OTUs and ASVs
 
@@ -36,6 +40,7 @@ Sequencing errors make every read slightly different, so a pipeline must decide 
 
 ::: {.compact-diagram}
 ```{mermaid}
+%%| fig-alt: "Flowchart: remove primers with cutadapt, filter and truncate (filterAndTrim), learn errors (learnErrors), denoise (dada), merge pairs (mergePairs), remove chimeras (removeBimeraDenovo), giving an ASV table for taxonomy in Part 2."
 flowchart LR
   P["Remove primers<br/>cutadapt"] --> F["Filter and truncate<br/>filterAndTrim"]
   F --> E["Learn errors<br/>learnErrors"]
@@ -49,11 +54,6 @@ flowchart LR
 ## The reads on this page
 
 The CF study's reads are too large for a browser, so this page uses the two small example samples that come with the dada2 package: 2 × 250 bp MiSeq reads of the V4 region. Every step is the same for the CF data; where the numbers differ (the CF study sequenced V3–V4), the text says so.
-
-::: {.callout-note}
-## How the code cells work
-The grey boxes are live R. Edit the code and press **Run Code**. The first run takes longer: R and DADA2 load in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
-:::
 
 ```{webr}
 #| autorun: true
@@ -71,6 +71,7 @@ fnFs <- sort(list.files(path, pattern = "^sam.*F\\.fastq\\.gz$", full.names = TR
 fnRs <- sort(list.files(path, pattern = "^sam.*R\\.fastq\\.gz$", full.names = TRUE))
 sample_names <- sub("F\\.fastq\\.gz$", "", basename(fnFs))
 sample_names
+cat("Ready: packages and data are loaded.\n")
 ```
 
 ## Step 1: primers
@@ -447,5 +448,3 @@ quiz("You denoised with pool = \"pseudo\". Which chimera removal fits?", [
 - Learn error rates **per run or lane** (and per orientation); on binned quality scores, check the fit and consider the modified error function.
 - Pool samples (`"pseudo"`) to find rare variants; use **consensus** chimera removal unless you pool fully.
 - **Track your reads**: big losses after filtering point to a problem upstream.
-
-[← 0. Before sequencing](00-before-sequencing.qmd){.btn .btn-outline-secondary} [2. Taxonomy →](02-taxonomy.qmd){.btn .btn-primary}

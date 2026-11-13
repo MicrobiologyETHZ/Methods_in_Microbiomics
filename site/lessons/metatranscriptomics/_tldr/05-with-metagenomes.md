@@ -1,7 +1,7 @@
-::: {.callout-tip collapse="true" title="At a glance: the commands of this part"}
+::: {.callout-note .callout-glance appearance="simple" collapse="true" title="At a glance: the commands of this part"}
 For coming back later. Each step is explained in the section it links to.
 
-**From strains to whole communities** [↗](#from-strains-to-whole-communities)
+**[From strains to whole communities](#from-strains-to-whole-communities)**
 
 ```r
 library(dplyr)
@@ -28,7 +28,7 @@ per_cell <- read_csv("data/tara_ko_sums.csv", show_col_types = FALSE) %>%
 cat(n_distinct(per_cell$sample), "samples,", n_distinct(per_cell$KO), "KOs\n")
 ```
 
-**Cold-shock protein: genes or expression?** [↗](#cold-shock-protein-genes-or-expression)
+**[Cold-shock protein: genes or expression?](#cold-shock-protein-genes-or-expression)**
 
 ```r
 cspa_genes <- samples %>%
@@ -55,7 +55,7 @@ ggplot(cspa_both, aes(Temperature, expression, colour = polar)) +
 cor.test(cspa_both$expression, cspa_both$Temperature, method = "spearman", exact = FALSE)
 ```
 
-**How much is turnover, how much is regulation?** [↗](#how-much-is-turnover-how-much-is-regulation)
+**[How much is turnover, how much is regulation?](#how-much-is-turnover-how-much-is-regulation)**
 
 ```r
 paired <- samples %>%

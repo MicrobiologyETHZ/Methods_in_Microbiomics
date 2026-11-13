@@ -16,13 +16,7 @@ resources:
   - data/kegg_ko.csv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 45 min**</span>
-<span>💻 **Runs in this page:** R in your browser, nothing to install</span>
-<span>📦 **Data:** Oligo-MM12 mice, LPS vs PBS</span>
-:::
-
-{{< include _tldr/02-explore.md >}}
+{{< include _tldr/02-explore.progress.md >}}
 
 ## What you'll learn
 
@@ -31,10 +25,15 @@ resources:
 - How to normalise counts for exploration (TPM, CLR), and check replicates with PCA and correlations.
 - How to read a strain's growth state from its ribosomal protein transcripts.
 
-::: {.callout-note}
-## How the code cells work
-The grey boxes are live R. Edit the code and press **Run Code**. The first run takes a few seconds while R starts in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 45 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in this page:** R in your browser, nothing to install</span>
+<span><span aria-hidden="true">📦</span> **Data:** Oligo-MM12 mice, LPS vs PBS</span>
 :::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include _tldr/02-explore.md >}}
 
 ## The data
 
@@ -73,6 +72,7 @@ strain_colours <- c(
 )
 cat("Loaded", nrow(genes), "genes from", n_distinct(genes$genome), "strains and",
     nrow(samples), "samples.\n")
+cat("Ready: packages and data are loaded.\n")
 ```
 
 Have a look at the tables:
@@ -551,5 +551,3 @@ quiz("Strain X has 1 million inserts in some samples and 3 million in others. Wh
 - **Normalise within each strain** for exploration: TPM, then log or CLR.
 - **PCA and correlation heatmaps** show whether replicates agree and what drives the variation. Here: treatment.
 - **Ribosomal protein share** is a simple proxy for growth. In LPS mice it is lower, consistent with slower growth.
-
-[← 1. From reads to counts](01-reads-to-counts.qmd){.btn .btn-outline-secondary} [3. Differential expression →](03-differential-expression.qmd){.btn .btn-primary}

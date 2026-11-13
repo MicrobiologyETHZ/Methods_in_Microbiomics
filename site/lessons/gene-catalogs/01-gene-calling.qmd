@@ -12,19 +12,25 @@ resources:
   - data/genes.csv
 ---
 
-::: {.lesson-meta}
-<span>⏱ **About 25 min**</span>
-<span>💻 **Runs in:** your Codespace terminal (`workshop/gene-catalogs/`)</span>
-<span>🔧 **Tool:** [Prodigal](https://github.com/hyattpd/Prodigal)</span>
-:::
-
-{{< include _tldr/01-gene-calling.md >}}
+{{< include _tldr/01-gene-calling.progress.md >}}
 
 ## What you'll learn
 
 - How to predict genes in metagenomic assemblies, and why metagenomes need a special mode.
 - What Prodigal's output files contain.
 - Why genes at the edges of contigs are a problem, and how we handle them.
+
+::: {.lesson-meta}
+<span><span aria-hidden="true">⏱</span> **About 25 min**</span>
+<span><span aria-hidden="true">💻</span> **Runs in:** your Codespace terminal (`workshop/gene-catalogs/`)</span>
+<span><span aria-hidden="true">🔧</span> **Tool:** [Prodigal](https://github.com/hyattpd/Prodigal)</span>
+:::
+
+{{< include ../../_partials/live-cells.md >}}
+
+{{< include ../../_partials/codespace.md >}}
+
+{{< include _tldr/01-gene-calling.md >}}
 
 ## The data
 
@@ -120,6 +126,7 @@ library(readr)
 library(ggplot2)
 theme_set(theme_bw())
 genes <- read_csv("data/genes.csv", show_col_types = FALSE)
+cat("Ready: packages and data are loaded.\n")
 ```
 
 ```{webr}
@@ -197,5 +204,3 @@ In the terminal:
 - Use Prodigal's **metagenomic mode** (`-p meta`) for assemblies with many genomes.
 - Sample-prefixed scaffold names keep gene names unique when samples are pooled.
 - `-c` keeps only complete genes, so the catalog contains no partial genes.
-
-[← Overview](index.qmd){.btn .btn-outline-secondary} [B. Clustering →](02-clustering.qmd){.btn .btn-primary}

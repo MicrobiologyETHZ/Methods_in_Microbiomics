@@ -44,6 +44,7 @@ fnFs <- sort(list.files(path, pattern = "^sam.*F\\.fastq\\.gz$", full.names = TR
 fnRs <- sort(list.files(path, pattern = "^sam.*R\\.fastq\\.gz$", full.names = TRUE))
 sample_names <- sub("F\\.fastq\\.gz$", "", basename(fnFs))
 sample_names
+cat("Ready: packages and data are loaded.\n")
 
 # ---- 1. From reads to ASVs: Step 1: primers
 fwd_primer <- "GTGCCAGCMGCCGCGGTAA"   # 515F
