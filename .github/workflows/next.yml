@@ -90,11 +90,11 @@ jobs:
         run: python tests/page_commands.py workshop/gene-catalogs site/lessons/gene-catalogs/0[1-3]*.qmd
 
       - name: Test live R cells and exercise checks
-        run: python tests/webr_cells.py site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd site/lessons/16s/00*.qmd
+        run: python tests/webr_cells.py site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd site/lessons/16s/0[01]*.qmd
 
       # The "At a glance" R summary of each page (cells tagged `#| tldr: true`) must run on its own
       - name: Test the "At a glance" R summaries
-        run: python tests/webr_cells.py --tldr site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd
+        run: python tests/webr_cells.py --tldr site/lessons/gene-catalogs/0[1-4]*.qmd site/lessons/metatranscriptomics/0[2-5]*.qmd site/lessons/16s/01*.qmd
 
       # The summaries are committed (Quarto resolves includes before pre-render scripts run),
       # so check they match the pages

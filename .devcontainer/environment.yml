@@ -18,6 +18,8 @@ dependencies:
   # metatranscriptomics lesson: the same packages the pages load in the browser
   - bioconductor-deseq2=1.50
   - bioconductor-fgsea=1.36
+  # 16S lesson
+  - bioconductor-dada2=1.38
   # only needed to rebuild the lesson data (data-prep/)
   - spades=4.3
   - biopython=1.88

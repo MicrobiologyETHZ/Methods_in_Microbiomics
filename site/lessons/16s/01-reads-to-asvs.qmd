@@ -1,19 +1,451 @@
 ---
 title: "1. From reads to ASVs"
 subtitle: "Remove primers, filter, denoise and merge reads with DADA2"
+format: live-html
+engine: markdown
+webr:
+  packages:
+    - dplyr
+    - tidyr
+    - ggplot2
+    - dada2
+  repos:
+    - https://bioc.r-universe.dev
 ---
+
+::: {.lesson-meta}
+<span>⏱ **About 45 min**</span>
+<span>💻 **Runs in this page:** DADA2 in your browser, nothing to install</span>
+<span>📦 **Data:** DADA2's two example samples (V4, 2 × 250 bp MiSeq)</span>
+:::
 
 {{< include _tldr/01-reads-to-asvs.md >}}
 
-::: {.callout-note}
-## This part is being written
-It will go online soon. Until then, see the [lesson overview](index.qmd), or the [current 16S page](https://methods-in-microbiomics.readthedocs.io/en/latest/taxonomic_profiling/16S.html) on the old site.
+## What you'll learn
+
+- How raw amplicon reads become a table of **amplicon sequence variants** (ASVs).
+- How to check for primers, and why their orientation matters.
+- How to choose truncation lengths from the quality profiles **and** the amplicon length.
+- What DADA2's error model, pooling and chimera removal do, and how to check that you didn't lose too many reads.
+
+## OTUs and ASVs
+
+Sequencing errors make every read slightly different, so a pipeline must decide which differences are real. The older approach clusters reads into **OTUs** (operational taxonomic units) at a fixed similarity, usually 97%: real variants within 3% of each other end up in one OTU, and errors get absorbed into it. **DADA2** instead learns the error profile of the run and asks, for every unique sequence, whether it's more likely a real sequence or an error copy of a more abundant one. What remains are **ASVs**: exact sequences, which can differ by a single base, and which mean the same thing in every study that sequenced the same region.
+
+## The workflow
+
+::: {.compact-diagram}
+```{mermaid}
+flowchart LR
+  P["Remove primers<br/>cutadapt"] --> F["Filter and truncate<br/>filterAndTrim"]
+  F --> E["Learn errors<br/>learnErrors"]
+  E --> D["Denoise<br/>dada"]
+  D --> M["Merge pairs<br/>mergePairs"]
+  M --> C["Remove chimeras<br/>removeBimeraDenovo"]
+  C --> T["ASV table<br/>(Part 2: taxonomy)"]
+```
 :::
 
-## What this part will cover
+## The reads on this page
 
-- Finding primers in both orientations, and removing them.
-- Reading quality profiles, and choosing where to truncate reads so the pairs still overlap.
-- Error models, including NovaSeq's binned quality scores.
-- Pooling modes, merging read pairs and removing chimeras.
-- Tracking how many reads survive each step.
+The CF study's reads are too large for a browser, so this page uses the two small example samples that come with the dada2 package: 2 × 250 bp MiSeq reads of the V4 region. Every step is the same for the CF data; where the numbers differ (the CF study sequenced V3–V4), the text says so.
+
+::: {.callout-note}
+## How the code cells work
+The grey boxes are live R. Edit the code and press **Run Code**. The first run takes longer: R and DADA2 load in your browser. Cells build on each other, so run them **in order**. Exercises have **Hint** and **Solution** buttons.
+:::
+
+```{webr}
+#| autorun: true
+#| edit: false
+#| tldr: true
+library(dada2)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+theme_set(theme_bw())
+
+# forward (R1) and reverse (R2) reads of each sample
+path <- system.file("extdata", package = "dada2")
+fnFs <- sort(list.files(path, pattern = "^sam.*F\\.fastq\\.gz$", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern = "^sam.*R\\.fastq\\.gz$", full.names = TRUE))
+sample_names <- sub("F\\.fastq\\.gz$", "", basename(fnFs))
+sample_names
+```
+
+## Step 1: primers
+
+DADA2 needs reads **without primers**. Primers contain degenerate bases, so the same primer appears in several versions in the reads; DADA2 would count those versions as different sequences. Before anything else, check whether your reads still start with the primers, and in which orientation.
+
+```{webr}
+#| tldr: true
+fwd_primer <- "GTGCCAGCMGCCGCGGTAA"   # 515F
+rev_primer <- "GGACTACHVGGGTWTCTAAT"  # 806R
+
+# number of reads containing a primer (degenerate bases allowed), in both orientations
+primer_hits <- function(primer, fastq) {
+  reads <- Biostrings::DNAStringSet(getSequences(fastq))
+  rc <- as.character(Biostrings::reverseComplement(Biostrings::DNAString(primer)))
+  c(forward = sum(Biostrings::vcountPattern(primer, reads, fixed = FALSE) > 0),
+    reverse_complement = sum(Biostrings::vcountPattern(rc, reads, fixed = FALSE) > 0))
+}
+rbind(fwd_in_R1 = primer_hits(fwd_primer, fnFs[1]),
+      rev_in_R1 = primer_hits(rev_primer, fnFs[1]),
+      fwd_in_R2 = primer_hits(fwd_primer, fnRs[1]),
+      rev_in_R2 = primer_hits(rev_primer, fnRs[1]))
+```
+
+If the counts are close to zero, the reads start right after the primers: some protocols use sequencing primers that sit on top of the PCR primers. Then there's **nothing to remove**, and that's the case DADA2's example reads were prepared for. Most protocols, including the CF study's, sequence the primers. The lab removes them with [cutadapt](https://cutadapt.readthedocs.io/):
+
+```{.bash .notest}
+FWD=CCTACGGGNGGCWGCAG       # 341F
+REV=GACTACHVGGGTATCTAATCC   # 785R (also called 805R)
+mkdir -p trimmed
+for s in $(cat samples.txt); do
+  # keep read pairs that start with the primers, and cut them off
+  cutadapt -O 12 --discard-untrimmed --pair-adapters --minimum-length 75 -j 4 \
+    -g $FWD -G $REV \
+    -o trimmed/$s.tmp_R1.fastq.gz -p trimmed/$s.tmp_R2.fastq.gz \
+    raw/${s}_R1.fastq.gz raw/${s}_R2.fastq.gz
+  # rarely, a primer was added more than once: remove up to 5 more copies
+  cutadapt -O 12 --times 5 -j 4 -g $FWD -o trimmed/$s.tmp2_R1.fastq.gz trimmed/$s.tmp_R1.fastq.gz
+  cutadapt -O 12 --times 5 -j 4 -g $REV -o trimmed/$s.tmp2_R2.fastq.gz trimmed/$s.tmp_R2.fastq.gz
+  # pair the reads up again, dropping any that became too short
+  cutadapt --minimum-length 75 -j 4 \
+    -o trimmed/${s}_R1.fastq.gz -p trimmed/${s}_R2.fastq.gz \
+    trimmed/$s.tmp2_R1.fastq.gz trimmed/$s.tmp2_R2.fastq.gz
+  rm trimmed/$s.tmp*
+done
+```
+
+`--discard-untrimmed` also drops read pairs without primers, which are usually not amplicons.
+
+::: {.callout-tip collapse="true"}
+## If your library has both orientations
+Some library preparations ligate adapters to the amplicons in either direction, so half of the read pairs have the **forward primer in R1** and half have it in **R2** (common with 515F/926R in the lab). Check with the primer table above: you'd see the forward primer in both R1 and R2.
+
+Then split the read pairs by orientation, and run each set through DADA2 separately (filter, learn errors, denoise):
+
+```{.bash .notest .notldr}
+mkdir -p fw rv
+# for each sample $s, inside the loop above instead of its first cutadapt call
+# forward orientation: R1 starts with the forward primer
+cutadapt -O 12 --discard-untrimmed --pair-adapters --minimum-length 75 -j 4 -g $FWD -G $REV \
+  -o fw/${s}_R1.fastq.gz -p fw/${s}_R2.fastq.gz raw/${s}_R1.fastq.gz raw/${s}_R2.fastq.gz
+# reverse orientation: R1 starts with the reverse primer
+cutadapt -O 12 --discard-untrimmed --pair-adapters --minimum-length 75 -j 4 -g $REV -G $FWD \
+  -o rv/${s}_R1.fastq.gz -p rv/${s}_R2.fastq.gz raw/${s}_R1.fastq.gz raw/${s}_R2.fastq.gz
+```
+
+When merging, swap R1 and R2 for the reverse set. Then all merged sequences come out in the same orientation, and the two tables can be added up:
+
+```{.r .notest}
+mergers_fw <- mergePairs(dd_fw_R1, filt_fw_R1, dd_fw_R2, filt_fw_R2)
+mergers_rv <- mergePairs(dd_rv_R2, filt_rv_R2, dd_rv_R1, filt_rv_R1)   # swapped
+seqtab <- mergeSequenceTables(makeSequenceTable(mergers_fw), makeSequenceTable(mergers_rv),
+                              repeats = "sum")
+```
+:::
+
+## Step 2: quality profiles
+
+Read quality falls towards the end of each read, and DADA2 works best without the low-quality tails. Look at the quality profiles of a forward and a reverse file:
+
+```{webr}
+plotQualityProfile(c(fnFs[1], fnRs[1]))
+```
+
+The green line is the mean quality at each position, the orange lines the quartiles. The reverse reads get worse sooner, as is usual on Illumina machines.
+
+**How much to cut?** Truncate where quality drops off, but keep enough so the forward and reverse reads still **overlap** and can be merged: DADA2 needs at least 12 bases of overlap, and the lab keeps at least 10–20 more as a safety margin, because amplicon length varies between taxa. Reverse reads usually need more trimming than forward reads.
+
+Here the V4 amplicon is short (about 253 bp between the primers) and the reads are 250 bp, so there's overlap to spare: we cut the forward reads at 240 and the reverse reads at 160, giving 240 + 160 − 253 = 147 bases of overlap.
+
+### Exercise: truncation for a V3–V4 run
+
+V3–V4 is longer. The 341F/785R amplicon is 465 bp including the primers (17 and 21 bases), and the CF study sequenced it with 2 × 300 bp reads. After cutadapt, the forward reads look good up to base 260, but the reverse reads drop off after about 200. What's the **shortest reverse truncation** that still leaves 20 bases of overlap?
+
+```{webr}
+#| exercise: ex_overlap
+insert <- 465 - 17 - 21                       # the amplicon between the primers
+overlap <- function(trunc_fwd, trunc_rev) trunc_fwd + trunc_rev - insert
+
+trunc_fwd <- 260
+trunc_rev <- ______
+overlap(trunc_fwd, trunc_rev)
+```
+
+::: {.hint exercise="ex_overlap"}
+You need `trunc_fwd + trunc_rev - insert = 20`. Solve for `trunc_rev`.
+:::
+
+::: {.solution exercise="ex_overlap"}
+```r
+insert <- 465 - 17 - 21                       # the amplicon between the primers
+overlap <- function(trunc_fwd, trunc_rev) trunc_fwd + trunc_rev - insert
+
+trunc_fwd <- 260
+trunc_rev <- insert + 20 - trunc_fwd
+overlap(trunc_fwd, trunc_rev)
+```
+:::
+
+```{webr}
+#| exercise: ex_overlap
+#| check: true
+ok <- exists("trunc_rev") && is.numeric(trunc_rev) &&
+  overlap(260, trunc_rev) >= 20 && trunc_rev <= 190
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = paste0("Right: ", trunc_rev, " bases of reverse read leave ", overlap(260, trunc_rev),
+                        " bases of overlap. The low-quality bases after 200 would mostly be cut, but not all: a trade-off."))
+} else {
+  list(correct = FALSE, type = "error",
+       message = "Not yet. The overlap is trunc_fwd + trunc_rev - insert; make it 20 (insert = 427).")
+}
+```
+
+## Step 3: filter and truncate
+
+`filterAndTrim` truncates the reads and removes pairs that are still poor: with any `N`, with more than `maxEE` **expected errors** (the sum of the error probabilities given by the quality scores), or from the PhiX control that Illumina runs spike in.
+
+```{webr}
+#| tldr: true
+filtFs <- file.path(tempdir(), "filtered", basename(fnFs))
+filtRs <- file.path(tempdir(), "filtered", basename(fnRs))
+
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
+                     truncLen = c(240, 160), maxN = 0, maxEE = c(2, 2), truncQ = 2,
+                     rm.phix = TRUE, multithread = FALSE)
+out
+```
+
+Most read pairs pass. If many fail, the quality profiles usually show why: truncate more, or allow more expected errors in the reverse reads (e.g. `maxEE = c(2, 5)`).
+
+## Step 4: learn the error rates
+
+DADA2's model needs to know how often each base is misread as each other base, at each quality score. These rates differ from run to run, so DADA2 learns them from the data:
+
+```{webr}
+#| tldr: true
+errF <- learnErrors(filtFs, multithread = FALSE, verbose = FALSE)
+errR <- learnErrors(filtRs, multithread = FALSE, verbose = FALSE)
+plotErrors(errF, nominalQ = TRUE)
+```
+
+Each panel is one substitution (A→C, A→G, …). The points are the observed error rates, the black line DADA2's fit, the red line what the quality scores promise. A good fit follows the points, and **error rates fall as quality rises**.
+
+Error rates are a property of the sequencing run, and even of the lane: **learn them separately for each lane**, and for each orientation if you split your reads (Step 1). For large runs, the lab gives `learnErrors` a fixed amount of data drawn from all samples: `nbases = 1e8, randomize = TRUE`.
+
+::: {.callout-warning collapse="true"}
+## NovaSeq and binned quality scores
+Newer Illumina machines (NovaSeq, NextSeq, MiSeq i100) report only a few **binned** quality values instead of the full range. With so few points, DADA2's default fit can go up and down instead of falling with quality, and `plotErrors` shows it. The problem is discussed in [dada2 issue #1307](https://github.com/benjjneb/dada2/issues/1307) and the [Ernakovich lab tutorial](https://github.com/ErnakovichLab/dada2_ernakovichlab#learn-the-error-rates).
+
+The lab's solution is a modified error function that weights each quality score by the logarithm of its read count and fits a smoother curve (`span = 2`). It's DADA2's own `loessErrfun` with those two changes. Use it in `learnErrors(..., errorEstimationFunction = loessErrfun_mod)`. It runs on any data, so try it on our reads:
+
+```{webr}
+loessErrfun_mod <- function(trans) {
+  qq <- as.numeric(colnames(trans))
+  est <- matrix(0, nrow = 0, ncol = length(qq))
+  for (nti in c("A", "C", "G", "T")) {
+    for (ntj in c("A", "C", "G", "T")) {
+      if (nti != ntj) {
+        errs <- trans[paste0(nti, "2", ntj), ]
+        tot <- colSums(trans[paste0(nti, "2", c("A", "C", "G", "T")), ])
+        rlogp <- log10((errs + 1) / tot)
+        rlogp[is.infinite(rlogp)] <- NA
+        df <- data.frame(q = qq, errs = errs, tot = tot, rlogp = rlogp)
+        # the changes: weights log10(tot) instead of tot, and a wider span
+        mod.lo <- loess(rlogp ~ q, df, weights = log10(tot), span = 2)
+        pred <- predict(mod.lo, qq)
+        maxrli <- max(which(!is.na(pred)))
+        minrli <- min(which(!is.na(pred)))
+        pred[seq_along(pred) > maxrli] <- pred[[maxrli]]
+        pred[seq_along(pred) < minrli] <- pred[[minrli]]
+        est <- rbind(est, 10^pred)
+      }
+    }
+  }
+  MAX_ERROR_RATE <- 0.25
+  MIN_ERROR_RATE <- 1e-7
+  est[est > MAX_ERROR_RATE] <- MAX_ERROR_RATE
+  est[est < MIN_ERROR_RATE] <- MIN_ERROR_RATE
+  # add the probabilities of reading each base correctly
+  err <- rbind(1 - colSums(est[1:3, ]), est[1:3, ],
+               est[4, ], 1 - colSums(est[4:6, ]), est[5:6, ],
+               est[7:8, ], 1 - colSums(est[7:9, ]), est[9, ],
+               est[10:12, ], 1 - colSums(est[10:12, ]))
+  rownames(err) <- paste0(rep(c("A", "C", "G", "T"), each = 4), "2", c("A", "C", "G", "T"))
+  colnames(err) <- colnames(trans)
+  err
+}
+
+errF_mod <- learnErrors(filtFs, errorEstimationFunction = loessErrfun_mod,
+                        multithread = FALSE, verbose = FALSE)
+plotErrors(errF_mod, nominalQ = TRUE)
+```
+
+On full-range quality scores like ours, both fits look much the same. On binned data, compare the two with `plotErrors`, and keep the one whose error rates fall steadily with quality. The best solution can depend on the dataset.
+:::
+
+## Step 5: denoise
+
+Now the core of DADA2: for each sample, `dada` decides which unique sequences are real and which are errors of more abundant ones.
+
+```{webr}
+#| tldr: true
+ddF <- dada(filtFs, err = errF, multithread = FALSE, verbose = FALSE)
+ddR <- dada(filtRs, err = errR, multithread = FALSE, verbose = FALSE)
+ddF[[1]]
+```
+
+By default each sample is denoised on its own. A sequence that's rare in every sample may then never be recognised as real. **Pooling** lets samples share information:
+
+- `pool = FALSE` (default): fast; misses some rare variants.
+- `pool = "pseudo"`: two rounds; sequences found in any sample in the first round are given a second chance in all samples. Nearly as sensitive as full pooling, and much faster.
+- `pool = TRUE`: all samples denoised together; most sensitive, slow for large studies.
+
+```{webr}
+pool_modes <- list(none = FALSE, pseudo = "pseudo", pooled = TRUE)
+sapply(pool_modes, function(p) {
+  dd <- dada(filtFs, err = errF, pool = p, multithread = FALSE, verbose = FALSE)
+  sapply(dd, function(x) length(getSequences(x)))
+})
+```
+
+Pooling usually finds a few more ASVs per sample; with only two small samples, the difference here may be small. With pooling, ASVs found in one sample can also be found in others with fewer reads, which matters most for rare taxa and for comparing presence and absence between samples.
+
+## Step 6: merge read pairs
+
+`mergePairs` aligns each forward read with its reverse read and merges them into one sequence of the whole amplicon. Pairs that don't overlap by at least 12 bases, or that disagree in the overlap, are dropped.
+
+```{webr}
+#| tldr: true
+mergers <- mergePairs(ddF, filtFs, ddR, filtRs, verbose = FALSE)
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)                           # samples x ASVs
+table(nchar(getSequences(seqtab)))    # ASV lengths
+```
+
+The ASVs should all have about the length of the amplicon between the primers (around 253 bp for V4). Much shorter or longer sequences are usually non-specific amplification, and can be removed.
+
+## Step 7: remove chimeras
+
+During PCR, an incomplete product can act as a primer on a different template, giving a **chimera**: a sequence whose first part comes from one organism and the rest from another. `removeBimeraDenovo` finds ASVs that can be built from two more abundant ASVs.
+
+```{webr}
+#| tldr: true
+seqtab_nochim <- removeBimeraDenovo(seqtab, method = "consensus",
+                                    multithread = FALSE, verbose = TRUE)
+c(ASVs_before = ncol(seqtab), ASVs_after = ncol(seqtab_nochim),
+  reads_kept = sum(seqtab_nochim) / sum(seqtab))
+```
+
+Chimeras can be many ASVs, but few reads. Match the method to the pooling: `method = "consensus"` (decide per sample, then combine) after `pool = FALSE` or `"pseudo"`; `method = "pooled"` only after `pool = TRUE`.
+
+::: {.callout-note}
+## Optional: drop very rare ASVs
+Most ASVs in a large study are seen in one sample with a handful of reads, and many are artefacts. The lab removes ASVs with fewer than 5 reads in total when combining the tables of a study:
+
+```{.r .notest}
+seqtab_nochim <- seqtab_nochim[, colSums(seqtab_nochim) >= 5, drop = FALSE]
+```
+:::
+
+## Step 8: how many reads made it?
+
+Always track the reads through the steps. **You shouldn't lose many reads at merging and chimera removal.** If you do, the usual causes are truncating too much (no overlap left), primers left in the reads, or non-target amplification.
+
+```{webr}
+#| tldr: true
+getN <- function(x) sum(getUniques(x))
+track <- data.frame(sample = sample_names,
+                    input = out[, "reads.in"], filtered = out[, "reads.out"],
+                    denoisedF = sapply(ddF, getN), denoisedR = sapply(ddR, getN),
+                    merged = sapply(mergers, getN), nonchim = rowSums(seqtab_nochim),
+                    row.names = NULL)
+track
+```
+
+### Exercise: the share of reads kept
+
+Add a column `kept`: the share of each sample's input reads that end up in the final table.
+
+```{webr}
+#| exercise: ex_track
+#| tldr: true
+track <- track %>%
+  mutate(kept = ______)
+track
+```
+
+::: {.hint exercise="ex_track"}
+Divide the final column, `nonchim`, by the first, `input`.
+:::
+
+::: {.solution exercise="ex_track"}
+```r
+track <- track %>%
+  mutate(kept = nonchim / input)
+track
+```
+:::
+
+```{webr}
+#| exercise: ex_track
+#| check: true
+ok <- exists("track") && "kept" %in% names(track) &&
+  isTRUE(all.equal(track$kept, track$nonchim / track$input))
+if (ok) {
+  list(correct = TRUE, type = "success",
+       message = paste0("Each sample keeps ", paste(round(100 * track$kept), collapse = "% and "), "% of its reads."))
+} else {
+  list(correct = FALSE, type = "error", message = "Not yet: kept = nonchim / input.")
+}
+```
+
+```{webr}
+track %>%
+  select(-any_of("kept")) %>%
+  pivot_longer(-sample, names_to = "step", values_to = "reads") %>%
+  mutate(step = factor(step, levels = c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim"))) %>%
+  ggplot(aes(step, reads, colour = sample, group = sample)) +
+  geom_line() +
+  geom_point() +
+  expand_limits(y = 0) +
+  labs(x = NULL, y = "Reads")
+```
+
+In a healthy run, most reads are lost at filtering, and denoising, merging and chimera removal each cost little. Check that it holds for these two samples.
+
+## Check yourself
+
+```{ojs}
+//| echo: false
+import {quiz} from "../../assets/quiz.ojs"
+
+quiz("After filtering, 90% of the reads are left, but after merging only 20%. What's the most likely cause?", [
+  {text: "Too many chimeras", correct: false, why: "Chimeras are removed after merging, so they can't explain a loss at merging."},
+  {text: "The reads were truncated too short to overlap", correct: true, why: "Pairs that don't overlap by at least 12 bases can't be merged. Check: trunc_fwd + trunc_rev − amplicon length."},
+  {text: "The error model was poor", correct: false, why: "A poor error model changes which ASVs are found, but it doesn't make most read pairs fail to merge."}
+])
+```
+
+```{ojs}
+//| echo: false
+quiz("You denoised with pool = \"pseudo\". Which chimera removal fits?", [
+  {text: "method = \"consensus\"", correct: true, why: "Consensus (per sample, then combined) fits no pooling and pseudo-pooling."},
+  {text: "method = \"pooled\"", correct: false, why: "Pooled chimera removal fits full pooling (pool = TRUE), where all samples are denoised together."},
+  {text: "No chimera removal is needed after pooling", correct: false, why: "Pooling doesn't remove chimeras; they form during PCR and look like real sequences."}
+])
+```
+
+## Key points
+
+- Check for **primers in both orientations** first; DADA2 needs primer-free reads.
+- Truncate where quality drops, but keep **trunc_fwd + trunc_rev ≥ amplicon length + 20**.
+- Learn error rates **per run or lane** (and per orientation); on binned quality scores, check the fit and consider the modified error function.
+- Pool samples (`"pseudo"`) to find rare variants; use **consensus** chimera removal unless you pool fully.
+- **Track your reads**: big losses after filtering point to a problem upstream.
+
+[← 0. Before sequencing](00-before-sequencing.qmd){.btn .btn-outline-secondary} [2. Taxonomy →](02-taxonomy.qmd){.btn .btn-primary}
